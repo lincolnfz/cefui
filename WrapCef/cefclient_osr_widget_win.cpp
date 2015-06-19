@@ -242,55 +242,19 @@ bool Gen32Bitmap(const void* buffer, int width, int height, Gdiplus::Bitmap*& pB
 		if (hResult == S_OK){			
 			pBitmap = Gdiplus::Bitmap::FromStream(pStream);
 			st = pBitmap->GetLastStatus();
-
-			//test
-			{
-				WCHAR filename[256];
-				static int ssfe = 0;
-				wsprintfW(filename, L"D:\\testbmp\\bin_%d.bin", ++ssfe);
-				HANDLE hFile = CreateFileW(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_ARCHIVE, NULL);
-				DWORD dw;
-				WriteFile(hFile, buffer, datalen, &dw, NULL);
-				CloseHandle(hFile);
-
-				static int num = 1;
-				CLSID encoder;
-				GetEncoderClsid2(L"image/bmp", &encoder);
-
-				wsprintfW(filename, L"d:\\testbmp\\bmp_%d.bmp", num);
-				pBitmap->Save(filename, &encoder);
-
-				CLSID pngcoder;
-				Gdiplus::EncoderParameters encoderParameters;
-				GetEncoderClsid2(L"image/png", &pngcoder);
-				encoderParameters.Count = 1;
-				encoderParameters.Parameter[0].Guid = Gdiplus::EncoderQuality;
-				encoderParameters.Parameter[0].Type = Gdiplus::EncoderParameterValueTypeLong;
-				encoderParameters.Parameter[0].NumberOfValues = 1;
-
-				ULONG quality = 100;
-				encoderParameters.Parameter[0].Value = &quality;
-
-				wsprintfW(filename, L"d:\\testbmp\\png_%d.png", num);
-				pBitmap->Save(filename, &pngcoder);
-				++num;
-
-				//CreateDIBSection(  )
-			}
-			//test code
 		}
 	}
 
 	return st == Gdiplus::Status::Ok;
 }
 
-void GetBitmapInfo(const void* buffer, int width, int height, BITMAPINFO& info){
+void Get32BitmapInfo(int width, int height, BITMAPINFO& info, unsigned long& datalen){
 
 	unsigned int linebyte = (((width << 5) + 31) >> 5) << 2;
 
-	unsigned int lineInval = 4 - ((width << 5) >> 3) & 3;
+	//unsigned int lineInval = 4 - ((width << 5) >> 3) & 3;
 
-	unsigned int datalen = linebyte * height;
+	datalen = linebyte * height;
 
 	unsigned int headlen = sizeof(BITMAPINFO);
 	memset(&info, 0, sizeof(BITMAPINFO));
@@ -341,19 +305,16 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
   }
   return;*/
 
-	Gdiplus::Status st;
-	Gdiplus::Bitmap* pBitmap = NULL;
-	if (Gen32Bitmap(buffer, width, height, pBitmap)){
-
-		HDC hdc = ::GetDC(hWnd_);
-		HDC hSrcDC = CreateCompatibleDC(hdc);
-		HBITMAP hOldBmp = NULL;
-		HBITMAP hBitmap = NULL;
-		st = pBitmap->GetHBITMAP(Gdiplus::Color(0, 0, 0), &hBitmap);
-		st = pBitmap->GetLastStatus();
-		if (st == Gdiplus::Status::Ok)
-		{
-			hOldBmp = static_cast<HBITMAP>(SelectObject(hSrcDC, hBitmap));
+	BITMAPINFO info;
+	HDC hdc = ::GetDC(hWnd_);
+	HDC hSrcDC = CreateCompatibleDC(hdc);
+	unsigned long datalen = 0;
+	Get32BitmapInfo(width, height, info, datalen);
+	void* bitbuf = NULL;
+	HBITMAP hBitmap = CreateDIBSection(hSrcDC, &info, DIB_RGB_COLORS, (void**)&bitbuf, NULL, 0);
+	if (hBitmap){
+		if (SetBitmapBits(hBitmap, datalen, buffer)){
+			HBITMAP hOldBmp = static_cast<HBITMAP>(SelectObject(hSrcDC, hBitmap));
 			if (type == PET_VIEW) {
 				int old_width = view_width_;
 				int old_height = view_height_;
@@ -388,14 +349,13 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 
 			}
 			SelectObject(hSrcDC, hOldBmp);
-			DeleteObject(hBitmap);
 		}
-		DeleteDC(hSrcDC);
-		ReleaseDC(hWnd_, hdc);		
-		delete pBitmap;
+		DeleteObject(hBitmap);
+	
 	}
 
-
+	DeleteDC(hSrcDC);
+	ReleaseDC(hWnd_, hdc);
 }
 
 void OSRWindow::OnCursorChange(CefRefPtr<CefBrowser> browser,
