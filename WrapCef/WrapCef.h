@@ -4,6 +4,6 @@
 #include "defexport.h"
 
 
-MIRAGE_API int InitCef(HINSTANCE hInstance);
+MIRAGE_API int InitCef(HINSTANCE hInstance, HACCEL hAccelTable);
 
 #endif

@@ -457,7 +457,7 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
     message_router_ = NULL;
 
     // Quit the application message loop.
-    //AppQuitMessageLoop();
+    AppQuitMessageLoop();
   }
 }
 

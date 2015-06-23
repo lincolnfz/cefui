@@ -268,7 +268,7 @@ void Get32BitmapInfo(int width, int height, BITMAPINFO& info, unsigned long& dat
 	info.bmiHeader.biSizeImage = 0;
 	info.bmiHeader.biXPelsPerMeter = 0;
 	info.bmiHeader.biYPelsPerMeter = 0;
-	info.bmiHeader.biHeight = -height;//  
+	info.bmiHeader.biHeight = height;//  
 	info.bmiHeader.biWidth = width;// 
 
 	BITMAPFILEHEADER bmphead;
@@ -968,7 +968,16 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
   case WM_ERASEBKGND:
     return 0;
+
+  case WM_CLOSE:
+  {
+	  if ( browser.get() )
+	  {
+		  browser->CloseBrowser(true);
+	  }
   }
+  }
+
 
   return DefWindowProc(hWnd, message, wParam, lParam);
 }

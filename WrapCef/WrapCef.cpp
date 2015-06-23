@@ -26,6 +26,7 @@
 
 
 void* g_sandbox_info = NULL;
+#define ID_QUIT WM_USER+1
 
 #if defined(CEF_USE_SANDBOX)
 CefScopedSandboxInfo scoped_sandbox;
@@ -37,6 +38,39 @@ char szWorkingDir[MAX_PATH];  // The current working directory
 extern CefRefPtr<ClientHandler> g_handler;
 
 WCHAR szCefWindowClass[] = {L"Direct_UI"};
+
+bool bMultiThreadedMessageLoop = false;
+
+
+LRESULT CALLBACK MessageWndProc(HWND hWnd, UINT message, WPARAM wParam,
+	LPARAM lParam) {
+	switch (message) {
+	case WM_COMMAND: {
+		int wmId = LOWORD(wParam);
+		switch (wmId) {
+		case ID_QUIT:
+			PostQuitMessage(0);
+			return 0;
+		}
+	}
+	}
+	return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+HWND CreateMessageWindow(HINSTANCE hInstance) {
+	static const wchar_t kWndClass[] = L"ClientMessageWindow";
+
+	WNDCLASSEX wc = { 0 };
+	wc.cbSize = sizeof(wc);
+	wc.lpfnWndProc = MessageWndProc;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = kWndClass;
+	RegisterClassEx(&wc);
+
+	return CreateWindow(kWndClass, 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0,
+		hInstance, 0);
+}
+
 
 class MainBrowserProvider : public OSRBrowserProvider {
 	virtual CefRefPtr<CefBrowser> GetBrowser() {
@@ -244,14 +278,16 @@ ATOM MyCefCefRegisterClass(HINSTANCE hInstance) {
 	return RegisterClassEx(&wcex);
 }
 
-int InitCef(HINSTANCE hInstance){
+HWND hMessageWnd;
+
+int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 #if defined(CEF_USE_SANDBOX)
 	g_sandbox_info = scoped_sandbox.sandbox_info();
 #endif
 	CefMainArgs main_args(hInstance);
 	CefRefPtr<ClientApp> app(new ClientApp);
 	int exit_code = CefExecuteProcess(main_args, app.get(), g_sandbox_info);
-
+	int result = 0;
 	if (exit_code >= 0)
 		return exit_code;
 
@@ -270,6 +306,7 @@ int InitCef(HINSTANCE hInstance){
 
 	// Populate the settings based on command line arguments.
 	AppGetSettings(settings);
+	settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
 
 	// Initialize CEF.
 	CefInitialize(main_args, settings, app.get(), g_sandbox_info);
@@ -313,9 +350,46 @@ int InitCef(HINSTANCE hInstance){
 
 	/*MyCefCefRegisterClass(hInstance);*/
 
-	CefRunMessageLoop();
+	if (settings.multi_threaded_message_loop == false)
+	{
+		CefRunMessageLoop();
+	}
+	else{
+		// Create a hidden window for message processing.
+		hMessageWnd = CreateMessageWindow(hInstance);
+		DCHECK(hMessageWnd);
+
+		MSG msg;
+
+		// Run the application message loop.
+		while (GetMessage(&msg, NULL, 0, 0)) {
+			// Allow processing of find dialog messages.
+
+			if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+
+		DestroyWindow(hMessageWnd);
+		hMessageWnd = NULL;
+
+		result = static_cast<int>(msg.wParam);
+	}
 
 	CefShutdown();
 
-	return 0;
+	return result;
+}
+
+void AppQuitMessageLoop() {
+	if (bMultiThreadedMessageLoop) {
+		// Running in multi-threaded message loop mode. Need to execute
+		// PostQuitMessage on the main application thread.
+		DCHECK(hMessageWnd);
+		PostMessage(hMessageWnd, WM_COMMAND, ID_QUIT, 0);
+	}
+	else {
+		CefQuitMessageLoop();
+	}
 }
