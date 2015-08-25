@@ -62,9 +62,13 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
                              HINSTANCE hInst, LPCTSTR className) {
   DCHECK(hWnd_ == NULL && hDC_ == NULL && hRC_ == NULL);
 
-  RegisterOSRClass(hInst, className);
-  hWnd_ = ::CreateWindowEx( WS_EX_LAYERED, className, 0,
-	  WS_POPUP|WS_VISIBLE|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
+  WNDCLASSEXW wndClass;
+  wndClass.cbSize = sizeof(wndClass);
+  if(!GetClassInfoExW(hInst, className, &wndClass))
+	  RegisterOSRClass(hInst, className);
+
+  hWnd_ = ::CreateWindowEx(WS_EX_LAYERED | WS_EX_APPWINDOW, className, 0,
+	  WS_POPUP|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
       rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
       hWndParent, 0, hInst, 0);
 
@@ -72,6 +76,12 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
     return false;
 
   SetWindowLongPtr(hWnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+
+  long styleEx = GetWindowLong(hWnd_, GWL_EXSTYLE);
+  styleEx &= ~WS_EX_APPWINDOW;
+  styleEx |= WS_EX_TOOLWINDOW;
+  //SetWindowLongPtr(hWnd_, GWL_EXSTYLE, styleEx);
+  ShowWindow(hWnd_, SW_SHOW);
 
   // Reference released in OnDestroyed().
   AddRef();
@@ -973,7 +983,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   {
 	  if ( browser.get() )
 	  {
-		  browser->CloseBrowser(true);
+		  browser->CloseBrowser(true); //¹Ø±Õµ¥¶À
+		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
 	  }
   }
   }

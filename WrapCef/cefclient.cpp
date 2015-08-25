@@ -18,7 +18,7 @@
 #include "client_switches.h"
 #include "string_util.h"
 
-CefRefPtr<ClientHandler> g_handler;
+//CefRefPtr<ClientHandler> g_handler;
 
 namespace {
 
@@ -27,17 +27,17 @@ int g_offscreen_state = 0;
 
 }  // namespace
 
-CefRefPtr<CefBrowser> AppGetBrowser() {
-  if (!g_handler.get())
-    return NULL;
-  return g_handler->GetBrowser();
-}
-
-ClientWindowHandle AppGetMainWindowHandle() {
-  if (!g_handler.get())
-    return kNullWindowHandle;
-  return g_handler->GetMainWindowHandle();
-}
+// CefRefPtr<CefBrowser> AppGetBrowser() {
+//   if (!g_handler.get())
+//     return NULL;
+//   return g_handler->GetBrowser();
+// }
+// 
+// ClientWindowHandle AppGetMainWindowHandle() {
+//   if (!g_handler.get())
+//     return kNullWindowHandle;
+//   return g_handler->GetMainWindowHandle();
+// }
 
 void AppInitCommandLine(int argc, const char* const* argv) {
   g_command_line = CefCommandLine::CreateCommandLine();

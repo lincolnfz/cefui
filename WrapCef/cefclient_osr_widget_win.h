@@ -15,6 +15,8 @@ class OSRBrowserProvider {
  public:
   virtual CefRefPtr<CefBrowser> GetBrowser() =0;
 
+  virtual CefRefPtr<ClientHandler> GetClientHandler() = 0;
+
  protected:
   virtual ~OSRBrowserProvider() {}
 };
