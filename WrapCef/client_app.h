@@ -67,7 +67,7 @@ class ClientApp : public CefApp,
     virtual void OnContextCreated(CefRefPtr<ClientApp> app,
                                   CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefFrame> frame,
-                                  CefRefPtr<CefV8Context> context);// {}
+                                  CefRefPtr<CefV8Context> context) {}
 
     virtual void OnContextReleased(CefRefPtr<ClientApp> app,
                                    CefRefPtr<CefBrowser> browser,

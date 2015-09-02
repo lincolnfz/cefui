@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <IncludePath>D:\opensource\chromium.39.0.2171.95\src\cef\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LibraryPath>D:\opensource\chromium.39.0.2171.95\src\out\Release;D:\opensource\chromium.39.0.2171.95\src\out\Release\obj\cef;D:\opensource\chromium.39.0.2171.95\src\out\Release\obj\sandbox;D:\opensource\chromium.39.0.2171.95\src\out\Release\obj\base;D:\opensource\chromium.39.0.2171.95\src\out\Release\obj\third_party\WebKit\Source\wtf;D:\opensource\chromium.39.0.2171.95\src\out\Release\obj\base\third_party\dynamic_annotations;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_USE_MIRAGE_DLL;MIRAGE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

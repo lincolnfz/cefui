@@ -227,10 +227,158 @@ void AppQuitMessageLoop() {
 	if (bMultiThreadedMessageLoop) {
 		// Running in multi-threaded message loop mode. Need to execute
 		// PostQuitMessage on the main application thread.
-		DCHECK(hMessageWnd);
-		PostMessage(hMessageWnd, WM_COMMAND, ID_QUIT, 0);
+		//DCHECK(hMessageWnd);
+		//PostMessage(hMessageWnd, WM_COMMAND, ID_QUIT, 0);
 	}
 	else {
 		CefQuitMessageLoop();
 	}
+}
+
+int InitBrowser(HINSTANCE hInstance)
+{
+#if defined(CEF_USE_SANDBOX)
+	g_sandbox_info = scoped_sandbox.sandbox_info();
+#endif
+
+	CefMainArgs main_args(hInstance);
+	CefRefPtr<ClientApp> app(new ClientApp);
+	int exit_code = CefExecuteProcess(main_args, app.get(), g_sandbox_info);
+	int result = -1;
+	if (exit_code >= 0)
+		return exit_code;
+
+	// Retrieve the current working directory.
+	if (_getcwd(szWorkingDir, MAX_PATH) == NULL)
+		szWorkingDir[0] = 0;
+
+	// Parse command line arguments. The passed in values are ignored on Windows.
+	AppInitCommandLine(0, NULL);
+
+	CefSettings settings;
+
+#if !defined(CEF_USE_SANDBOX)
+	settings.no_sandbox = true;
+#endif
+
+	// Populate the settings based on command line arguments.
+	AppGetSettings(settings);
+	bMultiThreadedMessageLoop = true;
+	settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
+
+	// Initialize CEF.
+	CefInitialize(main_args, settings, app.get(), g_sandbox_info);
+
+	// Register the scheme handler.
+	scheme_test::InitTest();
+
+	return -1;
+}
+
+int UnInitBrowser()
+{
+	CefShutdown();
+	return 0;
+}
+
+
+// Set focus to |browser| on the UI thread.
+static void SetFocusToBrowser(CefRefPtr<CefBrowser> browser) {
+	if (!CefCurrentlyOn(TID_UI)) {
+		// Execute on the UI thread.
+		CefPostTask(TID_UI, base::Bind(&SetFocusToBrowser, browser));
+		return;
+	}
+
+	browser->GetHost()->SetFocus(true);
+}
+
+
+class CChromeiumBrowserControl
+{
+public:
+	CChromeiumBrowserControl(){}
+	virtual ~CChromeiumBrowserControl(){}
+	void AttachHwnd(HWND, const WCHAR*);
+	void handle_size(HWND);
+	void handle_SetForce();
+
+private:
+	CefRefPtr<ClientHandler> m_handler;
+	
+};
+
+void CChromeiumBrowserControl::AttachHwnd(HWND hWnd, const WCHAR* url)
+{
+	if (!IsWindow(hWnd))
+	{
+		return;
+	}
+	m_handler = new ClientHandler();
+	CefWindowInfo info;
+	CefBrowserSettings settings;
+
+	// Populate the browser settings based on command line arguments.
+	AppGetBrowserSettings(settings);
+
+	RECT rect;
+
+	GetClientRect(hWnd, &rect);
+	info.SetAsChild(hWnd, rect);
+
+	CefBrowserHost::CreateBrowser(info, m_handler.get(),
+		url, settings, NULL);
+}
+
+void CChromeiumBrowserControl::handle_size(HWND hWnd)
+{
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	if (m_handler.get())
+	{
+		CefWindowHandle hBrowser = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+		HDWP hdwp = BeginDeferWindowPos(1);
+		hdwp = DeferWindowPos(hdwp, hBrowser, NULL,
+			rect.left, rect.top, rect.right - rect.left,
+			rect.bottom - rect.top, SWP_NOZORDER);
+		EndDeferWindowPos(hdwp);
+	}
+}
+
+void CChromeiumBrowserControl::handle_SetForce()
+{
+	if (m_handler.get())
+	{
+		CefRefPtr<CefBrowser> browser = m_handler->GetBrowser();
+		if ( browser )
+		{
+			SetFocusToBrowser(browser);
+		}
+	}
+
+}
+
+CBrowserControl::CBrowserControl()
+{
+	m_browser = new CChromeiumBrowserControl;
+}
+
+CBrowserControl::~CBrowserControl()
+{
+	delete m_browser;
+}
+
+void CBrowserControl::AttachHwnd(HWND hWnd, const WCHAR* url)
+{
+	m_browser->AttachHwnd(hWnd, url);
+}
+
+void CBrowserControl::handle_size(HWND hWnd)
+{
+	m_browser->handle_size(hWnd);
+}
+
+void CBrowserControl::handle_SetForce()
+{
+	m_browser->handle_SetForce();
 }

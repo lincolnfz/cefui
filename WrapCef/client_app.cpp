@@ -160,7 +160,29 @@ bool ClientApp::OnProcessMessageReceived(
   return handled;
 }
 
+class Handler : public CefV8Handler {
+public:
+	Handler() {}
+	virtual bool Execute(const CefString& name,
+		CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval,
+		CefString& exception) OVERRIDE{
 
+		arguments.size();
+		arguments[0]->IsString();
+		arguments[0]->GetStringValue().c_str();
+
+		retval = CefV8Value::CreateString("ok111");
+		return true;
+	}
+
+	CefRefPtr<CefV8Value> object_;
+
+	IMPLEMENT_REFCOUNTING(Handler);
+};
+
+/*
 //add by lincoln
 void ClientApp::RenderDelegate::OnContextCreated(CefRefPtr<ClientApp> app,
 	CefRefPtr<CefBrowser> browser,
@@ -193,18 +215,16 @@ void ClientApp::RenderDelegate::OnContextCreated(CefRefPtr<ClientApp> app,
 	myV8Acc->Set(L"name", window, val, cefException);
 	CefRefPtr<CefV8Value> pObjApp = CefV8Value::CreateObject(myV8Acc);
 	window->SetValue(L"Application", pObjApp, V8_PROPERTY_ATTRIBUTE_NONE);
+	const char myfuname[] = "myfoo";
+	CefRefPtr<CefV8Handler> myV8handle = new Handler();
+	CefRefPtr<CefV8Value> myFun = CefV8Value::CreateFunction(myfuname, myV8handle);
+	CefV8Value::PropertyAttribute attributes =
+		static_cast<CefV8Value::PropertyAttribute>(
+		V8_PROPERTY_ATTRIBUTE_READONLY |
+		V8_PROPERTY_ATTRIBUTE_DONTENUM |
+		V8_PROPERTY_ATTRIBUTE_DONTDELETE);
 
-	/*CefRefPtr<CefV8Handler> myV8handle = new CefV8Handler();
-	CefRefPtr<CefV8Value> myFun = CefV8Value::CreateFunction(L"SetAppState", myV8handle);
-	static_cast<CefV8Handler*>(myV8handle.get())->AddFun(L"SetAppState", &CChromeJsCallback::JsSetAppState);
-	pObjApp->SetValue(L"SetAppState", myFun, V8_PROPERTY_ATTRIBUTE_NONE);
-
-	myFun = CefV8Value::CreateFunction(L"OneClickInstall", myV8handle);
-	static_cast<CCefV8Handler*>(myV8handle.get())->AddFun(L"OneClickInstall", &CChromeJsCallback::JsOneKeyInstall);
-	pObjApp->SetValue(L"OneClickInstall", myFun, V8_PROPERTY_ATTRIBUTE_NONE);
-
-	myFun = CefV8Value::CreateFunction(L"DownLoadFile", myV8handle);
-	static_cast<CCefV8Handler*>(myV8handle.get())->AddFun(L"DownLoadFile", &CChromeJsCallback::JsDownloadFile);
-	pObjApp->SetValue(L"DownLoadFile", myFun, V8_PROPERTY_ATTRIBUTE_NONE);*/
-}
+	DCHECK_EQ(context->GetGlobal()->SetValue(myfuname, myFun, attributes), false);
+	//context->Exit();
+}*/
 //end by licnoln
