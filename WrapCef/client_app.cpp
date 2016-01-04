@@ -160,28 +160,6 @@ bool ClientApp::OnProcessMessageReceived(
   return handled;
 }
 
-class Handler : public CefV8Handler {
-public:
-	Handler() {}
-	virtual bool Execute(const CefString& name,
-		CefRefPtr<CefV8Value> object,
-		const CefV8ValueList& arguments,
-		CefRefPtr<CefV8Value>& retval,
-		CefString& exception) OVERRIDE{
-
-		arguments.size();
-		arguments[0]->IsString();
-		arguments[0]->GetStringValue().c_str();
-
-		retval = CefV8Value::CreateString("ok111");
-		return true;
-	}
-
-	CefRefPtr<CefV8Value> object_;
-
-	IMPLEMENT_REFCOUNTING(Handler);
-};
-
 /*
 //add by lincoln
 void ClientApp::RenderDelegate::OnContextCreated(CefRefPtr<ClientApp> app,

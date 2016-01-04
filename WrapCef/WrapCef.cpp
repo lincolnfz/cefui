@@ -9,6 +9,7 @@
 #include <direct.h>
 #include <sstream>
 #include <string>
+#include <Shlwapi.h>
 
 #include "include/base/cef_bind.h"
 #include "include/cef_app.h"
@@ -23,7 +24,7 @@
 #include "cefclient_osr_widget_win.h"
 
 
-
+#pragma comment(lib , "Shlwapi.lib")
 
 void* g_sandbox_info = NULL;
 #define ID_QUIT WM_USER+1
@@ -40,6 +41,8 @@ char szWorkingDir[MAX_PATH];  // The current working directory
 WCHAR szCefWindowClass[] = {L"Direct_UI"};
 
 bool bMultiThreadedMessageLoop = false;
+
+static void SetFocusToBrowser(CefRefPtr<CefBrowser> browser);
 
 HWND hMessageWnd;
 
@@ -122,8 +125,21 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 
 	// Populate the settings based on command line arguments.
 	AppGetSettings(settings);
+	//bMultiThreadedMessageLoop = true;
 	settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
 
+	
+	//实现渲染进程分离
+	WCHAR szFile[MAX_PATH] = { 0 };
+	WCHAR szRender[MAX_PATH] = { 0 };
+	GetModuleFileName(NULL, szFile, MAX_PATH);
+	PathRemoveFileSpec(szFile);
+	PathCombine(szRender, szFile, L"render.exe");
+	//cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
+	WCHAR szCache[MAX_PATH] = { 0 };
+	PathCombine(szCache, szFile, L"cache");
+	cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
+	
 	// Initialize CEF.
 	CefInitialize(main_args, settings, app.get(), g_sandbox_info);
 
@@ -143,6 +159,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 	const bool transparent = false;
 		//cmd_line->HasSwitch(cefclient::kTransparentPaintingEnabled);
 	const bool show_update_rect = false;
+	RECT rect;
 	//cmd_line->HasSwitch(cefclient::kShowUpdateRect);
 	{
 		CefRefPtr<OSRWindow> osr_window =
@@ -153,7 +170,11 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 		int y = 80;
 		int width = x + 1024;
 		int height = y + 768;
-		RECT rect{ x, y, width, height };
+		//RECT rect{ x, y, width, height };
+		rect.left = x;
+		rect.top = y;
+		rect.right = width;
+		rect.bottom = height;
 		osr_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass);
 		info.SetAsWindowless(osr_window->hwnd(), transparent);
 		info.transparent_painting_enabled = true;
@@ -161,9 +182,26 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 		provider_1.GetClientHandler()->SetOSRHandler(osr_window.get());
 	}
 
+	//browser_settings.web_security = STATE_DISABLED;
+	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
+	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
+	browser_settings.webgl = STATE_DISABLED;
+	browser_settings.plugins = STATE_DISABLED;
+	browser_settings.java = STATE_DISABLED;
 	// Creat the new child browser window
 	CefBrowserHost::CreateBrowser(info, provider_1.GetClientHandler().get(),
 		provider_1.GetClientHandler()->GetStartupURL(), browser_settings, NULL);
+
+	{
+		if (handler_1.get())
+		{
+			CefRefPtr<CefBrowser> browser = handler_1->GetBrowser();
+			if (browser)
+			{
+				SetFocusToBrowser(browser);
+			}
+		}
+	}
 
 	CefRefPtr<ClientHandler> handler_2 = new ClientHandler();
 	handler_2->SetMainWindowHandle(NULL);
@@ -227,8 +265,8 @@ void AppQuitMessageLoop() {
 	if (bMultiThreadedMessageLoop) {
 		// Running in multi-threaded message loop mode. Need to execute
 		// PostQuitMessage on the main application thread.
-		//DCHECK(hMessageWnd);
-		//PostMessage(hMessageWnd, WM_COMMAND, ID_QUIT, 0);
+		DCHECK(hMessageWnd);
+		PostMessage(hMessageWnd, WM_COMMAND, ID_QUIT, 0);
 	}
 	else {
 		CefQuitMessageLoop();
@@ -263,7 +301,7 @@ int InitBrowser(HINSTANCE hInstance)
 
 	// Populate the settings based on command line arguments.
 	AppGetSettings(settings);
-	bMultiThreadedMessageLoop = true;
+	//bMultiThreadedMessageLoop = true;
 	settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
 
 	// Initialize CEF.

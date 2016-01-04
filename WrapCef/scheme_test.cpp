@@ -17,6 +17,7 @@
 #include "include/wrapper/cef_helpers.h"
 //#include "cefclient/resource_util.h"
 //#include "cefclient/string_util.h"
+#include "pack.h"
 
 #if defined(OS_WIN)
 //#include "cefclient/resource.h"
@@ -25,6 +26,37 @@
 namespace scheme_test {
 
 namespace {
+
+	static const char* getMimeType(const char* ext){
+		typedef struct _mime_table{
+			char mime_val[64];
+			char ext_val[10][8];
+		}mime_table;
+		const char *val = "";
+		static mime_table table[] = {
+			{ "text/html; charset=UTF-8", { ".html", ".htm" } }
+			, { "application/x-javascript; charset=UTF-8", { ".js" } }
+			, { "text/css; charset=UTF-8", { ".css" } }
+			, { "image/gif;", { ".gif" } }
+			, { "image/png;", { ".png" } }
+			, { "image/jpeg;", { ".jpeg", ".jpg" } }
+		};
+		static int len = sizeof(table) / sizeof(mime_table);
+		bool bfind = false;
+		for (int i = 0; i < len; ++i){
+			for (int j = 0; j < 10; ++j){
+				if (strcmp(table[i].ext_val[j], ext) == 0){
+					val = table[i].mime_val;
+					bfind = true;
+					break;
+				}
+			}
+			if (bfind)
+				break;
+		}
+
+		return val;
+	}
 
 // Implementation of the schema handler for client:// requests.
 class ClientSchemeHandler : public CefResourceHandler {
@@ -37,16 +69,16 @@ class ClientSchemeHandler : public CefResourceHandler {
     CEF_REQUIRE_IO_THREAD();
 
     bool handled = false;
-
+	
     std::string url = request->GetURL();
-    if (strstr(url.c_str(), "handler.html") != NULL) {
+    /*if (strstr(url.c_str(), "index.html") != NULL) {
       // Build the response html
       data_ = "<html><head><title>Client Scheme Handler</title></head>"
               "<body bgcolor=\"white\">"
               "This contents of this page page are served by the "
               "ClientSchemeHandler class handling the client:// protocol."
               "<br/>You should see an image:"
-              "<br/><img src=\"client://tests/logo.png\"><pre>";
+              "<br/><img src=\"file:///D:/logo.png\"><pre>";
 
       // Output a string representation of the request
       std::string dump;
@@ -66,13 +98,22 @@ class ClientSchemeHandler : public CefResourceHandler {
       mime_type_ = "text/html";
     } else if (strstr(url.c_str(), "logo.png") != NULL) {
       // Load the response image
-      /*if (LoadBinaryResource("logo.png", data_))*/ {
+      //if (LoadBinaryResource("logo.png", data_))
+	{
         handled = true;
         // Set the resulting mime type
         mime_type_ = "image/png";
       }
-    }
+    }*/
 
+	int idx = url.rfind(".pack");
+	if (idx > 0){
+		std::string file = url.substr(9, idx + 5);
+		std::string resource = url.substr(idx + 5);
+		
+		int i = 0;
+	}
+	//request->
     if (handled) {
       // Indicate the headers are available.
       callback->Continue();
@@ -112,8 +153,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 
     if (offset_ < data_.length()) {
       // Copy the next block of data into the buffer.
-		int transfer_size = 0; /*=
-			std::min(bytes_to_read, static_cast<int>(data_.length() - offset_))*/;
+		int transfer_size  = min(bytes_to_read, static_cast<int>(data_.length() - offset_));
       memcpy(data_out, data_.c_str() + offset_, transfer_size);
       offset_ += transfer_size;
 
@@ -152,11 +192,12 @@ class ClientSchemeHandlerFactory : public CefSchemeHandlerFactory {
 
 void RegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar,
                            std::vector<CefString>& cookiable_schemes) {
-  registrar->AddCustomScheme("client", true, false, false);
+  registrar->AddCustomScheme("xpack", false, true, true);
+  registrar->AddCustomScheme("file", false, true, true);
 }
 
 void InitTest() {
-  CefRegisterSchemeHandlerFactory("client", "tests",
+  CefRegisterSchemeHandlerFactory("xpack", "",
       new ClientSchemeHandlerFactory());
 }
 
