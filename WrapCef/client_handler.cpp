@@ -145,6 +145,48 @@ bool ClientHandler::OnProcessMessageReceived(
   return false;
 }
 
+
+//下面三个函数集中处里从渲染线程发送的消息
+///
+bool ClientHandler::OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
+	CefProcessId source_process,
+	CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack){
+	CEF_REQUIRE_UI_THREAD();
+	if (message_router_->OnProcessMessageReceived2(browser, source_process,
+		message, response, response_ack)) {
+		return true;
+	}
+
+	//test code
+	std::string message_name = message->GetName();
+	CefString s = message->GetArgumentList()->GetString(0);
+	response->SetString(0, CefString(L"收到"));
+	response_ack = true;
+	return false;
+}
+
+bool ClientHandler::OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
+	CefProcessId source_process, int request_id,
+	bool succ,
+	CefRefPtr<CefListValue> response){
+	CEF_REQUIRE_UI_THREAD();
+	if (message_router_->OnProcessResponseReceived(browser, source_process,
+		request_id, succ, response)) {
+		return true;
+	}
+	return false;
+}
+
+bool ClientHandler::OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
+	CefProcessId source_process, int request_id){
+	CEF_REQUIRE_UI_THREAD();
+	if (message_router_->OnProcessResponseAckReceived(browser, source_process,
+		request_id)) {
+		return true;
+	}
+	return false;
+}
+
 void ClientHandler::OnBeforeContextMenu(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,

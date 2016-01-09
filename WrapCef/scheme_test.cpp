@@ -34,9 +34,9 @@ namespace {
 		}mime_table;
 		const char *val = "";
 		static mime_table table[] = {
-			{ "text/html; charset=UTF-8", { ".html", ".htm" } }
-			, { "application/x-javascript; charset=UTF-8", { ".js" } }
-			, { "text/css; charset=UTF-8", { ".css" } }
+			{ "text/html", { ".html", ".htm" } }
+			, { "application/x-javascript;", { ".js" } }
+			, { "text/css;", { ".css" } }
 			, { "image/gif;", { ".gif" } }
 			, { "image/png;", { ".png" } }
 			, { "image/jpeg;", { ".jpeg", ".jpg" } }
@@ -58,10 +58,33 @@ namespace {
 		return val;
 	}
 
+	std::string&   replace_all_distinct(std::string&   str, const   std::string&   old_value, const   std::string&   new_value)
+	{
+		for (std::string::size_type pos(0); pos != std::string::npos; pos += new_value.length())   {
+			if ((pos = str.find(old_value, pos)) != std::string::npos)
+				str.replace(pos, old_value.length(), new_value);
+			else   break;
+		}
+		return   str;
+	}
+
+	std::string& removeUrlParm( std::string& str ){
+		int idx = str.find("?");
+		if ( idx > 0 )
+		{
+			str.erase(str.begin() + idx, str.end());
+		}
+		return str;
+	}
+
 // Implementation of the schema handler for client:// requests.
 class ClientSchemeHandler : public CefResourceHandler {
  public:
-  ClientSchemeHandler() : offset_(0) {}
+  ClientSchemeHandler() : offset_(0) {
+  }
+
+  ~ClientSchemeHandler(){
+  }
 
   virtual bool ProcessRequest(CefRefPtr<CefRequest> request,
                               CefRefPtr<CefCallback> callback)
@@ -106,12 +129,23 @@ class ClientSchemeHandler : public CefResourceHandler {
       }
     }*/
 
+	url = replace_all_distinct(url, "/", "\\");
 	int idx = url.rfind(".pack");
 	if (idx > 0){
-		std::string file = url.substr(9, idx + 5);
-		std::string resource = url.substr(idx + 5);
-		
-		int i = 0;
+		std::string file = url.substr(0, idx + 5);
+		file.erase(0, 9);
+		std::string resource = removeUrlParm(url.substr(idx + 5));
+		//std::string win_standfile = replace_all_distinct(file, "/", "\\");
+		unsigned char* data = 0;
+		unsigned long data_len = 0;
+		if (exZipFile(file.c_str(), resource.c_str(), &data, &data_len)){
+			handled = true;
+			data_ = std::string(reinterpret_cast<char*>(data), data_len);
+			freeBuf(data);
+		}
+		char ext[64] = { 0 };
+		_splitpath(resource.c_str(), 0, 0, 0, ext);
+		mime_type_ = getMimeType(ext);
 	}
 	//request->
     if (handled) {
@@ -154,7 +188,7 @@ class ClientSchemeHandler : public CefResourceHandler {
     if (offset_ < data_.length()) {
       // Copy the next block of data into the buffer.
 		int transfer_size  = min(bytes_to_read, static_cast<int>(data_.length() - offset_));
-      memcpy(data_out, data_.c_str() + offset_, transfer_size);
+      memcpy(data_out, data_.data() + offset_, transfer_size);
       offset_ += transfer_size;
 
       bytes_read = transfer_size;

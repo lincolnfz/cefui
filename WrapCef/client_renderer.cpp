@@ -51,6 +51,7 @@ class ClientRenderDelegate : public ClientApp::RenderDelegate {
     bool is_editable = (node.get() && node->IsEditable());
     if (is_editable != last_node_is_editable_) {
       // Notify the browser of the change in focused element type.
+		
       last_node_is_editable_ = is_editable;
       CefRefPtr<CefProcessMessage> message =
           CefProcessMessage::Create(kFocusedNodeChangedMessage);
@@ -66,6 +67,26 @@ class ClientRenderDelegate : public ClientApp::RenderDelegate {
       CefRefPtr<CefProcessMessage> message) OVERRIDE {
     return message_router_->OnProcessMessageReceived(
         browser, source_process, message);
+  }
+
+	  virtual bool OnProcessMessageReceived2(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process,
+	  CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) OVERRIDE {
+	  return message_router_->OnProcessMessageReceived2(
+		browser, source_process, message, response, response_ack);
+  }
+
+	  virtual bool OnProcessResponseReceived(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process, int request_id,
+	  bool succ,
+	  CefRefPtr<CefListValue> response) OVERRIDE {
+	  return message_router_->OnProcessResponseReceived(
+			browser, source_process, request_id, succ, response);
+  }
+
+	  virtual bool OnProcessResponseAckReceived(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process, int request_id) OVERRIDE{
+	  return message_router_->OnProcessResponseAckReceived( browser, source_process, request_id);
   }
 
  private:

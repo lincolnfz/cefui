@@ -96,6 +96,18 @@ class ClientHandler : public CefClient,
                                         CefRefPtr<CefProcessMessage> message)
                                         OVERRIDE;
 
+  virtual bool OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process,
+	  CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) OVERRIDE;
+
+  virtual bool OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process, int request_id,
+	  bool succ,
+	  CefRefPtr<CefListValue> response) OVERRIDE;
+
+  virtual bool OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
+	  CefProcessId source_process, int request_id) OVERRIDE;
+
   // CefContextMenuHandler methods
   virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefFrame> frame,

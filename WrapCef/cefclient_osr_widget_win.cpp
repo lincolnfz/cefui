@@ -798,7 +798,13 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
         browser->SendMouseClickEvent(mouse_event, btnType, false,
                                      gLastClickCount);
 		//test by lincoln
-		browser->SendQueryElement(x, y);
+		CefString vv("data-nc");
+		browser->SendQueryElement(x, y, vv);
+		int i = 0;
+		CefRefPtr<CefProcessMessage> message =
+			CefProcessMessage::Create("invokeMethod");
+		message->GetArgumentList()->SetString(0, CefString(L"invokee"));
+		browser->GetBrowser()->SendProcessMessageEx(PID_RENDERER, message, true, -1, 666, true);
 		//CefString fun("fun11");
 		//CefString parm("ppaarm");
 		//browser->GetBrowser()->SendProcessDoneFunction(PID_RENDERER, fun, parm, false, false);

@@ -23,8 +23,28 @@
 #include "scheme_test.h"
 #include "cefclient_osr_widget_win.h"
 
-
 #pragma comment(lib , "Shlwapi.lib")
+
+#ifdef _WINDLL
+#if defined(CEF_USE_SANDBOX)
+// The cef_sandbox.lib static library is currently built with VS2013. It may not
+// link successfully with other VS versions.
+#pragma comment(lib, "cef_sandbox.lib")
+#endif
+
+#pragma comment(lib, "sandbox.lib")
+#pragma comment(lib, "base.lib")
+#pragma comment(lib, "base_static.lib")
+#pragma comment(lib, "DbgHelp.lib")
+#pragma comment(lib, "dynamic_annotations.lib")
+#pragma comment(lib, "libcef.dll.lib")
+#pragma comment(lib, "libcef_dll_wrapper.lib")
+#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "packlib.lib")
+//#pragma comment(lib, "gdiplus.lib")
+#endif
+
+
 
 void* g_sandbox_info = NULL;
 #define ID_QUIT WM_USER+1
@@ -103,6 +123,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 #if defined(CEF_USE_SANDBOX)
 	g_sandbox_info = scoped_sandbox.sandbox_info();
 #endif
+	hInstance = GetModuleHandle(NULL);
 	CefMainArgs main_args(hInstance);
 	CefRefPtr<ClientApp> app(new ClientApp);
 	int exit_code = CefExecuteProcess(main_args, app.get(), g_sandbox_info);
@@ -135,7 +156,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 	GetModuleFileName(NULL, szFile, MAX_PATH);
 	PathRemoveFileSpec(szFile);
 	PathCombine(szRender, szFile, L"render.exe");
-	//cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
+	cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
 	WCHAR szCache[MAX_PATH] = { 0 };
 	PathCombine(szCache, szFile, L"cache");
 	cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
@@ -278,7 +299,6 @@ int InitBrowser(HINSTANCE hInstance)
 #if defined(CEF_USE_SANDBOX)
 	g_sandbox_info = scoped_sandbox.sandbox_info();
 #endif
-
 	CefMainArgs main_args(hInstance);
 	CefRefPtr<ClientApp> app(new ClientApp);
 	int exit_code = CefExecuteProcess(main_args, app.get(), g_sandbox_info);
@@ -419,4 +439,24 @@ void CBrowserControl::handle_size(HWND hWnd)
 void CBrowserControl::handle_SetForce()
 {
 	m_browser->handle_SetForce();
+}
+
+namespace wrapQweb{
+
+	static bool g_init = false;
+
+	void InitEnv()
+	{
+
+	}
+
+	HWND CreateWebView(int x, int y, int width, int height, const WCHAR* lpResource, int alpha, bool taskbar)
+	{
+		if ( !g_init )
+		{
+			g_init = true;
+		}
+
+		return 0;
+	}
 }
