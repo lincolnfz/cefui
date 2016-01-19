@@ -40,7 +40,7 @@ struct _IPC_MESSAGE
 	unsigned int m_nTotalPack;//总共多少个分包
 	unsigned int m_nOrder; //包的序号
 	unsigned int m_nOffset; //相对整个数据的偏移量
-	byte m_buf[MAX_IPC_BUF]; //**注** 修改大小,从MAX_IPC_BUF宏定义中修改
+	unsigned char m_buf[MAX_IPC_BUF]; //**注** 修改大小,从MAX_IPC_BUF宏定义中修改
 	_IPC_MESSAGE(){
 		//m_nRemindPack = 0;
 		m_iID = 0;

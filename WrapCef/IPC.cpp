@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "IPC.h"
 #include <algorithm>
 
@@ -5,19 +6,8 @@
 
 namespace cyjh{
 
-	double unif_rand(){  //生成(0,1)的实数均匀分布
-		static unsigned int stal = 0;
-		++stal;
-		unsigned int processid = GetProcessId(GetCurrentProcess()) + GetTickCount();
-		srand((unsigned)time(NULL) + stal + processid);
-		return(rand() + 0.5) / (RAND_MAX + 1.0);
-	}
-
-	int unif_int(int a, int b){   //生成a到b-1的整数均匀分布
-		return int(floor(a + (b - a)*unif_rand()));
-	}
-
-	void _IPC_MESSAGE_ITEM::Append(const byte* data, const DWORD len)
+	static int ipc_unit_id = 0;
+	void _IPC_MESSAGE_ITEM::Append(const unsigned char* data, const DWORD len)
 	{
 		DWORD outRemind = len;
 		while ( outRemind )
@@ -31,7 +21,7 @@ namespace cyjh{
 			{
 				ipc_->RecvData(&msg_);
 				write_size_ = 0;
-				curr_ = reinterpret_cast<byte*>(&msg_);
+				curr_ = reinterpret_cast<unsigned char*>(&msg_);
 			}
 		}
 		
@@ -66,7 +56,7 @@ namespace cyjh{
 		}
 	}
 
-	bool IPC::Send(const byte* data, DWORD len, DWORD nTimeout)
+	bool IPC::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
 	{		
 		if (len <= 0)
 		{
@@ -84,7 +74,7 @@ namespace cyjh{
 		return ++seriaNum_;
 	}
 
-	bool IPC::proxy_send(const byte* data, DWORD len, DWORD nTimeout)
+	bool IPC::proxy_send(const unsigned char* data, DWORD len, DWORD nTimeout)
 	{
 		//把data的数据发送到对方.如果数据的总长度大与发送缓存,会进行分包发送
 		bool bRet = true;
@@ -93,7 +83,7 @@ namespace cyjh{
 			//int iID = unif_int(1, 0xfffffff);
 			int iID = generateID();
 			int remind = len;
-			byte *curr = const_cast<byte*>(data);
+			unsigned char *curr = const_cast<unsigned char*>(data);
 			unsigned int nTotalPack = (len + MAX_IPC_BUF - 1) / MAX_IPC_BUF; //计算共要多少次分包发送
 			unsigned int nRemindPack = nTotalPack;
 			unsigned int nOrder = 0;
@@ -145,7 +135,7 @@ namespace cyjh{
 		BOOL bResult = FALSE;
 		DWORD dwCurr = 0;
 		DWORD dwRemin = sizeof(_IPC_MESSAGE);
-		byte* byte_begin = reinterpret_cast<byte*>(data->m_IPC_Data);
+		unsigned char* byte_begin = reinterpret_cast<unsigned char*>(data->m_IPC_Data);
 		while (true)
 		{
 			if (dwRemin == 0)
@@ -167,7 +157,7 @@ namespace cyjh{
 		return bResult;
 	}
 
-	void IPC::CombinPack(byte* recv_buf, DWORD len)
+	void IPC::CombinPack(unsigned char* recv_buf, DWORD len)
 	{
 		msg_item_.Append(recv_buf, len);
 	}
@@ -207,7 +197,7 @@ namespace cyjh{
 
 				//使用缓存中的数据
 				NotifyRecvData(
-					const_cast<byte*>(it->second.get()->GetData()),
+					const_cast<unsigned char*>(it->second.get()->GetData()),
 					it->second.get()->m_nLen
 					);
 				m_cacheMap.erase(it);
@@ -236,7 +226,7 @@ namespace cyjh{
 				{
 					//使用缓存中的数据
 					NotifyRecvData(
-						const_cast<byte*>(it->second.get()->GetData()),
+						const_cast<unsigned char*>(it->second.get()->GetData()),
 						it->second.get()->m_nLen
 						);
 					m_cacheMap.erase(it);
@@ -260,7 +250,7 @@ namespace cyjh{
 		}
 	}
 
-	void IPC::RecvData(byte* recv_buf, DWORD len)
+	void IPC::RecvData(unsigned char* recv_buf, DWORD len)
 	{
 		CombinPack(recv_buf, len);
 
@@ -391,13 +381,13 @@ namespace cyjh{
 		IPC::RecvData(pack);
 	}
 
-	void IPCPipeSrv::RecvData(byte* recv_buf, DWORD len)
+	void IPCPipeSrv::RecvData(unsigned char* recv_buf, DWORD len)
 	{
 		IPC::RecvData(recv_buf, len);
 		
 	}
 
-	void IPCPipeSrv::NotifyRecvData(byte* byte, DWORD len)
+	void IPCPipeSrv::NotifyRecvData(unsigned char* byte, DWORD len)
 	{
 		//no_imple
 	}
@@ -488,7 +478,10 @@ namespace cyjh{
 				break;
 			}
 		}
-
+		if (inst->disconstCB_)
+		{
+			inst->disconstCB_();
+		}
 		return 0;
 	}
 
@@ -509,12 +502,12 @@ namespace cyjh{
 		IPC::RecvData(pack);
 	}
 
-	void IPCPipeClient::RecvData(byte* recv_buf, DWORD len)
+	void IPCPipeClient::RecvData(unsigned char* recv_buf, DWORD len)
 	{
 		IPC::RecvData(recv_buf, len);
 	}
 
-	void IPCPipeClient::NotifyRecvData(byte* byte, DWORD len)
+	void IPCPipeClient::NotifyRecvData(unsigned char* byte, DWORD len)
 	{
 		if ( cb_ )
 		{
@@ -525,7 +518,8 @@ namespace cyjh{
 
 	IPCUnit::IPCUnit(const WCHAR* srv_ame, const WCHAR* cli_name) :srv_(srv_ame), cli_(cli_name)
 	{
-
+		id_ = ++ipc_unit_id;
+		cli_.BindDisconstCallback(&IPCUnit::NotifyDisconst, this);
 	}
 
 	IPCUnit::~IPCUnit()
@@ -533,9 +527,37 @@ namespace cyjh{
 
 	}
 
-	bool IPCUnit::Send(const byte* data, DWORD len, DWORD nTimeout)
+	bool IPCUnit::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
 	{
 		return srv_.Send(data, len, nTimeout);
 	}
 
+	void IPCUnit::NotifyDisconst()
+	{
+		IPC_Manager::getInstance().Destruct(id_);
+	}
+
+	////////////////////////////////////
+	/////IPC_Manager
+	//////////////////////////////////////////////////////////////////////////
+	IPC_Manager IPC_Manager::s_inst;
+	std::shared_ptr<IPCUnit> IPC_Manager::GenerateIPC(const WCHAR* srv, const WCHAR* client)
+	{
+		std::shared_ptr<IPCUnit> unit(new IPCUnit(srv, client));
+		ipcs_.push_back(unit);
+		return unit;
+	}
+
+	void IPC_Manager::Destruct(int id)
+	{
+		std::vector<std::shared_ptr<IPCUnit>>::iterator it = ipcs_.begin();
+		for (; it != ipcs_.end(); ++it)
+		{
+			if ( it->get()->getID() == id )
+			{
+				ipcs_.erase(it);
+				break;
+			}
+		}
+	}
 }

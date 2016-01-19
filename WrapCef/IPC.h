@@ -6,13 +6,15 @@
 #include "ipcio.h"
 #include <functional>
 #include "cjpickle.h"
+#include <vector>
 
 #define BUF_SIZE 8192
 
 namespace cyjh{
 
 	class IPC;
-	typedef std::function< void(const byte*, DWORD)> recv_cb;
+	typedef std::function< void(const unsigned char*, DWORD)> recv_cb;
+	typedef std::function< void()> disconst_cb;
 	enum _state{
 		CONNECTING_STATE,
 		READING_STATE,
@@ -39,7 +41,7 @@ namespace cyjh{
 	{
 		unsigned int m_nLen; //数据长度
 		unsigned int m_nCurr; //当前存放多少数据
-		byte *m_pData; //缓存空间
+		unsigned char *m_pData; //缓存空间
 #ifdef _DEBUG
 		unsigned int m_writeTimes;
 		unsigned int m_test;
@@ -54,7 +56,7 @@ namespace cyjh{
 #endif			
 			m_nCurr = 0;
 			m_nLen = nLen;
-			m_pData = new byte[nLen];
+			m_pData = new unsigned char[nLen];
 		}
 
 		~_CACHEDATA()
@@ -62,12 +64,12 @@ namespace cyjh{
 			delete[]m_pData;
 		}
 
-		const byte * GetData()
+		const unsigned char * GetData()
 		{
 			return m_pData;
 		}
 
-		bool WriteData(byte* pSrc, unsigned int nlen, unsigned int nOffset)
+		bool WriteData(unsigned char* pSrc, unsigned int nlen, unsigned int nOffset)
 		{
 #ifdef _DEBUG
 			++m_writeTimes;
@@ -94,13 +96,13 @@ namespace cyjh{
 		_IPC_MESSAGE_ITEM(IPC* inst) :ipc_(inst), total_msg_size_(sizeof(_IPC_MESSAGE))
 		{
 			memset(&msg_, 0, sizeof(msg_));
-			curr_ = reinterpret_cast<byte*>(&msg_);
+			curr_ = reinterpret_cast<unsigned char*>(&msg_);
 			//total_msg_size_ = sizeof(_IPC_MESSAGE);
 			write_size_ = 0;
 		}
 		virtual ~_IPC_MESSAGE_ITEM(){}
 
-		void Append(const byte* data, const DWORD len);
+		void Append(const unsigned char* data, const DWORD len);
 
 		const _IPC_MESSAGE* GetMsg(){
 			return &msg_;
@@ -108,7 +110,7 @@ namespace cyjh{
 
 	private:
 		_IPC_MESSAGE msg_;
-		byte *curr_;
+		unsigned char *curr_;
 		IPC* ipc_;
 		DWORD write_size_;
 		const DWORD total_msg_size_;
@@ -125,21 +127,21 @@ namespace cyjh{
 		{
 			return handle != NULL && handle != INVALID_HANDLE_VALUE;
 		}*/
-		virtual bool Send(const byte* data, DWORD len, DWORD nTimeout);
+		virtual bool Send(const unsigned char* data, DWORD len, DWORD nTimeout);
 	protected:
 		
-		bool IPC::proxy_send(const byte* data, DWORD len, DWORD nTimeout);
+		bool IPC::proxy_send(const unsigned char* data, DWORD len, DWORD nTimeout);
 		virtual BOOL ProcDataPack(std::shared_ptr<_SENDPACKET>) override;
 		BOOL SubmitPack(_IPC_MESSAGE * data, unsigned int nTimeout);
 
 		virtual void RecvData(_IPC_MESSAGE*);
 
-		virtual void RecvData(byte* recv_buf_, DWORD len);
+		virtual void RecvData(unsigned char* recv_buf_, DWORD len);
 
 		//还回true,表示收到完整_IPC_MESSAGE数据包,
-		void CombinPack(byte* recv_buf_, DWORD len);
+		void CombinPack(unsigned char* recv_buf_, DWORD len);
 
-		virtual void NotifyRecvData(byte*, DWORD len) = 0;
+		virtual void NotifyRecvData(unsigned char*, DWORD len) = 0;
 
  		const int& generateID();
 
@@ -147,7 +149,7 @@ namespace cyjh{
 		OVERLAPPED op_;
 		HANDLE srvpipe_, remotepipe_;
 		HANDLE hEvents_[2];
-		byte recv_buf_[BUF_SIZE];
+		unsigned char recv_buf_[BUF_SIZE];
 		_IPC_MESSAGE_ITEM msg_item_;
 		CACHEDATA_MAP m_cacheMap;
 		int seriaNum_; //发送id
@@ -168,9 +170,9 @@ namespace cyjh{
 
 		virtual void RecvData(_IPC_MESSAGE*) override;
 
-		virtual void RecvData(byte* recv_buf_, DWORD len) override;
+		virtual void RecvData(unsigned char* recv_buf_, DWORD len) override;
 
-		virtual void NotifyRecvData(byte*, DWORD len) override;
+		virtual void NotifyRecvData(unsigned char*, DWORD len) override;
 	private:		
 		bool succCreate_;
 		bool bPendingIO_;
@@ -186,6 +188,11 @@ namespace cyjh{
 			cb_ = cb;
 		}
 
+		template<typename T>
+		void BindDisconstCallback(void (T::*function)(), T* obj){
+			disconstCB_ = std::bind(function, obj);
+		}
+
 		//virtual bool Send(char* data, int len) override;
 	protected:
 		//virtual BOOL ProcDataPack(std::shared_ptr<_SENDPACKET>) override;
@@ -194,15 +201,16 @@ namespace cyjh{
 
 		virtual void RecvData(_IPC_MESSAGE*) override;
 
-		virtual void RecvData(byte* recv_buf_, DWORD len) override;
+		virtual void RecvData(unsigned char* recv_buf_, DWORD len) override;
 
-		virtual void NotifyRecvData(byte*, DWORD len) override;
+		virtual void NotifyRecvData(unsigned char*, DWORD len) override;
 
 		
 	private:
 //		HANDLE pipe_;
 		WCHAR name_[64];
 		recv_cb cb_;
+		disconst_cb disconstCB_;
 	};
 
 	class IPCUnit{
@@ -210,17 +218,40 @@ namespace cyjh{
 		IPCUnit(const WCHAR* srv_ame, const WCHAR* cli_name);
 		~IPCUnit();
 
-		bool Send(const byte* data, DWORD len, DWORD nTimeout);
+		bool Send(const unsigned char* data, DWORD len, DWORD nTimeout);
+
+		void NotifyDisconst();
 
 		template<typename T>
-		void BindRecvCallback(void (T::*function)(const byte*, DWORD), T* obj){
+		void BindRecvCallback(void (T::*function)(const unsigned char*, DWORD), T* obj){
 			recv_cb cb = std::bind(function, obj, std::placeholders::_1, std::placeholders::_2);
 			cli_.SetRecvCallback(cb);
+		}
+
+		int getID(){
+			return id_;
 		}
 
 	private:
 		IPCPipeSrv srv_;
 		IPCPipeClient cli_;
+		int id_;
+	};
+
+	class IPC_Manager
+	{
+	public:
+		virtual ~IPC_Manager(){}
+		static IPC_Manager& getInstance(){
+			return s_inst;
+		}
+		std::shared_ptr<IPCUnit> GenerateIPC(const WCHAR*, const WCHAR*);
+		void Destruct(int id);
+		static IPC_Manager s_inst;
+	protected:
+		IPC_Manager(){}
+		std::vector<std::shared_ptr<IPCUnit>> ipcs_;
+ 	private:
 	};
 
 }
