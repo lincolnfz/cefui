@@ -13,6 +13,7 @@ brief.
 #include <mutex>
 #include <memory>
 #include <assert.h>
+#include "include/base/cef_lock.h"
 //#include <boost/thread/mutex.hpp>
 //#include <syncobject.h>
 
@@ -218,7 +219,7 @@ public:
 
 	virtual ~CDataProcessQueue()
 	{
-		Cancel();
+		//Cancel(); //在这里不要cancel
 		CloseHandle( m_hEvents[0] );
 		CloseHandle(m_hLoopThreadFinishEvent);
 	}
@@ -232,6 +233,7 @@ public:
 			WriteMsg( spMsg , 0 , QUEUE_MSG_STOP , CRITICAL_LEVEL );
 			//fix 此处使用SyncTools::WaitWithMessageLoop，当对像依附在ui线程的对像时，会引起无法退出
 			WaitForSingleObject( m_hLoopThreadFinishEvent , TIME_OUT );
+			//SyncTools::WaitWithMessageLoop(m_hLoopThreadFinishEvent, TIME_OUT);
 		}
 		
 	}
@@ -249,7 +251,7 @@ protected:
 
 	void RemoveAll()
 	{
-		std::unique_lock<std::mutex> lock(m_MessageQueueMutex);
+		base::AutoLock lock_scope(m_MessageQueueMutex);
 		m_bCancelIO = TRUE;
 
 		for (auto it = m_MessageQueue.begin() ; it != m_MessageQueue.end() ; )
@@ -264,7 +266,7 @@ protected:
 
 	std::shared_ptr<_DATAPACK> RemoveHead()
 	{
-		std::unique_lock<std::mutex> lock(m_MessageQueueMutex);
+		base::AutoLock lock_scope(m_MessageQueueMutex);
 		std::shared_ptr<_DATAPACK> spDataPack;
 		auto it = m_MessageQueue.begin();
 		if ( it != m_MessageQueue.end() )
@@ -279,10 +281,10 @@ protected:
 	{
 		BOOL bRet = FALSE;
 		BOOL bSync = (nTimeout == 0) ? FALSE : TRUE;
-		m_MessageQueueMutex.lock(); //fix. 分段解鑜，解决同步发送，产生死锁的问题
+		m_MessageQueueMutex.Acquire (); //fix. 分段解鑜，解决同步发送，产生死锁的问题
 		if ( m_bCancelIO )
 		{
-			m_MessageQueueMutex.unlock();
+			m_MessageQueueMutex.Release ();
 			return FALSE;
 		}
 
@@ -300,11 +302,11 @@ protected:
 		if ( m_MessageQueue.insert(
 			std::make_pair(GenerateSerialNumber(dwLevel),spDataPack)).second == false )
 		{
-			m_MessageQueueMutex.unlock();
+			m_MessageQueueMutex.Release();
 			assert(FALSE);
 			return FALSE;
 		}		
-		m_MessageQueueMutex.unlock();
+		m_MessageQueueMutex.Release();
 		SetEvent( m_hEvents[0] ); //通知有新的数据要处理		
 
 		if ( bSync && hSyncEvent )
@@ -341,7 +343,7 @@ protected:
 	unsigned long GenerateSerialNumber(unsigned long dwMessageLevel)
 	{
 		assert( dwMessageLevel < 16  );
-		std::unique_lock<std::mutex> lock(m_SeriaNumberMutex);
+		base::AutoLock lock_scope(m_SeriaNumberMutex);
 		if ( (m_ulSerialNumber^0xfffffff) == 0 )
 		{
 			//流水号共28位,当增加到0xfffffff时，流水号要重新开始增长，防止溢出
@@ -361,7 +363,8 @@ protected:
 	HANDLE m_hLoopThreadFinishEvent;
 	HANDLE m_hNotifyNoBlockWrite;
 	std::map<unsigned long, std::shared_ptr<_DATAPACK>> m_MessageQueue;
-	std::mutex m_MessageQueueMutex, m_SeriaNumberMutex;
+	//std::mutex m_MessageQueueMutex, m_SeriaNumberMutex;
+	mutable base::Lock m_MessageQueueMutex, m_SeriaNumberMutex;
 	BOOL m_bCancelIO;
 	volatile unsigned long m_ulSerialNumber;
 };
