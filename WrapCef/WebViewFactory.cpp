@@ -102,3 +102,50 @@ CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd){
 	}
 	return ptr;
 }
+
+CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
+{
+	CefRefPtr<CefBrowser> ptr;
+	WebViewMap::iterator it = m_viewMap.begin();
+	for (; it != m_viewMap.end(); ++it)
+	{
+		ptr = it->second->m_provider->GetBrowser();
+		if (ptr.get() && ptr.get()->GetIdentifier() == browserID)
+		{
+			break;
+		}
+	}
+	return ptr;
+}
+
+CefRefPtr<WebItem> WebViewFactory::GetBrowserItem(int browserID)
+{
+	CefRefPtr<WebItem> ptr;
+	WebViewMap::iterator it = m_viewMap.begin();
+	for (; it != m_viewMap.end(); ++it)
+	{
+		CefRefPtr<CefBrowser> browser = it->second->m_provider->GetBrowser();
+		if (browser.get() && browser.get()->GetIdentifier() == browserID)
+		{
+			ptr = it->second;
+			break;
+		}
+	}
+	return ptr;
+}
+
+HWND WebViewFactory::GetBrowserHwnd(int browserID)
+{
+	HWND hWnd = NULL;
+	CefRefPtr<CefBrowser> ptr;
+	WebViewMap::iterator it = m_viewMap.begin();
+	for (; it != m_viewMap.end(); ++it)
+	{
+		if (ptr.get() && ptr.get()->GetIdentifier() == browserID)
+		{
+			hWnd = it->first;
+		}
+	}
+
+	return hWnd;
+}

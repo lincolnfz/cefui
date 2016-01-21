@@ -45,7 +45,7 @@ namespace {
 		bool bfind = false;
 		for (int i = 0; i < len; ++i){
 			for (int j = 0; j < 10; ++j){
-				if (strcmp(table[i].ext_val[j], ext) == 0){
+				if (stricmp(table[i].ext_val[j], ext) == 0){
 					val = table[i].mime_val;
 					bfind = true;
 					break;
@@ -142,10 +142,18 @@ class ClientSchemeHandler : public CefResourceHandler {
 			handled = true;
 			data_ = std::string(reinterpret_cast<char*>(data), data_len);
 			freeBuf(data);
+			DCHECK(!data_.empty());
+		}
+		else{
+			int i = 0;
 		}
 		char ext[64] = { 0 };
 		_splitpath(resource.c_str(), 0, 0, 0, ext);
 		mime_type_ = getMimeType(ext);
+		if (mime_type_.empty())
+		{
+			int i = 0;
+		}
 	}
 	//request->
     if (handled) {
@@ -163,6 +171,8 @@ class ClientSchemeHandler : public CefResourceHandler {
     CEF_REQUIRE_IO_THREAD();
 
     DCHECK(!data_.empty());
+
+	DCHECK(!mime_type_.empty());
 
     response->SetMimeType(mime_type_);
     response->SetStatus(200);

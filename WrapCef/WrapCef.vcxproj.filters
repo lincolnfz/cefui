@@ -54,6 +54,33 @@
     <ClInclude Include="osrenderer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WebViewFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Bridage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BridageRender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BridageHost.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ResponseHandle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BrowserIdentifier.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadCombin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ResponseRender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ResponseUI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +123,42 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="osrenderer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WebViewFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Bridage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BridageRender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BridageHost.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CombinThreadComit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cjpickle.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponseHandle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BrowserIdentifier.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadCombin.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponseRender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ResponseUI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

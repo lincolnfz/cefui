@@ -30,10 +30,10 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
 
   // Set the frame window title bar
   CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
-  if (GetBrowserId() == browser->GetIdentifier()) {
+  /*if (GetBrowserId() == browser->GetIdentifier()) {
     // The frame window will be the parent of the browser window
     hwnd = GetParent(hwnd);
-  }
+  }*/
   SetWindowText(hwnd, std::wstring(title).c_str());
 }
 

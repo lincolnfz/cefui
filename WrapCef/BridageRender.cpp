@@ -29,5 +29,11 @@ bool BridageRender::rsp_getPrivateProfileString(CefRefPtr<ClientApp> app, CefRef
 	CefString str = msg->GetArgumentList()->GetString(0);
 	response->SetString(0, CefString(L"rcp²âÊÔ"));
 	responseAck = false;
+
+	CefRefPtr<CefProcessMessage> message =
+		CefProcessMessage::Create("getPrivateProfileString");
+	message->GetArgumentList()->SetString(0, CefString(L"ÖÐÄÐis_editable"));
+	CefRefPtr<CefListValue> val;
+	//SendRequest(browser, message, val, 6000000);
 	return true;
 }

@@ -7,6 +7,7 @@
 #include <functional>
 #include "cjpickle.h"
 #include <vector>
+#include <map>
 
 #define BUF_SIZE 8192
 
@@ -128,6 +129,10 @@ namespace cyjh{
 			return handle != NULL && handle != INVALID_HANDLE_VALUE;
 		}*/
 		virtual bool Send(const unsigned char* data, DWORD len, DWORD nTimeout);
+
+		const WCHAR*  getName() const{
+			return name_;
+		}
 	protected:
 		
 		bool IPC::proxy_send(const unsigned char* data, DWORD len, DWORD nTimeout);
@@ -154,6 +159,7 @@ namespace cyjh{
 		CACHEDATA_MAP m_cacheMap;
 		int seriaNum_; //·¢ËÍid
 		std::mutex seriaNumberMutex_;
+		WCHAR name_[64];
 	};
 
 
@@ -207,8 +213,7 @@ namespace cyjh{
 
 		
 	private:
-//		HANDLE pipe_;
-		WCHAR name_[64];
+//		HANDLE pipe_;		
 		recv_cb cb_;
 		disconst_cb disconstCB_;
 	};
@@ -232,6 +237,14 @@ namespace cyjh{
 			return id_;
 		}
 
+		const WCHAR* getSrvName(){
+			return srv_.getName();
+		}
+
+		const WCHAR* getCliName(){
+			return cli_.getName();
+		}
+
 	private:
 		IPCPipeSrv srv_;
 		IPCPipeClient cli_;
@@ -246,11 +259,17 @@ namespace cyjh{
 			return s_inst;
 		}
 		std::shared_ptr<IPCUnit> GenerateIPC(const WCHAR*, const WCHAR*);
+		std::shared_ptr<IPCUnit> GetIpc(const int& id);
+		int MatchIpc(const WCHAR*, const WCHAR*);
 		void Destruct(int id);
 		static IPC_Manager s_inst;
 	protected:
 		IPC_Manager(){}
-		std::vector<std::shared_ptr<IPCUnit>> ipcs_;
+		//std::vector<std::shared_ptr<IPCUnit>> ipcs_;
+		std::map<int, std::shared_ptr<IPCUnit>> ipcs_;
+
+	private:
+		static volatile int id_;
  	private:
 	};
 

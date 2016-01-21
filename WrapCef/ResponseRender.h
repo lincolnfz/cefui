@@ -7,7 +7,7 @@ class ResponseRender : public ResponseHandle
 {
 public:
 	ResponseRender();
-	~ResponseRender();
+	virtual ~ResponseRender();
 };
 
 #endif

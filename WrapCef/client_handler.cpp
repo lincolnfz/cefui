@@ -28,6 +28,7 @@
 //#include "cefclient/resource_util.h"
 #include "string_util.h"
 //#include "cefclient/window_test.h"
+#include "BridageRender.h"
 
 namespace {
 
@@ -158,11 +159,12 @@ bool ClientHandler::OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
 	}
 
 	//test code
-	std::string message_name = message->GetName();
+	/*std::string message_name = message->GetName();
 	CefString s = message->GetArgumentList()->GetString(0);
 	response->SetString(0, CefString(L" ’µΩ"));
-	response_ack = true;
-	return false;
+	response_ack = true;*/
+	CefRefPtr<ClientApp> app;
+	return BridageRender::getInst().ProcRequest(app, browser, message, response, response_ack);
 }
 
 bool ClientHandler::OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
@@ -174,7 +176,7 @@ bool ClientHandler::OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
 		request_id, succ, response)) {
 		return true;
 	}
-	return false;
+	return BridageRender::getInst().ProcResponse(browser, request_id, succ, response);
 }
 
 bool ClientHandler::OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
@@ -998,3 +1000,9 @@ bool ClientHandler::ExecuteTestMenu(int command_id) {
   return false;
 }
 
+bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_method,
+	const char* utf8_parm, std::wstring* outstr,
+	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
+{
+	return false;
+}

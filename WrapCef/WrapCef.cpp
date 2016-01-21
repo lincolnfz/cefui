@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <Shlwapi.h>
+#include <stdio.h>
 
 #include "include/base/cef_bind.h"
 #include "include/cef_app.h"
@@ -22,6 +23,7 @@
 #include "cefclient.h"
 #include "scheme_test.h"
 #include "cefclient_osr_widget_win.h"
+#include "WebViewFactory.h"
 
 #pragma comment(lib , "Shlwapi.lib")
 
@@ -114,6 +116,9 @@ public:
 
 private:
 	CefRefPtr<ClientHandler> handle_;
+
+	// Include the default reference counting implementation.
+	IMPLEMENT_REFCOUNTING(MainBrowserProvider);
 }; //g_main_browser_provider;
 
 
@@ -148,6 +153,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 	AppGetSettings(settings);
 	//bMultiThreadedMessageLoop = true;
 	settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
+	//settings.single_process = true; // --single-process
 
 	
 	//实现渲染进程分离
@@ -166,6 +172,13 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 
 	// Register the scheme handler.
 	scheme_test::InitTest();
+	{
+		std::map<int, CefRefPtr<ClientHandler>> amap;
+		CefRefPtr<ClientHandler> a = new ClientHandler();
+		amap.insert(std::make_pair(0, a));
+		amap.clear();
+		int tt = 0;
+	}
 
 	CefRefPtr<ClientHandler> handler_1 = new ClientHandler();
 	handler_1->SetMainWindowHandle(NULL);
@@ -201,6 +214,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 		info.transparent_painting_enabled = true;
 		info.windowless_rendering_enabled = true;
 		provider_1.GetClientHandler()->SetOSRHandler(osr_window.get());
+		ShowWindow(osr_window->hwnd(), SW_SHOW);
 	}
 
 	//browser_settings.web_security = STATE_DISABLED;
@@ -223,6 +237,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 			}
 		}
 	}
+
 
 	CefRefPtr<ClientHandler> handler_2 = new ClientHandler();
 	handler_2->SetMainWindowHandle(NULL);
@@ -444,19 +459,135 @@ void CBrowserControl::handle_SetForce()
 namespace wrapQweb{
 
 	static bool g_init = false;
-
-	void InitEnv()
+	CefRefPtr<ClientApp> g_app;
+	HINSTANCE g_hInstance = 0;
+	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender)
 	{
+		g_hInstance = hInstance;
+#if defined(CEF_USE_SANDBOX)
+		g_sandbox_info = scoped_sandbox.sandbox_info();
+#endif
+		//HINSTANCE hInstance = GetModuleHandle(NULL);
+		CefMainArgs main_args(g_hInstance);
+		g_app = new ClientApp;
+		int exit_code = CefExecuteProcess(main_args, g_app.get(), g_sandbox_info);
+		if (exit_code >= 0)
+			return exit_code;
+
+		CefSettings settings;
+#if !defined(CEF_USE_SANDBOX)
+		settings.no_sandbox = true;
+#endif
+
+		settings.multi_threaded_message_loop = false;
+		settings.single_process = true;
+
+		//实现渲染进程分离
+		WCHAR szFile[MAX_PATH] = { 0 };
+		WCHAR szRender[MAX_PATH] = { 0 };
+		//GetModuleFileName(NULL, szFile, MAX_PATH);
+		//PathRemoveFileSpec(szFile);
+		//PathCombine(szRender, szFile, L"render.exe");
+		if (lpRender && wcslen(lpRender) > 0 && _waccess( lpRender, 0) == 0 )
+		{
+			cef_string_set(lpRender, wcslen(lpRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
+			settings.single_process = false;
+		}
+		WCHAR szCache[MAX_PATH] = { 0 };
+		PathCombine(szCache, szFile, L"cache");
+		cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
+
+		// Initialize CEF.
+		CefInitialize(main_args, settings, g_app.get(), g_sandbox_info);
+
+		// Register the scheme handler.
+		scheme_test::InitTest();
+
+		return exit_code;
+	}
+
+	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar)
+	{
+		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar);
+	}
+
+	void InitQWeb(FunMap* map){
 
 	}
 
-	HWND CreateWebView(int x, int y, int width, int height, const WCHAR* lpResource, int alpha, bool taskbar)
+	void RunLoop(){
+		CefRunMessageLoop();		
+	}
+
+	void FreeLibrary(){
+		CefShutdown();
+	}
+
+	bool QueryNodeAttrib(const HWND& hWnd, const int& x, const int& y, char* name, WCHAR* outVal, const int& len)
 	{
-		if ( !g_init )
+		bool bret = false;
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if ( item )
 		{
-			g_init = true;
+			CefString val(L"data-nc");			
+			item->m_provider->GetBrowser()->GetHost()->SendQueryElement(x, y, val);
+			if ( len > 0 )
+			{
+				wcscpy_s(outVal, len, val.ToWString().c_str());
+				bret = true;
+			}
+		}		
+
+		return bret;
+	}
+
+	bool callJSMethod(const HWND& hWnd, const char* fun_name, const char* utf8_parm,
+		const char* utf8_frame_name/* = 0*/, std::wstring* outstr/* = 0*/)
+	{
+		bool bret = false;
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if ( item )
+		{
+			
 		}
 
-		return 0;
+		return bret;
+	}
+
+	bool invokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
+		const char* utf8_parm, std::wstring* outstr,
+		const char* utf8_frame_name /*= 0*/, bool bNoticeJSTrans2JSON /*= true*/)
+	{
+		bool bret = false;
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if ( item )
+		{
+			item->m_handle->invokedJSMethod(utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
+		}
+
+		return bret;
+	}
+
+	void CloseWebview(const HWND& hWnd)
+	{
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item)
+		{
+			item->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+		}
+	}
+
+	void CloseAllWebView(const HWND& hWnd)
+	{
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item)
+		{
+			item->m_handle->CloseAllBrowsers(true);
+		}
+	}
+
+	void QuitLoop()
+	{
+		CefQuitMessageLoop();
 	}
 }

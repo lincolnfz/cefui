@@ -9,10 +9,16 @@ class OSRWindow;
 class WebItem : public CefBase
 {
 public:
+	WebItem(){
+		m_ipcID = 0;
+	}
+	~WebItem(){
+
+	}
 	CefRefPtr<ClientHandler> m_handle;
 	CefRefPtr<BrowserProvider> m_provider;
 	CefRefPtr<OSRWindow> m_window;
-
+	int m_ipcID;
 	IMPLEMENT_REFCOUNTING(WebItem);
 };
 
@@ -56,6 +62,12 @@ public:
 	CefRefPtr<WebItem> FindItem(const HWND hWnd);
 
 	void RemoveWindow(HWND);
+
+	CefRefPtr<CefBrowser> GetBrowser(int browserID);
+
+	CefRefPtr<WebItem> GetBrowserItem(int browserID);
+
+	HWND GetBrowserHwnd(int);
 
 protected:
 	WebViewFactory();

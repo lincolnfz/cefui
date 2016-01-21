@@ -85,6 +85,10 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bridage.h" />
+    <ClInclude Include="BridageHost.h" />
+    <ClInclude Include="BridageRender.h" />
+    <ClInclude Include="BrowserIdentifier.h" />
     <ClInclude Include="cefclient.h" />
     <ClInclude Include="cefclient_osr_widget_win.h" />
     <ClInclude Include="client_app.h" />
@@ -92,21 +96,38 @@
     <ClInclude Include="client_renderer.h" />
     <ClInclude Include="client_switches.h" />
     <ClInclude Include="osrenderer.h" />
+    <ClInclude Include="ResponseHandle.h" />
+    <ClInclude Include="ResponseRender.h" />
+    <ClInclude Include="ResponseUI.h" />
     <ClInclude Include="scheme_test.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="string_util.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="ThreadCombin.h" />
+    <ClInclude Include="WebViewFactory.h" />
     <ClInclude Include="WrapCef.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Bridage.cpp" />
+    <ClCompile Include="BridageHost.cpp" />
+    <ClCompile Include="BridageRender.cpp" />
+    <ClCompile Include="BrowserIdentifier.cpp" />
     <ClCompile Include="cefclient.cpp" />
     <ClCompile Include="cefclient_osr_widget_win.cpp" />
+    <ClCompile Include="cjpickle.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="client_app.cpp" />
     <ClCompile Include="client_app_delegates.cpp" />
     <ClCompile Include="client_handler.cpp" />
     <ClCompile Include="client_handler_win.cpp" />
     <ClCompile Include="client_renderer.cpp" />
     <ClCompile Include="client_switches.cpp" />
+    <ClCompile Include="CombinThreadComit.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -115,13 +136,22 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="IPC.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="osrenderer.cpp" />
+    <ClCompile Include="ResponseHandle.cpp" />
+    <ClCompile Include="ResponseRender.cpp" />
+    <ClCompile Include="ResponseUI.cpp" />
     <ClCompile Include="scheme_test.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="string_util.cpp" />
+    <ClCompile Include="ThreadCombin.cpp" />
+    <ClCompile Include="WebViewFactory.cpp" />
     <ClCompile Include="WrapCef.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

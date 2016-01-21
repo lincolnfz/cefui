@@ -1,7 +1,7 @@
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-
+#include "stdafx.h"
 #include "cjpickle.h"
 
 #include <stdlib.h>
@@ -313,7 +313,7 @@ namespace cyjh{
 #endif
 		size_t new_size = write_offset_ + data_len;
 		if (new_size > capacity_after_header_) {
-			Resize(std::max(capacity_after_header_ * 2, new_size));
+			Resize(max(capacity_after_header_ * 2, new_size));
 		}
 
 		char* write = mutable_payload() + write_offset_;

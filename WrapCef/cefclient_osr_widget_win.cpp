@@ -11,6 +11,8 @@
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
+#include "BridageRender.h"
+#include "WebViewFactory.h"
 //#include <windows.h>
 //#include "cefclient/resource.h"
 
@@ -77,11 +79,11 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 
   SetWindowLongPtr(hWnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-  long styleEx = GetWindowLong(hWnd_, GWL_EXSTYLE);
+  /*long styleEx = GetWindowLong(hWnd_, GWL_EXSTYLE);
   styleEx &= ~WS_EX_APPWINDOW;
   styleEx |= WS_EX_TOOLWINDOW;
-  //SetWindowLongPtr(hWnd_, GWL_EXSTYLE, styleEx);
-  ShowWindow(hWnd_, SW_SHOW);
+  SetWindowLongPtr(hWnd_, GWL_EXSTYLE, styleEx);
+  ShowWindow(hWnd_, SW_SHOW);*/
 
   // Reference released in OnDestroyed().
   AddRef();
@@ -289,7 +291,9 @@ void Get32BitmapInfo(int width, int height, BITMAPINFO& info, unsigned long& dat
 	bmphead.bfOffBits = bmphead.bfSize - datalen;
 }
 
-
+void OSRWindow::SetAlpha(const unsigned int& alpha){
+	m_alpah = alpha % 256;
+}
 
 void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
                         PaintElementType type,
@@ -339,7 +343,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 				pb.AlphaFormat = AC_SRC_ALPHA;
 				pb.BlendOp = AC_SRC_OVER;
 				pb.BlendFlags = 0;
-				pb.SourceConstantAlpha = 0xFF;
+				pb.SourceConstantAlpha = m_alpah;
 				if (old_width != view_width_ || old_height != view_height_ ||
 					(dirtyRects.size() == 1 &&
 					dirtyRects[0] == CefRect(0, 0, view_width_, view_height_))) {
@@ -486,7 +490,8 @@ OSRWindow::OSRWindow(OSRBrowserProvider* browser_provider,
       render_task_pending_(false),
       hidden_(false),
 	  view_width_(0),
-	  view_height_(0) {
+	  view_height_(0),
+	  m_alpah(0xff){
 }
 
 OSRWindow::~OSRWindow() {
@@ -556,6 +561,7 @@ void OSRWindow::DisableGL() {
 }
 
 void OSRWindow::OnDestroyed() {
+	WebViewFactory::getInstance().RemoveWindow(hWnd_);
   SetWindowLongPtr(hWnd_, GWLP_USERDATA, 0L);
   hWnd_ = NULL;
   Release();
@@ -794,17 +800,34 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
         mouse_event.y = y;
         gLastMouseDownOnView = !window->IsOverPopupWidget(x, y);
         window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
-        mouse_event.modifiers = GetCefMouseModifiers(wParam);
+		mouse_event.modifiers = GetCefMouseModifiers(wParam);
         browser->SendMouseClickEvent(mouse_event, btnType, false,
                                      gLastClickCount);
 		//test by lincoln
-		CefString vv("data-nc");
+		/*{
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item)
+		{
+		DWORD d = item->m_provider->GetBrowser()->GetIdentifier();
+		d = 0;
+		}
+		}*/
+		/*CefString vv("data-nc");
 		browser->SendQueryElement(x, y, vv);
 		int i = 0;
 		CefRefPtr<CefProcessMessage> message =
 			CefProcessMessage::Create("invokeMethod");
 		message->GetArgumentList()->SetString(0, CefString(L"invokee"));
-		browser->GetBrowser()->SendProcessMessageEx(PID_RENDERER, message, true, -1, 666, true);
+		browser->GetBrowser()->SendProcessMessageEx(PID_RENDERER, message, true, -1, 666, true);*/
+
+		/*CefRefPtr<CefProcessMessage> message =
+			CefProcessMessage::Create("invokedMethod");
+		message->GetArgumentList()->SetString(0, CefString(L"invokee"));
+		CefRefPtr<CefListValue>  val;
+		BridageRender::getInst().SendRequest(browser->GetBrowser(), message, val, 60000);
+		CefString ss = val->GetString(0);
+		int i = 0;*/
+		
 		//CefString fun("fun11");
 		//CefString parm("ppaarm");
 		//browser->GetBrowser()->SendProcessDoneFunction(PID_RENDERER, fun, parm, false, false);

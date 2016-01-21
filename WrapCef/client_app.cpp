@@ -14,8 +14,12 @@
 #include "include/cef_task.h"
 #include "include/cef_v8.h"
 #include "include/wrapper/cef_helpers.h"
+#include "BrowserIdentifier.h"
+#include "IPC.h"
 
 ClientApp::ClientApp() {
+	UIThreadSync_ = new cyjh::UIThreadCombin;
+	RenderThreadSync_ = new cyjh::RenderThreadCombin;
 }
 
 void ClientApp::OnRegisterCustomSchemes(
@@ -49,9 +53,45 @@ void ClientApp::OnBeforeChildProcessLaunch(
     (*it)->OnBeforeChildProcessLaunch(this, command_line);
 }
 
+std::wstring RandChr(int len)
+{
+	const WCHAR CCH[] = L"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	static unsigned int stal = 0;
+	++stal;
+	unsigned int processid = GetProcessId(GetCurrentProcess());
+	srand((unsigned)time(NULL) + stal + processid);
+
+	WCHAR* ch = new WCHAR[len + 1];
+	memset(ch, 0, sizeof(WCHAR)*(len + 1));
+
+	for (int i = 0; i < len; ++i)
+	{
+		int x = rand() % (wcslen(CCH) - 1);
+
+		ch[i] = CCH[x];
+	}
+	static std::wstring strRand;
+	strRand.clear();
+	strRand.append(ch);
+	delete[] ch;
+
+	return strRand;
+}
+
 void ClientApp::OnRenderProcessThreadCreated(
     CefRefPtr<CefListValue> extra_info) {
   BrowserDelegateSet::iterator it = browser_delegates_.begin();
+  static int num = 0;
+  ++num;
+  WCHAR szSrvPipeName[64] = { 0 };
+  WCHAR szCliPipeName[64] = { 0 };
+  swprintf_s(szSrvPipeName, L"\\\\.\\pipe\\srv_%s_%d", RandChr(5).c_str(), num);
+  swprintf_s(szCliPipeName, L"\\\\.\\pipe\\cli_%s_%d", RandChr(5).c_str(), num);
+  extra_info->SetString(extra_info->GetSize(), CefString(szSrvPipeName)); //主线程设置扩展属性
+  extra_info->SetString(extra_info->GetSize(), CefString(szCliPipeName));
+  std::shared_ptr<cyjh::IPCUnit> spIpc = cyjh::IPC_Manager::getInstance().GenerateIPC(szSrvPipeName, szCliPipeName);
+  spIpc.get()->BindRecvCallback(&cyjh::UIThreadCombin::RecvData, UIThreadSync_.get());
   for (; it != browser_delegates_.end(); ++it)
     (*it)->OnRenderProcessThreadCreated(this, extra_info);
 }
@@ -60,6 +100,11 @@ void ClientApp::OnRenderThreadCreated(CefRefPtr<CefListValue> extra_info) {
   CreateRenderDelegates(render_delegates_);
 
   RenderDelegateSet::iterator it = render_delegates_.begin();
+  CefString srvPipe = extra_info->GetString(extra_info->GetSize() - 2);
+  CefString cliPipe = extra_info->GetString(extra_info->GetSize() - 1); //子线程得到扩展属性
+  std::shared_ptr<cyjh::IPCUnit> spIpc = cyjh::IPC_Manager::getInstance().GenerateIPC(cliPipe.ToWString().c_str(), srvPipe.ToWString().c_str());
+  spIpc.get()->BindRecvCallback(&cyjh::RenderThreadCombin::RecvData, RenderThreadSync_.get());
+  RenderThreadSync_->SetIpc(spIpc);
   for (; it != render_delegates_.end(); ++it)
     (*it)->OnRenderThreadCreated(this, extra_info);
 }
@@ -71,12 +116,29 @@ void ClientApp::OnWebKitInitialized() {
 }
 
 void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
+	DWORD Id = browser->GetIdentifier();
+	BrowserIdentifier::GetInst().InsertBrowser(Id, browser);
+	/*{
+		//测试代码
+		cyjh::Instruct parm;
+		parm.setName("sfse");		
+		std::shared_ptr<cyjh::Instruct> outval;
+		RenderThreadSync_.Request(browser, parm, outval);
+	}*/
+	cyjh::Instruct parm;
+	parm.setName("RegisterBrowser");
+	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getCliName()));
+	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getSrvName()));
+	std::shared_ptr<cyjh::Instruct> outval;
+	RenderThreadSync_->Request(browser, parm, outval);
   RenderDelegateSet::iterator it = render_delegates_.begin();
   for (; it != render_delegates_.end(); ++it)
     (*it)->OnBrowserCreated(this, browser);
 }
 
 void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {
+	DWORD Id = browser->GetIdentifier();
+	BrowserIdentifier::GetInst().RemoveBrowser(Id);
   RenderDelegateSet::iterator it = render_delegates_.begin();
   for (; it != render_delegates_.end(); ++it)
     (*it)->OnBrowserDestroyed(this, browser);

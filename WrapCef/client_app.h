@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 #include "include/cef_app.h"
+#include "ThreadCombin.h"
 
 class ClientApp : public CefApp,
                   public CefBrowserProcessHandler,
@@ -217,6 +218,10 @@ class ClientApp : public CefApp,
   std::vector<CefString> cookieable_schemes_;
 
   CefRefPtr<CefPrintHandler> print_handler_;
+
+  CefRefPtr<cyjh::UIThreadCombin> UIThreadSync_;
+
+  CefRefPtr<cyjh::RenderThreadCombin> RenderThreadSync_;
 
   IMPLEMENT_REFCOUNTING(ClientApp);
 };

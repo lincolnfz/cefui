@@ -6,7 +6,7 @@
 
 namespace cyjh{
 
-	static int ipc_unit_id = 0;
+	static volatile int  ipc_unit_id = 0;
 	void _IPC_MESSAGE_ITEM::Append(const unsigned char* data, const DWORD len)
 	{
 		DWORD outRemind = len;
@@ -266,6 +266,7 @@ namespace cyjh{
 	{
 		bPendingIO_ = false;
 		succCreate_ = false;
+		wcscpy_s(name_, name);
 		srvpipe_ = CreateNamedPipe(name, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
 			PIPE_WAIT | PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE,
 			1, BUF_SIZE, BUF_SIZE, 0, NULL);
@@ -518,7 +519,7 @@ namespace cyjh{
 
 	IPCUnit::IPCUnit(const WCHAR* srv_ame, const WCHAR* cli_name) :srv_(srv_ame), cli_(cli_name)
 	{
-		id_ = ++ipc_unit_id;
+		id_ = InterlockedIncrement((long*)&ipc_unit_id);
 		cli_.BindDisconstCallback(&IPCUnit::NotifyDisconst, this);
 	}
 
@@ -541,16 +542,46 @@ namespace cyjh{
 	/////IPC_Manager
 	//////////////////////////////////////////////////////////////////////////
 	IPC_Manager IPC_Manager::s_inst;
+	volatile int IPC_Manager::id_ = 0;
+
 	std::shared_ptr<IPCUnit> IPC_Manager::GenerateIPC(const WCHAR* srv, const WCHAR* client)
 	{
 		std::shared_ptr<IPCUnit> unit(new IPCUnit(srv, client));
-		ipcs_.push_back(unit);
+		id_ = InterlockedIncrement((long*)&id_);
+		ipcs_.insert(std::make_pair(id_, unit));
+		//ipcs_.push_back(unit);
 		return unit;
+	}
+
+	std::shared_ptr<IPCUnit> IPC_Manager::GetIpc(const int& id)
+	{
+		std::shared_ptr<IPCUnit> spUnit;
+		std::map<int, std::shared_ptr<IPCUnit>>::iterator it = ipcs_.find(id);
+		if ( it != ipcs_.end() )
+		{
+			spUnit = it->second;
+		}
+		return spUnit;
+	}
+
+	int IPC_Manager::MatchIpc(const WCHAR* srv, const WCHAR* cli)
+	{
+		int idx = 0;
+		std::map<int, std::shared_ptr<IPCUnit>>::iterator it = ipcs_.begin();
+		for ( ; it != ipcs_.end(); ++it)
+		{
+			if ((wcscmp(it->second->getSrvName(), srv) == 0) && (wcscmp(it->second->getCliName(), cli) == 0))
+			{
+				idx = it->first;
+				break;
+			}
+		}
+		return idx;
 	}
 
 	void IPC_Manager::Destruct(int id)
 	{
-		std::vector<std::shared_ptr<IPCUnit>>::iterator it = ipcs_.begin();
+		/*std::vector<std::shared_ptr<IPCUnit>>::iterator it = ipcs_.begin();
 		for (; it != ipcs_.end(); ++it)
 		{
 			if ( it->get()->getID() == id )
@@ -558,6 +589,11 @@ namespace cyjh{
 				ipcs_.erase(it);
 				break;
 			}
+		}*/
+		std::map<int, std::shared_ptr<IPCUnit>>::iterator it = ipcs_.find(id);
+		if (it != ipcs_.end())
+		{
+			ipcs_.erase(it);
 		}
 	}
 }

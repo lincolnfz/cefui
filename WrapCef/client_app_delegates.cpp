@@ -7,6 +7,7 @@
 #include "client_renderer.h"
 //#include "performance_test.h"
 #include "scheme_test.h"
+#include "BridageHost.h"
 
 #include <boost/functional/hash.hpp>
 #include <boost/function.hpp>
@@ -116,7 +117,20 @@ public:
 		CefRefPtr<CefProcessMessage> message =
 			CefProcessMessage::Create("getPrivateProfileString");
 		message->GetArgumentList()->SetString(0, CefString(L"ÖÐÄÐis_editable"));
-		browser_->SendProcessMessageEx(PID_BROWSER, message, true, -1, 987, true);
+		//browser_->SendProcessMessageEx(PID_BROWSER, message, true, -1, 987, true);
+		CefRefPtr<CefListValue> response;
+		//browser_->SendProcessMessageEx(PID_BROWSER, message, true, -1, 0, true);
+		int id = browser_->GetIdentifier();
+		DWORD tid = GetCurrentThreadId();
+		browser_->SendSyncProcessMessage(message, response);
+		
+		//CefContentRendererClient::Get()->render_task_runner()->
+		//BridageHost::getInst().SendRequest(browser_, message, response, 60000);
+		//CefString ss = response->GetString(0);
+		//CefProcessHostMsg_GetNewRenderThreadInfo_Params params;
+		//content::RenderThread::Get()
+		//thread->Send(new CefProcessHostMsg_GetNewRenderThreadInfo(&params));
+		int i = 0;
 	}
 
 	void setWindowPos(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
@@ -373,11 +387,13 @@ public:
 		CefProcessId source_process,
 		CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack)  OVERRIDE
 	{
-		CefString name = message->GetName();
-		CefString pp = message->GetArgumentList()->GetString(0);
-
-		response_ack = true;
-		return false;
+		//test code
+		//CefString name = message->GetName();
+		//CefString pp = message->GetArgumentList()->GetString(0);
+		//CefRefPtr<CefFrame> frame = browser->GetMainFrame();
+		//frame->ExecuteJavaScript( CefString(L"pprr('454xx')"), CefString(L""), 0);
+		//test code end
+		return BridageHost::getInst().ProcRequest(app, browser, message, response, response_ack);		
 	}
 
 		virtual bool OnProcessResponseReceived(
@@ -388,8 +404,7 @@ public:
 		bool succ,
 		CefRefPtr<CefListValue> response)OVERRIDE{
 
-		int i = 0;
-		return false;
+		return BridageHost::getInst().ProcResponse(browser, request_id, succ, response);
 	}
 
 	virtual bool OnProcessResponseAckReceived(

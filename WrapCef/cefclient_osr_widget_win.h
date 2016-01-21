@@ -11,7 +11,7 @@
 #include "client_handler.h"
 #include "osrenderer.h"
 
-class OSRBrowserProvider {
+class OSRBrowserProvider : public CefBase {
  public:
   virtual CefRefPtr<CefBrowser> GetBrowser() =0;
 
@@ -102,6 +102,8 @@ class OSRWindow : public ClientHandler::RenderHandler
   static int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam);
   static int GetCefMouseModifiers(WPARAM wparam);
 
+  void SetAlpha( const unsigned int& );
+
  private:
   OSRWindow(OSRBrowserProvider* browser_provider,
             bool transparent,
@@ -129,6 +131,7 @@ class OSRWindow : public ClientHandler::RenderHandler
 
   int view_width_;
   int view_height_;
+  unsigned int m_alpah;
 
 #if defined(CEF_USE_ATL)
   CComPtr<DropTargetWin> drop_target_;

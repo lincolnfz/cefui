@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 #include "IPC.h"
+#include "include/cef_base.h"
+#include "include/cef_browser.h"
 
 namespace cyjh{
 
@@ -18,7 +20,7 @@ namespace cyjh{
 			TYPE_BOOLEAN,
 			TYPE_INTEGER,
 			TYPE_DOUBLE,
-			TYPE_STRING,
+			TYPE_WSTRING,
 			TYPE_BINARY,
 			TYPE_DICTIONARY,
 			TYPE_LIST
@@ -63,7 +65,7 @@ namespace cyjh{
 		}
 
 		void SetWStringVal(const std::wstring& val){
-			type_ = TYPE_STRING;
+			type_ = TYPE_WSTRING;
 			strVal_ = val;
 		}
 
@@ -116,23 +118,23 @@ namespace cyjh{
 			list_.push_back(item);
 		}
 
-		const cyjh_value::Type& GetType(const unsigned int& idx){
+		const cyjh_value::Type& GetType(const unsigned int& idx) const{
 			return list_[idx].GetType();
 		}
 
-		const bool& GetBooleanVal(const unsigned int& idx){
+		const bool& GetBooleanVal(const unsigned int& idx) const{
 			return list_[idx].GetBooleanVal();
 		}
 
-		const int& GetIntVal(const unsigned int& idx){
+		const int& GetIntVal(const unsigned int& idx) const{
 			return list_[idx].GetIntVal();
 		}
 
-		const double& GetDoubleVal(const unsigned int& idx){
+		const double& GetDoubleVal(const unsigned int& idx) const{
 			return list_[idx].GetDoubleVal();
 		}
 
-		const std::wstring& GetWStrVal(const unsigned int& idx){
+		const std::wstring& GetWStrVal(const unsigned int& idx) const{
 			return list_[idx].GetWStrVal();
 		}
 
@@ -157,21 +159,17 @@ namespace cyjh{
 	{
 		INSTRUCT_REQUEST,
 		INSTRUCT_RESPONSE,
+		INSTRUCT_NULL,
 	};
+
+	class CombinThreadComit;
 
 	class Instruct
 	{
 	public:
+		friend CombinThreadComit;
 		Instruct();
 		virtual ~Instruct();
-
-		void setInstructType(InstructType type){
-			type_ = type;
-		}
-
-		const InstructType& getInstructType() const{
-			return type_;
-		}
 
 		void setName(const char* name){
 			name_ = name;
@@ -185,20 +183,63 @@ namespace cyjh{
 			return list_;
 		}
 
+		void setBrowserID(const int& id){
+			browserID_ = id;
+		}
+
+		const int& getBrowserID() const{
+			return browserID_;
+		}
+
+		const int& getID() const{
+			return id_;
+		}
+
+		void setSucc(const bool& succ){
+			succ_ = succ;
+		}
+
+		const bool& getSucc() const{
+			return succ_;
+		}
+
+		static void SerializationInstruct(const Instruct* inst, Pickle& pick);
+
+		static bool ObjectInstruct(const Pickle& pick, Instruct* inst);
+
+	protected:
+		void setInstructType(InstructType type){
+			type_ = type;
+		}
+
+		const InstructType& getInstructType() const{
+			return type_;
+		}
+
+		void setID(const int& id){
+			id_ = id;
+		}
+
+
 	private:
 		InstructType type_;
-		std::string name_;
+		std::string name_;		
+		int id_;
+		int browserID_;
+		bool succ_;
 		cyjh_value_list list_;
 	};
 
 	typedef HANDLE BlockEvents[2];
 	struct RequestContext 
 	{
+		int id_;
 		BlockEvents events_;
 		std::shared_ptr<Instruct> parm_; //收到的请求参数放在这里
 		std::shared_ptr<Instruct> outval_; //收到的最终返回结果放在这里
 
 		RequestContext(){			
+			id_ = 0;
 			events_[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
 			events_[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
 		}
@@ -209,28 +250,46 @@ namespace cyjh{
 		}
 	};
 	
-	class CombinThreadComit
+	class CombinThreadComit : public CefBase
 	{
 	public:
 		CombinThreadComit(ThreadType type);
 		virtual ~CombinThreadComit();
 
-		void Request(Instruct& parm, std::shared_ptr<Instruct> val);
-
-		void Response(Instruct&);
-
+		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct> val) = 0;
+		virtual void RecvData(const unsigned char*, DWORD);
 	protected:
-		virtual void procRecvRequest(std::shared_ptr<Instruct>);
-		void RecvData(const byte*, DWORD);
-
-	private:
+		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct> val);
+		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id);
+		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
+		
 		void pushEvent(std::shared_ptr<RequestContext>&);
 
 		void popEvent();
 
+		void pushRecvRequestID(int id);
+
+		bool popRecvRequestID(int id);
+
+		int generateID();
+
+	protected:
+		std::shared_ptr<RequestContext> getReqStackTop(int id);
+
 		ThreadType threadType_;
-		std::deque<std::shared_ptr<RequestContext>> eventStack_;
-		std::mutex eventStackMutex_;
+		std::deque<std::shared_ptr<RequestContext>> eventRequestStack_;
+		std::mutex eventRequestStackMutex_;
+
+		std::deque<int> eventResponsStack_;
+		std::mutex eventResponseStackMutex_;
+
+		std::mutex generateIDMutex_;
+
+		int requestID_;
+
+		static DWORD s_tid_;
+
+		IMPLEMENT_REFCOUNTING(CombinThreadComit);
 	};
 
 }
