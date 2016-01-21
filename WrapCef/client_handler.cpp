@@ -29,6 +29,7 @@
 #include "string_util.h"
 //#include "cefclient/window_test.h"
 #include "BridageRender.h"
+#include "IPC.h"
 
 namespace {
 
@@ -1004,5 +1005,11 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 	const char* utf8_parm, std::wstring* outstr,
 	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
 {
+	cyjh::Instruct parm;
+	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	std::shared_ptr<cyjh::Instruct> outVal;
+	ipc->Request(this->browser_, parm, outVal);
+
 	return false;
 }

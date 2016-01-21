@@ -139,14 +139,12 @@ public:
 	void getPrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 
 		cyjh::Instruct parm;
-		//parm.setName(__FUNCTION__);
-		parm.setName("getPrivateProfileString");
-		std::regex ex;
+		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring s(L"458");
 		parm.getList().AppendVal(s);
-		CefRefPtr<cyjh::RenderThreadCombin> render = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
-		render->Request(this->browser_, parm, outVal);
+		ipc->Request(this->browser_, parm, outVal);
 		std::wstring ss = outVal->getList().GetWStrVal(0);
 		int i = 0;
 	}

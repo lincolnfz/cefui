@@ -8,6 +8,11 @@
 #include "cjpickle.h"
 #include <vector>
 #include <map>
+#include <regex>
+
+std::string x_funName(char* name);
+
+#define PICK_MEMBER_FUN_NAME(x) x_funName(x).c_str()
 
 #define BUF_SIZE 8192
 
