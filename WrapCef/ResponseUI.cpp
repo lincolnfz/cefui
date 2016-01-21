@@ -7,6 +7,7 @@
 ResponseUI::ResponseUI()
 {
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getPrivateProfileString);
 }
 
 
@@ -27,5 +28,24 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 	else{
 		assert(false);
 	}
+	return true;
+}
+
+#include "client_app.h"
+bool ResponseUI::rsp_getPrivateProfileString(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> reqParm, std::shared_ptr<cyjh::Instruct> out)
+{
+	{
+		//≤‚ ‘¥˙¬Î
+		cyjh::Instruct parm;
+		//parm.setName(__FUNCTION__);
+		parm.setName("invokedJSMethod");
+		std::wstring s(L"458");
+		parm.getList().AppendVal(s);
+		CefRefPtr<cyjh::UIThreadCombin> ui = ClientApp::getGlobalApp()->getUIThreadCombin();
+		std::shared_ptr<cyjh::Instruct> outVal;
+		ui->Request(browser, parm, outVal);
+		int i = 0;
+	}
+	out->getList().AppendVal(std::wstring(L"a45486"));
 	return true;
 }

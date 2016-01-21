@@ -334,7 +334,7 @@ namespace cyjh{
 		pushRecvRequestID(parm->getID());
 	}
 
-	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct> response_val)
+	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
 	{
 		int reqeustid = 0;
 		eventResponseStackMutex_.lock();

@@ -256,10 +256,10 @@ namespace cyjh{
 		CombinThreadComit(ThreadType type);
 		virtual ~CombinThreadComit();
 
-		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct> val) = 0;
+		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) = 0;
 		virtual void RecvData(const unsigned char*, DWORD);
 	protected:
-		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct> val);
+		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
 		

@@ -17,6 +17,9 @@
 #include "cefclient/print_handler_gtk.h"
 #endif
 #include <include/base/cef_logging.h>
+#include "IPC.h"
+#include <string>
+#include <regex>
 
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
@@ -112,7 +115,7 @@ public:
 	void getPrivateProfileInt(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 	}
 
-	void getPrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+	/*void getPrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 
 		CefRefPtr<CefProcessMessage> message =
 			CefProcessMessage::Create("getPrivateProfileString");
@@ -130,6 +133,21 @@ public:
 		//CefProcessHostMsg_GetNewRenderThreadInfo_Params params;
 		//content::RenderThread::Get()
 		//thread->Send(new CefProcessHostMsg_GetNewRenderThreadInfo(&params));
+		int i = 0;
+	}*/
+
+	void getPrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+
+		cyjh::Instruct parm;
+		//parm.setName(__FUNCTION__);
+		parm.setName("getPrivateProfileString");
+		std::regex ex;
+		std::wstring s(L"458");
+		parm.getList().AppendVal(s);
+		CefRefPtr<cyjh::RenderThreadCombin> render = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		std::shared_ptr<cyjh::Instruct> outVal;
+		render->Request(this->browser_, parm, outVal);
+		std::wstring ss = outVal->getList().GetWStrVal(0);
 		int i = 0;
 	}
 

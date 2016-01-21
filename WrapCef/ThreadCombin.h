@@ -13,7 +13,7 @@ namespace cyjh{
 	public:
 		UIThreadCombin();
 		virtual ~UIThreadCombin();
-		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct> val) override;
+		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) override;
 		virtual void RecvData(const unsigned char*, DWORD) override;
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
@@ -30,7 +30,7 @@ namespace cyjh{
 	public:
 		RenderThreadCombin();
 		virtual ~RenderThreadCombin();
-		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct> val) override;
+		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) override;
 		void SetIpc(std::shared_ptr<IPCUnit> ipc)
 		{
 			ipc_ = ipc;

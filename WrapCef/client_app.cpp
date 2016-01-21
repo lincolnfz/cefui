@@ -17,7 +17,10 @@
 #include "BrowserIdentifier.h"
 #include "IPC.h"
 
+ClientApp* ClientApp::s_app = NULL;
+
 ClientApp::ClientApp() {
+	s_app = this;
 	UIThreadSync_ = new cyjh::UIThreadCombin;
 	RenderThreadSync_ = new cyjh::RenderThreadCombin;
 }

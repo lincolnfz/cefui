@@ -4,6 +4,7 @@
 #include "BrowserIdentifier.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
+#include "WebViewFactory.h"
 
 namespace cyjh{
 
@@ -18,9 +19,18 @@ namespace cyjh{
 
 	}
 
-	void UIThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct> val)
+	void UIThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		parm.setBrowserID(browser->GetIdentifier());
+		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+		if ( item.get() )
+		{
+			std::shared_ptr<IPCUnit> unit = IPC_Manager::getInstance().GetIpc(item->m_ipcID);
+			if ( unit.get() )
+			{
+				SendRequest(unit.get(), parm, val);
+			}
+		}
 	}
 
 	void UIThreadCombin::RecvData(const unsigned char* data, DWORD len)
@@ -74,7 +84,7 @@ namespace cyjh{
 
 	}
 
-	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct> val)
+	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		parm.setBrowserID(browser->GetIdentifier());
 		SendRequest(ipc_.get(), parm, val);

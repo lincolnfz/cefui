@@ -129,6 +129,19 @@ class ClientApp : public CefApp,
 
   ClientApp();
 
+  static ClientApp* s_app;
+  static ClientApp* getGlobalApp(){
+	  return s_app;
+  }
+
+  CefRefPtr<cyjh::UIThreadCombin> getUIThreadCombin(){
+	  return UIThreadSync_;
+  }
+
+  CefRefPtr<cyjh::RenderThreadCombin> getRenderThreadCombin(){
+	  return RenderThreadSync_;
+  }
+
  private:
   // Creates all of the BrowserDelegate objects. Implemented in
   // client_app_delegates.
