@@ -1005,11 +1005,24 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 	const char* utf8_parm, std::wstring* outstr,
 	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
 {
+	bool ret = false;
 	cyjh::Instruct parm;
 	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.getList().AppendVal(std::string(utf8_module));
+	parm.getList().AppendVal(std::string(utf8_method));
+	parm.getList().AppendVal(std::string(utf8_parm));
+	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "": utf8_frame_name));
+	parm.getList().AppendVal(bNoticeJSTrans2JSON);
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 	std::shared_ptr<cyjh::Instruct> outVal;
 	ipc->Request(this->browser_, parm, outVal);
-
-	return false;
+	if ( outVal.get() )
+	{
+		if ( outstr )
+		{
+			*outstr = outVal->getList().GetWStrVal(0);
+		}		
+		ret = outVal->getSucc();
+	}
+	return ret;
 }

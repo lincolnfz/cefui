@@ -20,6 +20,7 @@ namespace cyjh{
 			TYPE_BOOLEAN,
 			TYPE_INTEGER,
 			TYPE_DOUBLE,
+			TYPE_STRING,
 			TYPE_WSTRING,
 			TYPE_BINARY,
 			TYPE_DICTIONARY,
@@ -64,20 +65,30 @@ namespace cyjh{
 			return doubleVal_;
 		}
 
-		void SetWStringVal(const std::wstring& val){
-			type_ = TYPE_WSTRING;
+		void SetStringVal(const std::string& val){
+			type_ = TYPE_STRING;
 			strVal_ = val;
 		}
 
-		const std::wstring& GetWStrVal() const{
+		const std::string& GetStrVal() const{
 			return strVal_;
+		}
+
+		void SetWStringVal(const std::wstring& val){
+			type_ = TYPE_WSTRING;
+			strwVal_ = val;
+		}
+
+		const std::wstring& GetWStrVal() const{
+			return strwVal_;
 		}
 	protected:
 		Type type_;
 		bool boolVal_;
 		int intVal_;
 		double doubleVal_;
-		std::wstring strVal_;
+		std::wstring strwVal_;
+		std::string strVal_;
 	private:
 
 	};
@@ -112,6 +123,12 @@ namespace cyjh{
 			list_.push_back(item);
 		}
 
+		void AppendVal(const std::string& val){
+			cyjh_value item;
+			item.SetStringVal(val);
+			list_.push_back(item);
+		}
+
 		void AppendVal(const std::wstring& val){
 			cyjh_value item;
 			item.SetWStringVal(val);
@@ -132,6 +149,10 @@ namespace cyjh{
 
 		const double& GetDoubleVal(const unsigned int& idx) const{
 			return list_[idx].GetDoubleVal();
+		}
+
+		const std::string& GetStrVal(const unsigned int& idx) const{
+			return list_[idx].GetStrVal();
 		}
 
 		const std::wstring& GetWStrVal(const unsigned int& idx) const{

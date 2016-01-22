@@ -139,6 +139,12 @@ namespace cyjh{
 				pick.WriteDouble(val);
 			}
 			break;
+			case cyjh_value::TYPE_STRING:
+			{
+				const std::string val = inst->list_.GetStrVal(idx);
+				pick.WriteString(val);
+			}
+			break;
 			case cyjh_value::TYPE_WSTRING:
 			{
 				const std::wstring val = inst->list_.GetWStrVal(idx);
@@ -229,6 +235,15 @@ namespace cyjh{
 					inst->getList().AppendVal(val);
 				}
 					break;
+				case cyjh::cyjh_value::TYPE_STRING:
+				{
+					std::string val;
+					if (!pick.ReadString(&itor, &val)){
+						bret = false;
+					}
+					inst->getList().AppendVal(val);
+				}
+				break;
 				case cyjh::cyjh_value::TYPE_WSTRING:
 				{
 					std::wstring val;
