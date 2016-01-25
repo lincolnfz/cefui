@@ -161,5 +161,14 @@
     <ClCompile Include="ResponseUI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="json\json_reader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="json\json_value.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="json\json_writer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

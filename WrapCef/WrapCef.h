@@ -13,6 +13,10 @@ SHARED_EXPORT_API int UnInitBrowser();
 
 namespace wrapQweb {
 
+	typedef long(__stdcall *call_closeWindow)(HWND hWnd);
+
+	typedef long(__stdcall *call_setWindowPos)(HWND hWnd, long order, long x, long y, long cx, long cy , long flag);
+
 	typedef long(__stdcall *call_createWindow)(HWND hWnd, long x, long y, long width, long height, long min_cx, long min_cy, long max_cx, long max_cy,
 		std::wstring& skin, long alpha, unsigned long ulStyle, unsigned long extra);
 
@@ -30,13 +34,21 @@ namespace wrapQweb {
 	typedef std::wstring(__stdcall *call_crossInvokeWebMethod2)(HWND hWnd, long winSign, std::wstring& framename, std::wstring& modulename,
 		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
 
+	typedef std::wstring(__stdcall *call_winProty)(HWND hWnd);
+
+	typedef std::wstring(__stdcall *call_softwareAttribute)();
+
 	typedef struct _FunMap{
+		call_closeWindow closeWindow;
+		call_setWindowPos setWindowPos;
 		call_createWindow createWindow;
 		call_createModalWindow createModalWindow;
 		call_createModalWindow2 createModalWindow2;
 		call_invokeMethod invokeMethod;
 		call_crossInvokeWebMethod crossInvokeWebMethod;
 		call_crossInvokeWebMethod2 crossInvokeWebMethod2;
+		call_winProty winProty;
+		call_softwareAttribute softAttr;
 	}FunMap;
 
 	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL);

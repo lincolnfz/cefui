@@ -2,8 +2,10 @@
 #include "ResponseUI.h"
 #include "IPC.h"
 #include "WebViewFactory.h"
+#include <boost/functional/hash.hpp>
+#include "json/json.h"
 
-enum UI_CONTROL_MSG
+/*enum UI_CONTROL_MSG
 {
 	UI_CONTROL_MSG_BEGIN = WM_USER + 0x4000, // WM_USER ~ 0x7FFF     私有窗口类用的整数型消息。
 	UI_CONTROL_MSG_CREATE_DLG,
@@ -17,7 +19,9 @@ enum UI_CONTROL_MSG
 	UI_CONTROL_MSG_LOAD_FRAME, //每加载完一个frame，即触发消息
 	UI_CONTROL_MSG_ZORDER_ADJUST,
 	UI_CONTROL_MSG_END,
-};
+};*/
+
+wrapQweb::FunMap* ResponseUI::s_fnMap = NULL;
 
 ResponseUI::ResponseUI()
 {
@@ -43,11 +47,32 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_restoreWindow);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_closeWindow);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_setWindowText);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_writePrivateProfileString);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getPrivateProfileInt);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_setProfile);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getProfile);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_setWindowSize);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_setWindowPos);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_setAlpha);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getSoftwareAttribute);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_winProty);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_createWindow);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_createModalWindow);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_createModalWindow2);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_invokeMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod2);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_fullScreen);
 }
 
 
 ResponseUI::~ResponseUI()
 {
+}
+
+void ResponseUI::SetFunMap(wrapQweb::FunMap* fnMap)
+{
+	s_fnMap = fnMap;
 }
 
 bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> reqParm, std::shared_ptr<cyjh::Instruct> )
@@ -247,8 +272,12 @@ bool ResponseUI::rsp_closeWindow(const CefRefPtr<CefBrowser> browser, const std:
 	if (item.get() && IsWindow(item->m_window->hwnd()))
 	{
 		HWND hWnd = item->m_window->hwnd();
-		PostMessage(hWnd, UI_CONTROL_MSG_CLOSE, 0, 0);
-		ret = true;
+		//PostMessage(hWnd, UI_CONTROL_MSG_CLOSE, 0, 0);
+		if ( s_fnMap )
+		{
+			s_fnMap->closeWindow(hWnd);
+			ret = true;
+		}		
 	}
 	return ret;
 }
@@ -263,6 +292,325 @@ bool ResponseUI::rsp_setWindowText(const CefRefPtr<CefBrowser> browser, const st
 		std::wstring title = req_parm->getList().GetWStrVal(0);
 		SetWindowText(hWnd, title.c_str());
 		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_writePrivateProfileString(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	std::wstring appName = req_parm->getList().GetWStrVal(0);
+	std::wstring keyName = req_parm->getList().GetWStrVal(1);
+	std::wstring val = req_parm->getList().GetWStrVal(2);
+	std::wstring file = req_parm->getList().GetWStrVal(3);
+	ret = WritePrivateProfileString(appName.c_str(), keyName.c_str(), val.c_str(), file.c_str());
+	return ret;
+}
+
+bool ResponseUI::rsp_getPrivateProfileInt(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = true;
+	std::wstring appName = req_parm->getList().GetWStrVal(0);
+	std::wstring keyName = req_parm->getList().GetWStrVal(1);
+	int val = req_parm->getList().GetIntVal(2);
+	std::wstring file = req_parm->getList().GetWStrVal(3);
+	int outval = ::GetPrivateProfileInt(appName.c_str(), keyName.c_str(), val, file.c_str());
+	out->getList().AppendVal(outval);
+	return ret;
+}
+
+bool ResponseUI::rsp_setProfile(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	boost::hash<std::wstring> string_hash;
+	std::wstring keyName = req_parm->getList().GetWStrVal(0);
+	size_t key = string_hash(keyName);
+	std::wstring val = req_parm->getList().GetWStrVal(1);
+	std::pair<std::map<unsigned int, std::wstring>::iterator, bool> insret = m_profile.insert(std::make_pair(key, val));
+	ret = insret.second;
+	return ret;
+}
+
+bool ResponseUI::rsp_getProfile(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	boost::hash<std::wstring> string_hash;
+	std::wstring keyName = req_parm->getList().GetWStrVal(0);
+	size_t key = string_hash(keyName);
+	std::map<unsigned int, std::wstring>::iterator it = m_profile.find(key);
+	if ( it != m_profile.end() )
+	{
+		out->getList().AppendVal(it->second);
+		ret = true;
+	}
+
+	return ret;
+}
+
+bool ResponseUI::rsp_setWindowSize(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	int x = req_parm->getList().GetIntVal(0);
+	int y = req_parm->getList().GetIntVal(1);
+	int width = req_parm->getList().GetIntVal(2);
+	int height = req_parm->getList().GetIntVal(3);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		SetWindowPos(hWnd, HWND_NOTOPMOST, x, y, width, height, SWP_NOZORDER | SWP_FRAMECHANGED);
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_setWindowPos(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	int order = req_parm->getList().GetIntVal(0);
+	int x = req_parm->getList().GetIntVal(1);
+	int y = req_parm->getList().GetIntVal(2);
+	int width = req_parm->getList().GetIntVal(3);
+	int height = req_parm->getList().GetIntVal(4);
+	int flag = req_parm->getList().GetIntVal(5);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if ( s_fnMap )
+		{
+			s_fnMap->setWindowPos(hWnd, order, x, y, width, height, flag);
+		}
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_setAlpha(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	int alpha = req_parm->getList().GetIntVal(0);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		item->m_window->SetAlpha(alpha);
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_getSoftwareAttribute(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	if ( s_fnMap )
+	{
+		out->getList().AppendVal(s_fnMap->softAttr());
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_winProty(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			out->getList().AppendVal(s_fnMap->winProty(hWnd));
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool parseCreateWindowParm(std::string& json, long& x, long& y, long& width, long& height, long& min_cx, long& min_cy, long& max_cx, long& max_cy,
+	std::string& skin, long& alpha, unsigned long& ulStyle, unsigned long& extra, unsigned long& parentSign)
+{
+	bool ret = false;
+	Json::Reader read;
+	Json::Value root;
+	if (read.parse(json, root)){
+		x = root.get("x", 0).asInt();
+		y = root.get("y", 0).asInt();
+		width = root.get("width", 0).asInt();
+		height = root.get("height", 0).asInt();
+		min_cx = root.get("min_cx", 0).asInt();
+		min_cy = root.get("min_cy", 0).asInt();
+		max_cx = root.get("max_cx", 0).asInt();
+		max_cy = root.get("max_cy", 0).asInt();
+		skin = root.get("skin", 0).asString();
+		alpha = root.get("alpha", 0).asInt();
+		ulStyle = root.get("ulStyle", 0).asUInt();
+		extra = root.get("extra", 0).asUInt();
+		parentSign = root.get("parentSign", 0).asUInt();
+		ret = true;
+	}
+
+	return ret;
+}
+
+std::wstring char2wchar(const std::string& str)
+{
+	int iTextLen = 0;
+	iTextLen = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
+	WCHAR* wsz = new WCHAR[iTextLen + 1];
+	memset((void*)wsz, 0, sizeof(WCHAR) * (iTextLen + 1));
+	::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, wsz, iTextLen);
+	std::wstring strText(wsz);
+	delete[]wsz;
+	return strText;
+}
+
+bool ResponseUI::rsp_createWindow(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string parm = req_parm->getList().GetStrVal(0);
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			{
+				s_fnMap->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
+				ret = true;
+			}			
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_createModalWindow(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string parm = req_parm->getList().GetStrVal(0);
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			{
+				s_fnMap->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_createModalWindow2(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string parm = req_parm->getList().GetStrVal(0);
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			{
+				s_fnMap->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra, parentSign);
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_invokeMethod(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	std::wstring module = req_parm->getList().GetWStrVal(0);
+	std::wstring method = req_parm->getList().GetWStrVal(1);
+	std::wstring parm = req_parm->getList().GetWStrVal(2);
+	int extra = req_parm->getList().GetIntVal(3);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			out->getList().AppendVal( s_fnMap->invokeMethod(hWnd, module, method, parm, extra));
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_crossInvokeWebMethod(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	int sign = req_parm->getList().GetIntVal(0);
+	std::wstring module = req_parm->getList().GetWStrVal(1);
+	std::wstring method = req_parm->getList().GetWStrVal(2);
+	std::wstring parm = req_parm->getList().GetWStrVal(3);
+	bool json = req_parm->getList().GetBooleanVal(4);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			out->getList().AppendVal(s_fnMap->crossInvokeWebMethod(hWnd, sign,  module, method, parm, json));
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_crossInvokeWebMethod2(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	int sign = req_parm->getList().GetIntVal(0);
+	std::wstring frame = req_parm->getList().GetWStrVal(1);
+	std::wstring module = req_parm->getList().GetWStrVal(2);
+	std::wstring method = req_parm->getList().GetWStrVal(3);
+	std::wstring parm = req_parm->getList().GetWStrVal(4);
+	bool json = req_parm->getList().GetBooleanVal(5);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			out->getList().AppendVal(s_fnMap->crossInvokeWebMethod2(hWnd, sign, frame, module, method, parm, json));
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_fullScreen(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	bool bFull = req_parm->getList().GetBooleanVal(0);
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		LONG style = ::GetWindowLong(hWnd, GWL_STYLE);
+		if (bFull)
+		{
+			style &= ~(WS_DLGFRAME | WS_THICKFRAME);
+			SetWindowLong(hWnd, GWL_STYLE, style);
+			ShowWindow(hWnd, SW_SHOWMAXIMIZED);
+			RECT rect;
+			GetWindowRect(hWnd, &rect);
+			::SetWindowPos(hWnd, HWND_NOTOPMOST, rect.left, rect.top,
+				rect.right - rect.left, rect.bottom - rect.top,
+				SWP_FRAMECHANGED);
+		}
+		else{
+			style |= WS_DLGFRAME | WS_THICKFRAME;
+			SetWindowLong(hWnd, GWL_STYLE, style);
+			ShowWindow(hWnd, SW_NORMAL);
+		}
 	}
 	return ret;
 }

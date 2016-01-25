@@ -24,6 +24,7 @@
 #include "scheme_test.h"
 #include "cefclient_osr_widget_win.h"
 #include "WebViewFactory.h"
+#include "ResponseUI.h"
 
 #pragma comment(lib , "Shlwapi.lib")
 
@@ -512,7 +513,7 @@ namespace wrapQweb{
 	}
 
 	void InitQWeb(FunMap* map){
-
+		ResponseUI::SetFunMap(map);
 	}
 
 	void RunLoop(){
