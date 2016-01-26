@@ -86,6 +86,99 @@ class ClientSchemeHandler : public CefResourceHandler {
   ~ClientSchemeHandler(){
   }
 
+  BOOL UrlDecode(const char* szSrc, char* pBuf, int cbBufLen, BOOL bUTF8)
+  {
+	  if (szSrc == NULL || pBuf == NULL || cbBufLen <= 0)
+		  return FALSE;
+
+	  size_t len_ascii = strlen(szSrc);
+	  if (len_ascii == 0)
+	  {
+		  pBuf[0] = 0;
+		  return TRUE;
+	  }
+
+	  char *pUTF8 = (char*)malloc(len_ascii + 1);
+	  if (pUTF8 == NULL)
+		  return FALSE;
+
+	  int cbDest = 0; //累加
+	  unsigned char *pSrc = (unsigned char*)szSrc;
+	  unsigned char *pDest = (unsigned char*)pUTF8;
+	  while (*pSrc)
+	  {
+		  if (*pSrc == '%')
+		  {
+			  *pDest = 0;
+			  //高位
+			  if (pSrc[1] >= 'A' && pSrc[1] <= 'F')
+				  *pDest += (pSrc[1] - 'A' + 10) * 0x10;
+			  else if (pSrc[1] >= 'a' && pSrc[1] <= 'f')
+				  *pDest += (pSrc[1] - 'a' + 10) * 0x10;
+			  else
+				  *pDest += (pSrc[1] - '0') * 0x10;
+
+			  //低位
+			  if (pSrc[2] >= 'A' && pSrc[2] <= 'F')
+				  *pDest += (pSrc[2] - 'A' + 10);
+			  else if (pSrc[2] >= 'a' && pSrc[2] <= 'f')
+				  *pDest += (pSrc[2] - 'a' + 10);
+			  else
+				  *pDest += (pSrc[2] - '0');
+
+			  pSrc += 3;
+		  }
+		  else if (*pSrc == '+')
+		  {
+			  *pDest = ' ';
+			  ++pSrc;
+		  }
+		  else
+		  {
+			  *pDest = *pSrc;
+			  ++pSrc;
+		  }
+		  ++pDest;
+		  ++cbDest;
+	  }
+	  //null-terminator
+	  *pDest = '\0';
+	  ++cbDest;
+
+	  if (bUTF8)
+	  {
+		  int cchWideChar = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pUTF8, cbDest, NULL, 0);
+		  LPWSTR pUnicode = (LPWSTR)malloc(cchWideChar * sizeof(WCHAR));
+		  if (pUnicode == NULL)
+		  {
+			  free(pUTF8);
+			  return FALSE;
+		  }
+		  MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pUTF8, cbDest, pUnicode, cchWideChar);
+		  WideCharToMultiByte(CP_ACP, 0, pUnicode, cchWideChar, pBuf, cbBufLen, NULL, NULL);
+		  free(pUnicode);
+	  }
+	  else{
+		  strcpy(pBuf, pUTF8);
+	  }
+
+
+	  free(pUTF8);
+	  return TRUE;
+  }
+
+  std::wstring char2wchar(const std::string& str)
+  {
+	  int iTextLen = 0;
+	  iTextLen = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, NULL, 0);
+	  WCHAR* wsz = new WCHAR[iTextLen + 1];
+	  memset((void*)wsz, 0, sizeof(WCHAR) * (iTextLen + 1));
+	  ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, wsz, iTextLen);
+	  std::wstring strText(wsz);
+	  delete[]wsz;
+	  return strText;
+  }
+
   virtual bool ProcessRequest(CefRefPtr<CefRequest> request,
                               CefRefPtr<CefCallback> callback)
                               OVERRIDE {
@@ -94,6 +187,9 @@ class ClientSchemeHandler : public CefResourceHandler {
     bool handled = false;
 	
     std::string url = request->GetURL();
+	char url_buf[8192] = {0};
+	UrlDecode(url.c_str(), url_buf, 8192, TRUE);
+	url = url_buf;
     /*if (strstr(url.c_str(), "index.html") != NULL) {
       // Build the response html
       data_ = "<html><head><title>Client Scheme Handler</title></head>"
@@ -138,7 +234,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 		//std::string win_standfile = replace_all_distinct(file, "/", "\\");
 		unsigned char* data = 0;
 		unsigned long data_len = 0;
-		if (exZipFile(file.c_str(), resource.c_str(), &data, &data_len)){
+		if (exZipFile(char2wchar(file).c_str(), char2wchar(resource).c_str(), &data, &data_len)){
 			handled = true;
 			data_ = std::string(reinterpret_cast<char*>(data), data_len);
 			freeBuf(data);

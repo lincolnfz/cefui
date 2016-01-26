@@ -461,6 +461,8 @@ public:
 		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring keyName = list[0]->GetStringValue().ToWString();
 		std::wstring strval = list[1]->GetStringValue().ToWString();
+		parm.getList().AppendVal(keyName);
+		parm.getList().AppendVal(strval);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -476,6 +478,7 @@ public:
 		cyjh::Instruct parm;
 		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring keyName = list[0]->GetStringValue().ToWString();
+		parm.getList().AppendVal(keyName);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -593,6 +596,7 @@ public:
 	void appDataPath(CefRefPtr<CefV8Value>& value){
 		WCHAR szAppData[MAX_PATH];
 		SHGetSpecialFolderPathW(NULL, szAppData, CSIDL_APPDATA, TRUE);
+		wcscat_s(szAppData, L"\\");
 		value = CefV8Value::CreateString(CefString(szAppData));
 	}
 

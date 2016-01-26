@@ -7,7 +7,7 @@ extern "C" {
 
 extern bool __stdcall zipFile2PackFile( const char* , const char* );
 
-extern bool __stdcall exZipFile( const char* , const char* , unsigned char ** , unsigned long *);
+extern bool __stdcall exZipFile( const WCHAR* , const WCHAR* , unsigned char ** , unsigned long *);
 
 extern void __stdcall freeExtfileBuf( const char* );
 
