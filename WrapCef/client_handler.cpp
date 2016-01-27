@@ -1018,10 +1018,33 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 	ipc->Request(this->browser_, parm, outVal);
 	if ( outVal.get() )
 	{
-		if ( outstr )
+		if ( outstr && outVal->getList().GetSize() > 0 )
 		{
 			*outstr = outVal->getList().GetWStrVal(0);
 		}		
+		ret = outVal->getSucc();
+	}
+	return ret;
+}
+
+bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
+	const char* utf8_frame_name, std::wstring* outstr)
+{
+	bool ret = false;
+	cyjh::Instruct parm;
+	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.getList().AppendVal(std::string(fun_name));
+	parm.getList().AppendVal(std::string(utf8_parm));
+	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
+	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	std::shared_ptr<cyjh::Instruct> outVal;
+	ipc->Request(this->browser_, parm, outVal);
+	if (outVal.get())
+	{
+		if (outstr && outVal->getList().GetSize() > 0)
+		{
+			*outstr = outVal->getList().GetWStrVal(0);
+		}
 		ret = outVal->getSucc();
 	}
 	return ret;

@@ -549,7 +549,7 @@ namespace wrapQweb{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if ( item )
 		{
-			
+			bret = item->m_handle->callJSMethod(fun_name, utf8_parm, utf8_frame_name, outstr);
 		}
 
 		return bret;
@@ -563,7 +563,7 @@ namespace wrapQweb{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if ( item )
 		{
-			item->m_handle->invokedJSMethod(utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
+			bret = item->m_handle->invokedJSMethod(utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
 		}
 
 		return bret;

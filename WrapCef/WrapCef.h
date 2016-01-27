@@ -26,17 +26,17 @@ namespace wrapQweb {
 	typedef long(__stdcall *call_createModalWindow2)(HWND hWnd, long x, long y, long width, long height, long min_cx, long min_cy, long max_cx, long max_cy,
 		std::wstring& skin, long alpha, unsigned long ulStyle, unsigned long extra, unsigned long parentSign);
 
-	typedef std::wstring(__stdcall *call_invokeMethod)(HWND hWnd, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
+	typedef const WCHAR*(__stdcall *call_invokeMethod)(HWND hWnd, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
 
-	typedef std::wstring(__stdcall *call_crossInvokeWebMethod)(HWND hWnd, long winSign, std::wstring& modulename,
+	typedef const WCHAR*(__stdcall *call_crossInvokeWebMethod)(HWND hWnd, long winSign, std::wstring& modulename,
 		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
 
-	typedef std::wstring(__stdcall *call_crossInvokeWebMethod2)(HWND hWnd, long winSign, std::wstring& framename, std::wstring& modulename,
+	typedef const WCHAR*(__stdcall *call_crossInvokeWebMethod2)(HWND hWnd, long winSign, std::wstring& framename, std::wstring& modulename,
 		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
 
-	typedef std::wstring(__stdcall *call_winProty)(HWND hWnd);
+	typedef const WCHAR*(__stdcall *call_winProty)(HWND hWnd);
 
-	typedef std::wstring(__stdcall *call_softwareAttribute)();
+	typedef const WCHAR*(__stdcall *call_softwareAttribute)(unsigned long);
 
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;

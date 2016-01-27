@@ -183,6 +183,7 @@ public:
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
+		ipc->Request(this->browser_, parm, outVal);
 		if (outVal.get() && outVal->getSucc())
 		{
 			val = CefV8Value::CreateInt(1);
@@ -199,6 +200,7 @@ public:
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
+		ipc->Request(this->browser_, parm, outVal);
 		if (outVal.get() && outVal->getSucc())
 		{
 			val = CefV8Value::CreateInt(1);
@@ -215,6 +217,7 @@ public:
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
+		ipc->Request(this->browser_, parm, outVal);
 		if (outVal.get() && outVal->getSucc())
 		{
 			val = CefV8Value::CreateInt(1);
@@ -493,7 +496,9 @@ public:
 
 	void getSoftwareAttribute(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
+		int attIdx = list[0]->GetIntValue();
 		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.getList().AppendVal(attIdx);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -711,6 +716,10 @@ public:
 		}
 	}
 
+	void ver(CefRefPtr<CefV8Value>& value){
+		value = CefV8Value::CreateInt(1001);
+	}
+
 protected:
 	bool callProty(unsigned long id, CefRefPtr<CefV8Value>& val){
 		bool ret = false;
@@ -817,6 +826,7 @@ public:
 		REG_JS_PROTY(window_h);
 		REG_JS_PROTY(is_zoomed);
 		REG_JS_PROTY(is_iconic);
+		REG_JS_PROTY(ver);
 
 #undef REG_JS_PROTY
 		

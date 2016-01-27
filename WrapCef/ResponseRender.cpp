@@ -7,6 +7,7 @@
 ResponseRender::ResponseRender()
 {
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_invokedJSMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_callJSMethod);
 }
 
 
@@ -43,11 +44,45 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Exception> excp;
 		if (v8->Eval(CefString(strJs), retVal, excp)){
 			if (retVal->IsString()){
-				outVal->getList().AppendVal(retVal->GetStringValue().ToString());
+				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
 			}
 			ret = true;
 		}
 	}
 	
+	return ret;
+}
+
+bool ResponseRender::rsp_callJSMethod(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool ret = false;
+	std::string funname = req_parm->getList().GetStrVal(0);
+	std::string parm = req_parm->getList().GetStrVal(1);
+	std::string frameName = req_parm->getList().GetStrVal(2);
+	CefRefPtr<CefFrame> frame;
+	if (frameName.empty())
+	{
+		frame = browser->GetMainFrame();
+	}
+	else{
+		frame = browser->GetFrame(CefString(frameName));
+	}
+	if (frame.get())
+	{
+		boost::format fmt("%1%('%2%')");
+		fmt % funname % parm;
+		std::string strJs = fmt.str();
+		CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+		CefRefPtr<CefV8Value> retVal;
+		CefRefPtr<CefV8Exception> excp;
+		if (v8->Eval(CefString(strJs), retVal, excp)){
+			if (retVal->IsString()){
+				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
+			}
+			ret = true;
+		}
+	}
+
 	return ret;
 }
