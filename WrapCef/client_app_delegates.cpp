@@ -12,6 +12,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 
 #if defined(OS_LINUX)
 #include "cefclient/print_handler_gtk.h"
@@ -20,6 +21,7 @@
 #include "IPC.h"
 #include <string>
 #include <shlobj.h> 
+#include "json/json.h"
 
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
@@ -33,11 +35,69 @@ typedef std::map<unsigned long, HandleCallback> FunctionMap;
 typedef boost::function<void(CefRefPtr<CefV8Value>&)> ProtyCallback;
 typedef std::map<unsigned long, ProtyCallback> ProtyMap;
 
+struct DectetFrameID 
+{
+	unsigned int browserID_;
+	unsigned int frameID_;
+	unsigned int dectID_;
+};
+
+class DectetFrameLoad
+{
+public:
+	static DectetFrameLoad& getInst(){
+		return s_inst;
+	}
+	virtual ~DectetFrameLoad(){}
+
+	void Add(unsigned int browser, unsigned int frame, unsigned int id){
+		if (hit(browser, frame, id) == false){
+			DectetFrameID dectItem;
+			dectItem.browserID_ = browser;
+			dectItem.frameID_ = frame;
+			dectItem.dectID_ = id;
+			m_dectList.push_back(dectItem);
+		}
+		
+	}
+
+	void Remove(unsigned int browser, unsigned int frame, unsigned int id){
+		std::list<DectetFrameID>::iterator it = m_dectList.begin();
+		for (; it != m_dectList.end(); ++it){
+			if (it->browserID_ == browser && it->frameID_ == frame && it->dectID_ == id){
+				m_dectList.erase(it);
+				break;
+			}
+		}
+	}
+
+	bool hit(unsigned int browser, unsigned int frame, unsigned int id){
+		bool ret = false;
+		std::list<DectetFrameID>::iterator it = m_dectList.begin();
+		for (; it != m_dectList.end(); ++it)
+		{
+			if (it->browserID_ == browser && it->frameID_ == frame && it->dectID_ == id){
+				ret = true;
+				break;
+			}
+		}
+		return ret;
+	}
+protected:
+	DectetFrameLoad(){}
+	static DectetFrameLoad s_inst;
+
+private:
+	std::list<DectetFrameID> m_dectList;
+};
+
+DectetFrameLoad DectetFrameLoad::s_inst;
+
 
 //这是一个响应js的c++ 函数(类)
 class NativeappHandler : public CefV8Handler {
 public:
-	NativeappHandler(CefRefPtr<CefBrowser> browser) :browser_(browser){
+	NativeappHandler(CefRefPtr<CefBrowser>& browser, CefRefPtr<CefFrame>& frame) :browser_(browser), frame_(frame){
 		//RegisterFunction("setWindowSize", &NativeappHandler::setWindowSize);
 	}
 	virtual bool Execute(const CefString& name,
@@ -513,10 +573,16 @@ public:
 
 	void addFrameStateChanged(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::wstring id = list[0]->GetStringValue().ToWString();
+		boost::hash<std::wstring> string_hash;
+		unsigned int uid = string_hash(id);
+		DectetFrameLoad::getInst().Add(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
 	}
 
 	void removeFrameStateChanged(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::wstring id = list[0]->GetStringValue().ToWString();
+		boost::hash<std::wstring> string_hash;
+		unsigned int uid = string_hash(id);
+		DectetFrameLoad::getInst().Remove(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
 	}
 
 protected:
@@ -535,6 +601,7 @@ protected:
 private:
 	CefRefPtr<CefV8Value> object_;
 	CefRefPtr<CefBrowser> browser_;
+	CefRefPtr<CefFrame> frame_;
 	FunctionMap	m_FunctionMap;
 
 	IMPLEMENT_REFCOUNTING(NativeappHandler);
@@ -542,7 +609,7 @@ private:
 
 class Nativeapp : public CefV8Accessor {
 public:
-	Nativeapp(CefRefPtr<CefBrowser> browser):browser_(browser){}
+	Nativeapp(CefRefPtr<CefBrowser>& browser, CefRefPtr<CefFrame>& frame) :browser_(browser), frame_(frame){}
 	virtual bool Get(const CefString& name,
 		const CefRefPtr<CefV8Value> object,
 		CefRefPtr<CefV8Value>& retval,
@@ -734,14 +801,100 @@ protected:
 
 private:
 	CefRefPtr<CefBrowser> browser_;
+	CefRefPtr<CefFrame> frame_;
 	ProtyMap m_map;
 	IMPLEMENT_REFCOUNTING(Nativeapp);
+};
+
+bool call_FrameStateChanged(CefRefPtr<CefFrame>& frame, const char* frameName, const char* url, const int& code, bool didComit)
+{
+	bool ret = false;
+	Json::Value root;
+	root["frameid"] = frameName;
+	root["src"] = url;
+	root["state"] = code;
+	root["resloaded"] = didComit;
+	Json::StyledWriter write;
+	std::string strJson = write.write(root);
+
+	boost::format fmt("_onFrameStateChanged('%1%')");
+	fmt % strJson;
+	std::string strJs = fmt.str();
+	CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+	CefRefPtr<CefV8Value> retVal;
+	CefRefPtr<CefV8Exception> excp;
+	if (v8->Eval(CefString(strJs), retVal, excp)){
+		ret = true;
+	}
+	return ret;
+}
+
+class MyLoaderHandler :public virtual CefLoadHandler
+{
+public:
+	virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
+		bool isLoading,
+		bool canGoBack,
+		bool canGoForward) {
+	}
+
+	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame) {
+		CefRefPtr<CefFrame> parent = frame->GetParent();
+		if ( parent.get() )
+		{
+			boost::hash<std::string> string_hash;
+			std::string frameNam = frame->GetName().ToString();
+			unsigned int id = string_hash(frameNam);
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
+				std::string url = frame->GetURL().ToString();
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), 200, true);
+			}
+		}
+	}
+
+	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame,
+		int httpStatusCode) {
+		CefRefPtr<CefFrame> parent = frame->GetParent();
+		if (parent.get())
+		{
+			boost::hash<std::string> string_hash;
+			std::string frameNam = frame->GetName().ToString();
+			unsigned int id = string_hash(frameNam);
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
+				std::string url = frame->GetURL().ToString();
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
+			}
+		}
+	}
+
+	virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame,
+		ErrorCode errorCode,
+		const CefString& errorText,
+		const CefString& failedUrl) {
+		CefRefPtr<CefFrame> parent = frame->GetParent();
+		if (parent.get())
+		{
+			boost::hash<std::string> string_hash;
+			std::string frameNam = frame->GetName().ToString();
+			unsigned int id = string_hash(frameNam);
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
+				std::string url = frame->GetURL().ToString();
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, false);
+			}
+		}
+	}
+protected:
+private:
+	IMPLEMENT_REFCOUNTING(MyLoaderHandler);
 };
 
 // Handle bindings in the render process.
 class MyRenderDelegate : public ClientApp::RenderDelegate {
 public:
-	MyRenderDelegate() {
+	MyRenderDelegate() :ClientApp::RenderDelegate(new MyLoaderHandler){
 	}
 
 	virtual void OnContextCreated(CefRefPtr<ClientApp> app,
@@ -750,7 +903,7 @@ public:
 		CefRefPtr<CefV8Context> context) OVERRIDE{
 		
 		CefRefPtr<CefV8Value> window = context->GetGlobal();
-		CefRefPtr<CefV8Accessor> myV8Acc = new Nativeapp(browser);
+		CefRefPtr<CefV8Accessor> myV8Acc = new Nativeapp(browser, frame);
 		char native[] = {"nativeapp"};
 		CefRefPtr<CefV8Value> val = CefV8Value::CreateString(native);
 		CefString cefException;
@@ -765,7 +918,7 @@ public:
 			V8_PROPERTY_ATTRIBUTE_DONTENUM |
 			V8_PROPERTY_ATTRIBUTE_DONTDELETE);
 
-		CefRefPtr<CefV8Handler> myV8handle = new NativeappHandler(browser);
+		CefRefPtr<CefV8Handler> myV8handle = new NativeappHandler(browser, frame);
 
 #define REG_JS_FUN(fnName) \
 		static_cast<NativeappHandler*>(myV8handle.get())->RegisterFunction(#fnName, &NativeappHandler::##fnName); \

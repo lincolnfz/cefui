@@ -11,6 +11,9 @@ public:
 	ResponseUI();
 	virtual ~ResponseUI();
 	static void SetFunMap(wrapQweb::FunMap*);
+	static const wrapQweb::FunMap* getFunMap(){
+		return s_fnMap;
+	}
 protected:
 	WCHAR m_szName[MAX_PATH];
 	WCHAR m_szPath[MAX_PATH];

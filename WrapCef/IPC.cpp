@@ -169,8 +169,18 @@ namespace cyjh{
 			{
 				dwCurr += dwTrans;
 				dwRemin -= dwTrans;
+				//OutputDebugString(L"IPC::ProcDataPack WriteFile true");
 			}
 			else{
+				DWORD err = GetLastError();
+				if (err == ERROR_PIPE_LISTENING)
+				{
+					SleepEx(20, true);
+					continue;
+				}
+				WCHAR sz[128];
+				wsprintf(sz, L"IPC::ProcDataPack WriteFile fail = %d", err);
+				//OutputDebugString(sz);
 				break;
 			}
 		}
@@ -347,6 +357,7 @@ namespace cyjh{
 					{
 						if ( !bSuccess )
 						{
+							//OutputDebugString(L"IPCPipeSrv DisconnectNamedPipe");
 							DisconnectNamedPipe(inst->srvpipe_);
 							return 0;
 						}
@@ -356,6 +367,7 @@ namespace cyjh{
 					case cyjh::READING_STATE:
 					{
 						if (!bSuccess || dwTrans == 0){
+							//OutputDebugString(L"IPCPipeSrv DisconnectNamedPipe");
 							DisconnectNamedPipe(inst->srvpipe_);
 							return 0;
 						}
@@ -389,6 +401,7 @@ namespace cyjh{
 				break;
 			}
 		}
+		//OutputDebugString(L"IPCPipeSrv::WorkThread ½áÊø");
 		return 0;
 	}
 
@@ -442,10 +455,12 @@ namespace cyjh{
 			{
 				DWORD dwErr = GetLastError();
 				if (dwErr = ERROR_FILE_NOT_FOUND){
+					//OutputDebugString(L"IPCPipeClient::WorkThread sleepex");
 					SleepEx(10, TRUE);
 					continue;
 				}
 				else{
+					//OutputDebugString(L"IPCPipeClient::WorkThread Ê§°Ü");
 					return 0;
 				}
 				
@@ -487,7 +502,7 @@ namespace cyjh{
 		{
 			return 0;
 		}
-		
+		//OutputDebugString(L"IPCPipeClient::ReadFile start");
 		while (true)
 		{
 			bSuccess = ReadFile(inst->remotepipe_, inst->recv_buf_, sizeof(inst->recv_buf_), &dwTrans, NULL);

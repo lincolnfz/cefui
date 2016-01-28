@@ -38,6 +38,12 @@ namespace wrapQweb {
 
 	typedef const WCHAR*(__stdcall *call_softwareAttribute)(unsigned long);
 
+	typedef void (__stdcall *call_NativeComplate)(const HWND&);
+
+	typedef void(__stdcall *call_NativeFrameComplate)(const HWND&, const WCHAR* url, const WCHAR* frameName);
+
+	typedef void(__stdcall *call_newNativeUrl)(const HWND&, const WCHAR* url, const WCHAR* frameName);
+
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
 		call_setWindowPos setWindowPos;
@@ -49,6 +55,9 @@ namespace wrapQweb {
 		call_crossInvokeWebMethod2 crossInvokeWebMethod2;
 		call_winProty winProty;
 		call_softwareAttribute softAttr;
+		call_NativeComplate nativeComplate;
+		call_NativeFrameComplate nativeFrameComplate;
+		call_newNativeUrl newNativeUrl;
 	}FunMap;
 
 	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL);
@@ -63,7 +72,7 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void CloseWebview(const HWND&);
 
-	SHARED_EXPORT_API void CloseAllWebView(const HWND&);
+	SHARED_EXPORT_API void CloseAllWebView();
 
 	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar);
 
@@ -77,7 +86,9 @@ namespace wrapQweb {
 	//软件标准的通信方法(模块，方法 ，参数，返回值， 框架名，前端使用的参数bNoticeJSTrans2JSON）
 	SHARED_EXPORT_API bool invokedJSMethod(const HWND&, const char* utf8_module, const char* utf8_method,
 		const char* utf8_parm, std::wstring* outstr,
-		const char* utf8_frame_name = 0, bool bNoticeJSTrans2JSON = true);
+		const char* utf8_frame_name = 0, bool bNoticeJSTrans2JSON = true);	
+
+
 
 }
 

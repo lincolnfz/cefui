@@ -77,6 +77,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	browser_settings.webgl = STATE_DISABLED;
 	browser_settings.plugins = STATE_DISABLED;
 	browser_settings.java = STATE_DISABLED;
+	//browser_settings.application_cache = STATE_DISABLED; //²»ÓÃ»º´æ
 	// Creat the new child browser window
 	CefBrowserHost::CreateBrowser(info, item->m_provider->GetClientHandler().get(),
 		url, browser_settings, NULL);
@@ -148,4 +149,23 @@ HWND WebViewFactory::GetBrowserHwnd(int browserID)
 	}
 
 	return hWnd;
+}
+
+void WebViewFactory::CloseAll()
+{
+	std::vector<CefRefPtr<WebItem>> weblist;
+	WebViewMap::iterator it = m_viewMap.begin();
+	for (; it != m_viewMap.end(); ++it)
+	{
+		//it->second->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+		//it = m_viewMap.erase(it);
+		weblist.push_back( it->second );
+	}
+
+	std::vector<CefRefPtr<WebItem>>::iterator webit = weblist.begin();
+	for ( ; webit != weblist.end(); ++webit )
+	{
+		//webit->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+		webit->get()->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+	}
 }

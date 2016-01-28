@@ -575,16 +575,18 @@ namespace wrapQweb{
 		if (item)
 		{
 			item->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+			//item->m_handle->CloseAllBrowsers(true);
 		}
 	}
 
-	void CloseAllWebView(const HWND& hWnd)
+	void CloseAllWebView()
 	{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		/*CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if (item)
 		{
 			item->m_handle->CloseAllBrowsers(true);
-		}
+		}*/
+		WebViewFactory::getInstance().CloseAll();
 	}
 
 	void QuitLoop()

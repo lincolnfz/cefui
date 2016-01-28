@@ -41,6 +41,7 @@ class ClientApp : public CefApp,
   // constructor. See CefRenderProcessHandler for documentation.
   class RenderDelegate : public virtual CefBase {
    public:
+	   RenderDelegate(CefRefPtr<CefLoadHandler> loadhanler) :loadHandler_(loadhanler){}
     virtual void OnRenderThreadCreated(CefRefPtr<ClientApp> app,
                                        CefRefPtr<CefListValue> extra_info) {}
 
@@ -53,7 +54,7 @@ class ClientApp : public CefApp,
                                     CefRefPtr<CefBrowser> browser) {}
 
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler(CefRefPtr<ClientApp> app) {
-      return NULL;
+		return loadHandler_;
     }
 
     virtual bool OnBeforeNavigation(CefRefPtr<ClientApp> app,
@@ -123,6 +124,9 @@ class ClientApp : public CefApp,
 		int request_id){
 		return false;
 	}
+
+  private:
+	  CefRefPtr<CefLoadHandler> loadHandler_;
   };
 
   typedef std::set<CefRefPtr<RenderDelegate> > RenderDelegateSet;

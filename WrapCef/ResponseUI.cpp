@@ -81,12 +81,14 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 	std::wstring szCliPipe = reqParm->getList().GetWStrVal(1);
 	int ipcID = cyjh::IPC_Manager::getInstance().MatchIpc(szSrvPipe.c_str(), szCliPipe.c_str());
 	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	//OutputDebugString(L"---- rsp_RegisterBrowser succ");
 	if ( item.get() )
 	{
 		item->m_ipcID = ipcID;
 	}
 	else{
 		assert(false);
+		//OutputDebugString(L"----------rsp_RegisterBrowser fail");
 	}
 	return true;
 }
@@ -399,12 +401,13 @@ bool ResponseUI::rsp_setAlpha(const CefRefPtr<CefBrowser> browser, const std::sh
 	return ret;
 }
 
-bool ResponseUI::rsp_getSoftwareAttribute(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct> out)
+bool ResponseUI::rsp_getSoftwareAttribute(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
 {
 	bool ret = false;
+	int attidx = req_parm->getList().GetIntVal(0);
 	if ( s_fnMap )
 	{
-		out->getList().AppendVal(s_fnMap->softAttr());
+		out->getList().AppendVal(std::wstring(s_fnMap->softAttr(attidx)));
 		ret = true;
 	}
 	return ret;
@@ -418,7 +421,7 @@ bool ResponseUI::rsp_winProty(const CefRefPtr<CefBrowser> browser, const std::sh
 	{
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
-			out->getList().AppendVal(s_fnMap->winProty(hWnd));
+			out->getList().AppendVal(std::wstring(s_fnMap->winProty(hWnd)));
 			ret = true;
 		}
 	}
@@ -538,7 +541,7 @@ bool ResponseUI::rsp_invokeMethod(const CefRefPtr<CefBrowser> browser, const std
 	{
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
-			out->getList().AppendVal( s_fnMap->invokeMethod(hWnd, module, method, parm, extra));
+			out->getList().AppendVal( std::wstring(s_fnMap->invokeMethod(hWnd, module, method, parm, extra)));
 			ret = true;
 		}
 	}
@@ -558,7 +561,7 @@ bool ResponseUI::rsp_crossInvokeWebMethod(const CefRefPtr<CefBrowser> browser, c
 	{
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
-			out->getList().AppendVal(s_fnMap->crossInvokeWebMethod(hWnd, sign,  module, method, parm, json));
+			out->getList().AppendVal(std::wstring(s_fnMap->crossInvokeWebMethod(hWnd, sign,  module, method, parm, json)));
 			ret = true;
 		}
 	}
@@ -579,7 +582,7 @@ bool ResponseUI::rsp_crossInvokeWebMethod2(const CefRefPtr<CefBrowser> browser, 
 	{
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
-			out->getList().AppendVal(s_fnMap->crossInvokeWebMethod2(hWnd, sign, frame, module, method, parm, json));
+			out->getList().AppendVal(std::wstring(s_fnMap->crossInvokeWebMethod2(hWnd, sign, frame, module, method, parm, json)));
 			ret = true;
 		}
 	}

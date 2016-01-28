@@ -95,7 +95,7 @@ void ClientOSRenderer::Initialize() {
   byth = glGetString(GL_VENDOR);
   byth = glGetString(GL_RENDERER);
   byth = glGetString(GL_EXTENSIONS);
-  OutputDebugStringA((char*)byth);
+  //OutputDebugStringA((char*)byth);
   //Gdiplus::GdiplusStartupInput StartupInput;
   //GdiplusStartup(&m_gdiplusToken, &StartupInput, NULL);
   initialized_ = true;

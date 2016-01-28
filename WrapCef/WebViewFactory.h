@@ -69,6 +69,8 @@ public:
 
 	HWND GetBrowserHwnd(int);
 
+	void CloseAll();
+
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;

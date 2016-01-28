@@ -30,6 +30,9 @@
 //#include "cefclient/window_test.h"
 #include "BridageRender.h"
 #include "IPC.h"
+#include "WebViewFactory.h"
+#include "ResponseUI.h"
+#include "WrapCef.h"
 
 namespace {
 
@@ -391,6 +394,16 @@ bool ClientHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
   return false;
 }
 
+void helpNewUrl(CefRefPtr<CefBrowser> browser, std::shared_ptr<std::wstring> frameName, std::shared_ptr<std::wstring> url){
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+	if (fun && item.get())
+	{
+		HWND hWnd = item->m_window->hwnd();
+		fun->newNativeUrl(hWnd, url->c_str(), frameName->c_str());
+	}
+}
+
 bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefFrame> frame,
                                   const CefString& target_url,
@@ -402,8 +415,17 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                   bool* no_javascript_access) {
   CEF_REQUIRE_IO_THREAD();
 
+  std::shared_ptr<std::wstring> frameName(new std::wstring(frame->GetName().ToWString()));
+  std::shared_ptr<std::wstring> url(new std::wstring(target_url.ToWString()));
+
+  if (!CefCurrentlyOn(TID_UI)){
+	  CefPostTask(TID_UI, base::Bind(&helpNewUrl, browser, frameName, url));
+  }
+  
+
   if (browser->GetHost()->IsWindowRenderingDisabled()) {
     // Cancel popups in off-screen rendering mode.
+	  
     return true;
   }
   return false;
@@ -548,10 +570,36 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	CefRefPtr<CefFrame> frame,
 	int httpStatusCode) {
 
+	CEF_REQUIRE_UI_THREAD();
 	//ÍøÒ³¼ÓÔØ½áÊø
-	CefString name = frame->GetName();
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+	std::wstring name = frame->GetName().ToWString();
+	std::wstring url = frame->GetURL().ToWString();
+	HWND hWnd = NULL;
+	if ( fun && item.get() )
+	{
+		hWnd = item->m_window->hwnd();
+		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
+	}
+	//cyjh::Instruct parm;
+	//parm.setName("NativeFrmeComplate");
+	//parm.getList().AppendVal(name.ToWString());
+	//parm.getList().AppendVal(url.ToWString());
+	//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	//std::shared_ptr<cyjh::Instruct> outVal;
+	//ipc->Request(this->browser_, parm, outVal);
 	if (frame->IsMain()){
-		int i = 0;
+		if (fun && item.get())
+		{
+			hWnd = item->m_window->hwnd();
+			fun->nativeComplate(hWnd);
+		}
+		//cyjh::Instruct parm;
+		//parm.setName("NativeComplate");
+		//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+		//std::shared_ptr<cyjh::Instruct> outVal;
+		//ipc->Request(this->browser_, parm, outVal);
 	}
 	//CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
 	//int i = 0;

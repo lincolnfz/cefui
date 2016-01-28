@@ -21,7 +21,7 @@ namespace {
 class ClientRenderDelegate : public ClientApp::RenderDelegate {
  public:
   ClientRenderDelegate()
-    : last_node_is_editable_(false) {
+	  :ClientApp::RenderDelegate(NULL), last_node_is_editable_(false) {
   }
 
   virtual void OnWebKitInitialized(CefRefPtr<ClientApp> app) OVERRIDE {
