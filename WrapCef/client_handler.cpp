@@ -566,6 +566,17 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
   frame->LoadString(ss.str(), failedUrl);
 }
 
+// Set focus to |browser| on the UI thread.
+static void SetFocus2Browser(CefRefPtr<CefBrowser> browser) {
+	if (!CefCurrentlyOn(TID_UI)) {
+		// Execute on the UI thread.
+		CefPostTask(TID_UI, base::Bind(&SetFocus2Browser, browser));
+		return;
+	}
+
+	browser->GetHost()->SetFocus(true);
+}
+
 void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	CefRefPtr<CefFrame> frame,
 	int httpStatusCode) {
@@ -595,6 +606,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 			hWnd = item->m_window->hwnd();
 			fun->nativeComplate(hWnd);
 		}
+		//SetFocus2Browser(browser);
 		//cyjh::Instruct parm;
 		//parm.setName("NativeComplate");
 		//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();

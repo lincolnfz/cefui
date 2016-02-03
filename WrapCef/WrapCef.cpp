@@ -11,6 +11,7 @@
 #include <string>
 #include <Shlwapi.h>
 #include <stdio.h>
+#include <Shlobj.h>
 
 #include "include/base/cef_bind.h"
 #include "include/cef_app.h"
@@ -459,6 +460,23 @@ void CBrowserControl::handle_SetForce()
 
 namespace wrapQweb{
 
+	static bool getAppDataFolder(std::wstring& directory)
+	{
+		wchar_t appDataDirectory[MAX_PATH];
+		if (FAILED(SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
+			return false;
+
+		wchar_t executablePath[MAX_PATH];
+		if (!::GetModuleFileNameW(0, executablePath, MAX_PATH))
+			return false;
+
+		::PathRemoveExtensionW(executablePath);
+
+		directory = std::wstring(appDataDirectory) + L"\\" + ::PathFindFileNameW(executablePath);
+
+		return true;
+	}
+
 	static bool g_init = false;
 	CefRefPtr<ClientApp> g_app;
 	HINSTANCE g_hInstance = 0;
@@ -482,6 +500,13 @@ namespace wrapQweb{
 
 		settings.multi_threaded_message_loop = false;
 		settings.single_process = true;
+		std::wstring cachePath;
+		if (getAppDataFolder(cachePath)){
+			cachePath.append(L"\\cache");
+			cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
+		}
+		WCHAR szLocal[] = L"zh-CN";
+		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);
 
 		//实现渲染进程分离
 		WCHAR szFile[MAX_PATH] = { 0 };
