@@ -69,7 +69,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 		SetWindowPos(item->m_window->hwnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 	item->m_window->SetAlpha(alpha);
-	ShowWindow(item->m_window->hwnd(), SW_SHOW);
+	//ShowWindow(item->m_window->hwnd(), SW_SHOW);
 
 	//browser_settings.web_security = STATE_DISABLED;
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;

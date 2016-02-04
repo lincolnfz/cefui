@@ -236,7 +236,7 @@ public:
 		}
 	}
 
-	void createWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+	/*void createWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
 		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::string strParm = list[0]->GetStringValue().ToString();
@@ -285,6 +285,36 @@ public:
 		else{
 			val = CefV8Value::CreateInt(0);
 		}
+	}*/
+
+	void createWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		std::string strParm = list[0]->GetStringValue().ToString();
+		CefRefPtr<CefProcessMessage> message =
+			CefProcessMessage::Create( CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+		message->GetArgumentList()->SetString(0, CefString(strParm));
+		CefRefPtr<CefListValue> response;
+		BridageHost::getInst().SendRequest(browser_, message, response, 0);
+		val = CefV8Value::CreateInt(1);
+	}
+
+	void createModalWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		std::string strParm = list[0]->GetStringValue().ToString();
+		CefRefPtr<CefProcessMessage> message =
+			CefProcessMessage::Create(CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+		message->GetArgumentList()->SetString(0, CefString(strParm));
+		CefRefPtr<CefListValue> response;
+		BridageHost::getInst().SendRequest(browser_, message, response, 0);
+		val = CefV8Value::CreateInt(1);
+	}
+
+	void createModalWindow2(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		std::string strParm = list[0]->GetStringValue().ToString();
+		CefRefPtr<CefProcessMessage> message =
+			CefProcessMessage::Create(CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+		message->GetArgumentList()->SetString(0, CefString(strParm));
+		CefRefPtr<CefListValue> response;
+		BridageHost::getInst().SendRequest(browser_, message, response, 0);
+		val = CefV8Value::CreateInt(1);
 	}
 
 	void setAlpha(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){

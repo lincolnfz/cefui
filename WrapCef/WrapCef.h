@@ -78,6 +78,8 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API bool QueryNodeAttrib(const HWND&, const int& x, const int& y, char* name, WCHAR* outVal, const int& len);
 
+	SHARED_EXPORT_API void SetFouceWebView(const HWND& hWnd, const bool& fouce);
+
 	//²Ù×÷½Å±¾
 	//
 	SHARED_EXPORT_API bool callJSMethod(const HWND&, const char* fun_name, const char* utf8_parm,

@@ -478,6 +478,7 @@ namespace wrapQweb{
 	}
 
 	static bool g_init = false;
+	static bool g_multi_thread = false;
 	CefRefPtr<ClientApp> g_app;
 	HINSTANCE g_hInstance = 0;
 	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender)
@@ -498,7 +499,7 @@ namespace wrapQweb{
 		settings.no_sandbox = true;
 #endif
 
-		settings.multi_threaded_message_loop = false;
+		settings.multi_threaded_message_loop = g_multi_thread;
 		settings.single_process = true;
 		std::wstring cachePath;
 		if (getAppDataFolder(cachePath)){
@@ -542,7 +543,23 @@ namespace wrapQweb{
 	}
 
 	void RunLoop(){
-		CefRunMessageLoop();		
+		if ( g_multi_thread )
+		{
+			MSG msg;
+
+			// Run the application message loop.
+			while (GetMessage(&msg, NULL, 0, 0)) {
+				// Allow processing of find dialog messages.
+
+				if (!TranslateAccelerator(msg.hwnd, /*hAccelTable*/ NULL, &msg)) {
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+		}
+		else{
+			CefRunMessageLoop();
+		}
 	}
 
 	void FreeLibrary(){
@@ -617,5 +634,14 @@ namespace wrapQweb{
 	void QuitLoop()
 	{
 		CefQuitMessageLoop();
+	}
+
+	void SetFouceWebView(const HWND& hWnd, const bool& fouce)
+	{
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item.get() && item->m_provider->GetBrowser().get() )
+		{
+			item->m_provider->GetBrowser()->GetHost()->SendFocusEvent(fouce);
+		}
 	}
 }

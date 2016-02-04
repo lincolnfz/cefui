@@ -13,6 +13,12 @@ public:
 
 	bool rsp_getPrivateProfileString(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser>, CefRefPtr<CefProcessMessage>, CefRefPtr<CefListValue>, bool&);
 
+	bool rsp_createWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser>, CefRefPtr<CefProcessMessage>, CefRefPtr<CefListValue>, bool&);
+
+	bool rsp_createModalWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser>, CefRefPtr<CefProcessMessage>, CefRefPtr<CefListValue>, bool&);
+
+	bool rsp_createModalWindow2(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser>, CefRefPtr<CefProcessMessage>, CefRefPtr<CefListValue>, bool&);
+
 protected:
 	BridageRender();
 
