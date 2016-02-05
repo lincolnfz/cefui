@@ -734,6 +734,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   OSRWindow* window =
       reinterpret_cast<OSRWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
   CefRefPtr<CefBrowserHost> browser;
+
   if (window && window->browser_provider_->GetBrowser().get())
     browser = window->browser_provider_->GetBrowser()->GetHost();
 
@@ -957,9 +958,24 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     break;
 
   case WM_SETFOCUS:
-  case WM_KILLFOCUS:
-    if (browser.get())
-      browser->SendFocusEvent(message == WM_SETFOCUS);
+  case WM_KILLFOCUS:{
+	  if (browser.get())
+	  {
+#ifdef _DEBUG
+		  WCHAR sz[256];
+		  wsprintf(sz, L"----- is focus hwnd=%0x, %d", hWnd, message == WM_SETFOCUS);
+		  OutputDebugStringW(sz);
+#endif
+		  browser->SendFocusEvent(message == WM_SETFOCUS);
+	  }
+	  else{
+#ifdef _DEBUG
+		  WCHAR sz[256];
+		  wsprintf(sz, L"----- focus no find browser=%0x, %d", hWnd, message == WM_SETFOCUS);
+		  OutputDebugStringW(sz);
+#endif
+	  }
+  }
     break;
 
   case WM_CAPTURECHANGED:

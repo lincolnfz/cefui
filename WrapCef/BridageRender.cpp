@@ -3,6 +3,8 @@
 #include "WebViewFactory.h"
 #include "ResponseUI.h"
 #include "json/json.h"
+#include "include/base/cef_bind.h"
+#include "include/wrapper/cef_closure_task.h"
 
 bool _parseCreateWindowParm(std::string& json, long& x, long& y, long& width, long& height, long& min_cx, long& min_cy, long& max_cx, long& max_cy,
 	std::string& skin, long& alpha, unsigned long& ulStyle, unsigned long& extra, unsigned long& parentSign)
@@ -82,22 +84,36 @@ bool BridageRender::rsp_getPrivateProfileString(CefRefPtr<ClientApp> app, CefRef
 	return true;
 }
 
+void myCreateWindow(HWND hWnd, std::string parm)
+{
+	long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
+	std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+
+	if (_parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+	{
+		ResponseUI::getFunMap()->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, extra);
+	}
+}
+
 bool BridageRender::rsp_createWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser> browser, CefRefPtr<CefProcessMessage> msg, CefRefPtr<CefListValue>, bool&)
 {
-	bool ret = false;
+	bool ret = true;
 	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	if (item.get() && IsWindow(item->m_window->hwnd()))
 	{
 		HWND hWnd = item->m_window->hwnd();
 		if (ResponseUI::getFunMap()){
-			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
+			std::string parm = msg->GetArgumentList()->GetString(0).ToString();
+			CefPostTask(TID_UI, base::Bind(&myCreateWindow, hWnd, parm));
+
+			/*long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
 			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
-			std::string parm = msg->GetArgumentList()->GetString(0).ToString();			
+					
 			if (_parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
 			{
 				ResponseUI::getFunMap()->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, extra);
 				ret = true;
-			}
+			}*/
 		}
 	}
 	return ret;

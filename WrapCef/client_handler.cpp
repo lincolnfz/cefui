@@ -200,7 +200,7 @@ void ClientHandler::OnBeforeContextMenu(
     CefRefPtr<CefMenuModel> model) {
   CEF_REQUIRE_UI_THREAD();
 
-  if ((params->GetTypeFlags() & (CM_TYPEFLAG_PAGE | CM_TYPEFLAG_FRAME)) != 0) {
+  /*if ((params->GetTypeFlags() & (CM_TYPEFLAG_PAGE | CM_TYPEFLAG_FRAME)) != 0) {
     // Add a separator if the menu already has items.
     if (model->GetCount() > 0)
       model->AddSeparator();
@@ -213,7 +213,7 @@ void ClientHandler::OnBeforeContextMenu(
 
     // Test context menu features.
     BuildTestMenu(model);
-  }
+  }*/
 }
 
 bool ClientHandler::OnContextMenuCommand(
