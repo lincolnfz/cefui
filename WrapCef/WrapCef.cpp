@@ -460,6 +460,7 @@ void CBrowserControl::handle_SetForce()
 }
 
 WCHAR g_szLocalPath[MAX_PATH];
+std::wstring g_strAppDataPath;
 namespace wrapQweb{
 
 	static bool getAppDataFolder(std::wstring& directory)
@@ -475,7 +476,7 @@ namespace wrapQweb{
 		::PathRemoveExtensionW(executablePath);
 
 		directory = std::wstring(appDataDirectory) + L"\\" + ::PathFindFileNameW(executablePath);
-
+		directory.append(L"\\");
 		return true;
 	}
 
@@ -505,7 +506,8 @@ namespace wrapQweb{
 		settings.single_process = true;
 		std::wstring cachePath;
 		if (getAppDataFolder(cachePath)){
-			cachePath.append(L"\\cache");
+			g_strAppDataPath = cachePath;
+			cachePath.append(L"cache");
 			cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
 		}
 		WCHAR szLocal[] = L"zh-CN";
@@ -521,12 +523,12 @@ namespace wrapQweb{
 			cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //…Ë÷√‰÷»æΩ¯≥Ãexe
 			settings.single_process = false;
 		}
-		WCHAR szFile[MAX_PATH] = { 0 };
-		WCHAR szCache[MAX_PATH] = { 0 };
-		GetModuleFileName(0, szFile, MAX_PATH);
-		PathRemoveFileSpec(szFile);
-		PathCombine(szCache, szFile, L"cache");
-		cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
+		//WCHAR szFile[MAX_PATH] = { 0 };
+		//WCHAR szCache[MAX_PATH] = { 0 };
+		//GetModuleFileName(0, szFile, MAX_PATH);
+		//PathRemoveFileSpec(szFile);
+		//PathCombine(szCache, szFile, L"cache");
+		//cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
 
 		// Initialize CEF.
 		CefInitialize(main_args, settings, g_app.get(), g_sandbox_info);

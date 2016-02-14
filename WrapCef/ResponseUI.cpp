@@ -3,6 +3,7 @@
 #include "IPC.h"
 #include "WebViewFactory.h"
 #include <boost/functional/hash.hpp>
+#include <shlobj.h> 
 #include "json/json.h"
 
 /*enum UI_CONTROL_MSG
@@ -22,6 +23,7 @@
 };*/
 
 wrapQweb::FunMap* ResponseUI::s_fnMap = NULL;
+extern std::wstring g_strAppDataPath;
 
 ResponseUI::ResponseUI()
 {
@@ -63,6 +65,7 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod2);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_fullScreen);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
 }
 
 
@@ -228,6 +231,18 @@ bool ResponseUI::rsp_appDir(const CefRefPtr<CefBrowser> browser, const std::shar
 	return ret;
 }
 
+bool ResponseUI::rsp_appDataPath(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get())
+	{
+		out->getList().AppendVal(g_strAppDataPath);
+		ret = true;
+	}
+	return ret;
+}
+
 bool ResponseUI::rsp_minWindow(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct> out)
 {
 	bool ret = false;
@@ -298,6 +313,19 @@ bool ResponseUI::rsp_setWindowText(const CefRefPtr<CefBrowser> browser, const st
 	return ret;
 }
 
+static BOOL mirage_CreateDirectory(WCHAR* directory)
+{
+	BOOL bRet = TRUE;
+	if (-1 == _waccess(directory, 0)) //判断目标文件夹是否存在
+	{
+		if (ERROR_SUCCESS != SHCreateDirectoryExW(NULL, directory, NULL))
+		{
+			return S_FALSE;
+		}
+	}
+	return bRet;
+}
+
 bool ResponseUI::rsp_writePrivateProfileString(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
 {
 	bool ret = false;
@@ -305,6 +333,12 @@ bool ResponseUI::rsp_writePrivateProfileString(const CefRefPtr<CefBrowser> brows
 	std::wstring keyName = req_parm->getList().GetWStrVal(1);
 	std::wstring val = req_parm->getList().GetWStrVal(2);
 	std::wstring file = req_parm->getList().GetWStrVal(3);
+
+	WCHAR path[MAX_PATH];
+	wcscpy_s(path, file.c_str());
+	wchar_t* pos = wcsrchr(path, '\\');
+	*pos = '\0';
+	mirage_CreateDirectory(path);
 	ret = WritePrivateProfileString(appName.c_str(), keyName.c_str(), val.c_str(), file.c_str());
 	return ret;
 }

@@ -699,7 +699,20 @@ public:
 		WCHAR szAppData[MAX_PATH];
 		SHGetSpecialFolderPathW(NULL, szAppData, CSIDL_APPDATA, TRUE);
 		wcscat_s(szAppData, L"\\");
-		value = CefV8Value::CreateString(CefString(szAppData));
+		//value = CefV8Value::CreateString(CefString(szAppData));
+		cyjh::Instruct parm;
+		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		std::shared_ptr<cyjh::Instruct> outVal;
+		ipc->Request(this->browser_, parm, outVal);
+		if (outVal.get() && outVal->getSucc())
+		{
+			std::wstring val = outVal->getList().GetWStrVal(0);
+			value = CefV8Value::CreateString(CefString(val));
+		}
+		else{
+			value = CefV8Value::CreateString(CefString(szAppData));
+		}
 	}
 
 	void screen_w(CefRefPtr<CefV8Value>& value){
