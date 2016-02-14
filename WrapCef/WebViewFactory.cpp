@@ -50,7 +50,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	item->m_window =
 		OSRWindow::Create(item->m_provider, transparent,
 		show_update_rect);
-	WCHAR szOSRWindowClass[] = L"clientOSR";
+	WCHAR szOSRWindowClass[] = L"WebViewWindowClass";
 	rect.left = x;
 	rect.top = y;
 	rect.right = x + width;

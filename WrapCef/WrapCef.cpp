@@ -41,7 +41,8 @@
 #pragma comment(lib, "base_static.lib")
 #pragma comment(lib, "DbgHelp.lib")
 #pragma comment(lib, "dynamic_annotations.lib")
-#pragma comment(lib, "libcef.dll.lib")
+//#pragma comment(lib, "libcef.dll.lib")
+#pragma comment(lib, "libWBX.dll.lib")
 #pragma comment(lib, "libcef_dll_wrapper.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "packlib.lib")
@@ -458,6 +459,7 @@ void CBrowserControl::handle_SetForce()
 	m_browser->handle_SetForce();
 }
 
+WCHAR g_szLocalPath[MAX_PATH];
 namespace wrapQweb{
 
 	static bool getAppDataFolder(std::wstring& directory)
@@ -510,17 +512,19 @@ namespace wrapQweb{
 		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);
 
 		//实现渲染进程分离
-		WCHAR szFile[MAX_PATH] = { 0 };
+		
 		WCHAR szRender[MAX_PATH] = { 0 };
-		//GetModuleFileName(NULL, szFile, MAX_PATH);
-		//PathRemoveFileSpec(szFile);
-		//PathCombine(szRender, szFile, L"render.exe");
-		if (lpRender && wcslen(lpRender) > 0 && _waccess( lpRender, 0) == 0 )
+		PathCombine(szRender, g_szLocalPath, lpRender);
+		//OutputDebugString(szRender);
+		if (szRender && wcslen(szRender) > 0 && _waccess(szRender, 0) == 0)
 		{
-			cef_string_set(lpRender, wcslen(lpRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
+			cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //设置渲染进程exe
 			settings.single_process = false;
 		}
+		WCHAR szFile[MAX_PATH] = { 0 };
 		WCHAR szCache[MAX_PATH] = { 0 };
+		GetModuleFileName(0, szFile, MAX_PATH);
+		PathRemoveFileSpec(szFile);
 		PathCombine(szCache, szFile, L"cache");
 		cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
 
