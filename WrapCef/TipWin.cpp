@@ -22,8 +22,9 @@ TipWin::TipWin()
 
 TipWin::~TipWin()
 {
-	if (tooltip_hwnd_)
-		DestroyWindow(tooltip_hwnd_);
+	//if (tooltip_hwnd_)
+	//	DestroyWindow(tooltip_hwnd_);
+	DestroyTipWin();
 }
 
 void TipWin::SetParentHwnd(HWND hWnd)
@@ -182,33 +183,54 @@ void TipWin::initializeToolTipWindow(HWND hWnd)
 	if (!initCommonControls())
 		return;
 
-	parent_hwnd_ = hWnd;
-	tooltip_hwnd_ = CreateWindowEx(WS_EX_TRANSPARENT, TOOLTIPS_CLASS, 0, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-		parent_hwnd_, 0, 0, 0);
-	if (!tooltip_hwnd_)
-		return;
+	if (!tooltip_hwnd_ || !IsWindow(tooltip_hwnd_))
+	{
+		parent_hwnd_ = hWnd;
+		tooltip_hwnd_ = CreateWindowEx(WS_EX_TRANSPARENT, TOOLTIPS_CLASS, 0, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			parent_hwnd_, 0, 0, 0);
+		if (!tooltip_hwnd_)
+			return;
 
-	TOOLINFO info = { 0 };
-	info.cbSize = sizeof(info);
-	info.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	info.uId = reinterpret_cast<UINT_PTR>(parent_hwnd_);
+		TOOLINFO info = { 0 };
+		info.cbSize = sizeof(info);
+		info.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+		info.uId = reinterpret_cast<UINT_PTR>(parent_hwnd_);
 
-	::SendMessage(tooltip_hwnd_, TTM_ADDTOOL, 0, reinterpret_cast<LPARAM>(&info));
-	::SendMessage(tooltip_hwnd_, TTM_SETMAXTIPWIDTH, 0, maxToolTipWidth);
+		::SendMessage(tooltip_hwnd_, TTM_ADDTOOL, 0, reinterpret_cast<LPARAM>(&info));
+		::SendMessage(tooltip_hwnd_, TTM_SETMAXTIPWIDTH, 0, maxToolTipWidth);
 
-	::SetWindowPos(tooltip_hwnd_, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		::SetWindowPos(tooltip_hwnd_, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	}
+}
+
+void TipWin::DestroyTipWin()
+{
+	if (tooltip_hwnd_ && IsWindow(tooltip_hwnd_)){
+		DestroyWindow(tooltip_hwnd_);
+		tooltip_hwnd_ = NULL;
+	}
+
 }
 
 void TipWin::setToolTip(const std::wstring& toolTip)
 {
-	if (!tooltip_hwnd_)
-		return;
+	//if (!tooltip_hwnd_)
+	//	return;
 
 	if (toolTip == toolTip_)
 		return;
 
 	toolTip_ = toolTip;
+	if ( toolTip_.empty() ){
+		DestroyTipWin();
+		return;
+	}
+
+	initializeToolTipWindow(parent_hwnd_);	
+
+	if (!tooltip_hwnd_)
+		return;
 
 	if (!toolTip_.empty()) {
 		TOOLINFO info = { 0 };

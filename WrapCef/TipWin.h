@@ -18,6 +18,7 @@ public:
 	void SetParentHwnd(HWND hWnd);
 	bool HandleNotify(int w_param, NMHDR* l_param, LRESULT* l_result);
 private:
+	void DestroyTipWin();
 	bool EnsureTooltipWindow();
 	void PositionTooltip();
 	void Show();

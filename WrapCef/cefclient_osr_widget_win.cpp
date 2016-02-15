@@ -93,7 +93,8 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   HRESULT register_res = RegisterDragDrop(hWnd_, drop_target_);
   DCHECK_EQ(register_res, S_OK);
 #endif
-  tipinfo_.initializeToolTipWindow(hWnd_);
+  //tipinfo_.initializeToolTipWindow(hWnd_);
+  tipinfo_.SetParentHwnd(hWnd_);
   return true;
 }
 
