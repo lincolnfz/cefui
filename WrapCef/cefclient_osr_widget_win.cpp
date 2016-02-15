@@ -93,7 +93,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   HRESULT register_res = RegisterDragDrop(hWnd_, drop_target_);
   DCHECK_EQ(register_res, S_OK);
 #endif
-
+  tipinfo_.initializeToolTipWindow(hWnd_);
   return true;
 }
 
@@ -293,6 +293,11 @@ void Get32BitmapInfo(int width, int height, BITMAPINFO& info, unsigned long& dat
 
 void OSRWindow::SetAlpha(const unsigned int& alpha){
 	m_alpah = alpha % 256;
+}
+
+void OSRWindow::ShowTip(const std::wstring& info)
+{
+	tipinfo_.setToolTip(info);
 }
 
 void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,

@@ -137,6 +137,8 @@ class ClientHandler : public CefClient,
                                 const CefString& message,
                                 const CefString& source,
                                 int line) OVERRIDE;
+  virtual bool OnTooltip(CefRefPtr<CefBrowser> browser,
+	  CefString& text) OVERRIDE;
 
   // CefDownloadHandler methods
   virtual void OnBeforeDownload(

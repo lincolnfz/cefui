@@ -104,6 +104,7 @@
     <ClInclude Include="string_util.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThreadCombin.h" />
+    <ClInclude Include="TipWin.h" />
     <ClInclude Include="WebViewFactory.h" />
     <ClInclude Include="WrapCef.h" />
   </ItemGroup>
@@ -163,6 +164,7 @@
     </ClCompile>
     <ClCompile Include="string_util.cpp" />
     <ClCompile Include="ThreadCombin.cpp" />
+    <ClCompile Include="TipWin.cpp" />
     <ClCompile Include="WebViewFactory.cpp" />
     <ClCompile Include="WrapCef.cpp" />
   </ItemGroup>

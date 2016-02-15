@@ -10,6 +10,7 @@
 //#include "cefclient/cefclient_osr_dragdrop_win.h" //modi by lincoln
 #include "client_handler.h"
 #include "osrenderer.h"
+#include "TipWin.h"
 
 class OSRBrowserProvider : public CefBase {
  public:
@@ -104,6 +105,8 @@ class OSRWindow : public ClientHandler::RenderHandler
 
   void SetAlpha( const unsigned int& );
 
+  void ShowTip(const std::wstring& info);
+
  private:
   OSRWindow(OSRBrowserProvider* browser_provider,
             bool transparent,
@@ -141,7 +144,7 @@ class OSRWindow : public ClientHandler::RenderHandler
   bool painting_popup_;
   bool render_task_pending_;
   bool hidden_;
-
+  TipWin tipinfo_;
   IMPLEMENT_REFCOUNTING(OSRWindow);
 };
 

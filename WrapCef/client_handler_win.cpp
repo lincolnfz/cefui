@@ -11,6 +11,7 @@
 
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
+#include "WebViewFactory.h"
 //#include "cefclient/resource.h"
 
 void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
@@ -35,6 +36,21 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     hwnd = GetParent(hwnd);
   }*/
   SetWindowText(hwnd, std::wstring(title).c_str());
+}
+
+bool ClientHandler::OnTooltip(CefRefPtr<CefBrowser> browser,
+	CefString& text){
+
+	CEF_REQUIRE_UI_THREAD();
+	//CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
+	std::wstring tipTxt = text.ToWString();
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get())
+	{
+		item->m_window->ShowTip(tipTxt);
+	}
+	
+	return true;
 }
 
 void ClientHandler::SendNotification(NotificationType type) {

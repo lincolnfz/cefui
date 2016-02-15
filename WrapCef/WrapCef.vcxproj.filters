@@ -81,6 +81,9 @@
     <ClInclude Include="ResponseUI.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TipWin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -168,6 +171,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="json\json_writer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TipWin.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
