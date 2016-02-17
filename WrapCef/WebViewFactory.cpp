@@ -74,9 +74,9 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	//browser_settings.web_security = STATE_DISABLED;
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
-	browser_settings.webgl = STATE_DISABLED;
-	browser_settings.plugins = STATE_DISABLED;
-	browser_settings.java = STATE_DISABLED;
+	//browser_settings.webgl = STATE_DISABLED;
+	//browser_settings.plugins = STATE_DISABLED;
+	//browser_settings.java = STATE_DISABLED;
 	//browser_settings.application_cache = STATE_DISABLED; //不用缓存
 	// Creat the new child browser window
 	CefBrowserHost::CreateBrowser(info, item->m_provider->GetClientHandler().get(),

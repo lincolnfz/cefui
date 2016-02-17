@@ -45,7 +45,7 @@ namespace {
 		bool bfind = false;
 		for (int i = 0; i < len; ++i){
 			for (int j = 0; j < 10; ++j){
-				if (stricmp(table[i].ext_val[j], ext) == 0){
+				if (_stricmp(table[i].ext_val[j], ext) == 0){
 					val = table[i].mime_val;
 					bfind = true;
 					break;
@@ -159,7 +159,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 		  free(pUnicode);
 	  }
 	  else{
-		  strcpy(pBuf, pUTF8);
+		  strcpy_s(pBuf, cbBufLen, pUTF8);
 	  }
 
 
@@ -244,7 +244,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 			int i = 0;
 		}
 		char ext[64] = { 0 };
-		_splitpath(resource.c_str(), 0, 0, 0, ext);
+		_splitpath_s(resource.c_str(), NULL, 0, NULL, 0, NULL, 0, ext, 64);
 		mime_type_ = getMimeType(ext);
 		if (mime_type_.empty())
 		{
