@@ -21,7 +21,7 @@ void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
 
   if (GetBrowserId() == browser->GetIdentifier() && frame->IsMain()) {
     // Set the edit window text
-    SetWindowText(edit_handle_, std::wstring(url).c_str());
+    //SetWindowText(edit_handle_, std::wstring(url).c_str());
   }
 }
 
@@ -30,12 +30,18 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
   CEF_REQUIRE_UI_THREAD();
 
   // Set the frame window title bar
-  CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
+  //CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
   /*if (GetBrowserId() == browser->GetIdentifier()) {
     // The frame window will be the parent of the browser window
     hwnd = GetParent(hwnd);
   }*/
-  SetWindowText(hwnd, std::wstring(title).c_str());
+  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+  if (item.get() && IsWindow(item->m_window->hwnd()))
+  {
+	  HWND hWnd = item->m_window->hwnd();
+	  SetWindowText(hWnd, std::wstring(title).c_str());
+  }
+  
 }
 
 bool ClientHandler::OnTooltip(CefRefPtr<CefBrowser> browser,
