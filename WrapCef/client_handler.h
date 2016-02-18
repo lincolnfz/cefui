@@ -10,7 +10,7 @@
 #include <map>
 #include <set>
 #include <string>
-
+#include <atlstr.h>
 #include "include/base/cef_lock.h"
 #include "include/cef_client.h"
 #include "include/wrapper/cef_helpers.h"
@@ -315,11 +315,11 @@ class ClientHandler : public CefClient,
   bool Save(const std::string& path, const std::string& data);
 
   bool invokedJSMethod(const char* utf8_module, const char* utf8_method,
-	  const char* utf8_parm, HGLOBAL* outstr,
+	  const char* utf8_parm, CStringW* outstr,
 	  const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 
   bool callJSMethod(const char* fun_name, const char* utf8_parm,
-	  const char* utf8_frame_name, HGLOBAL* outstr);
+	  const char* utf8_frame_name, CStringW* outstr);
 
  private:
   void SetLoading(bool isLoading);

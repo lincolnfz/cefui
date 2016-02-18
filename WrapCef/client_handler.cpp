@@ -1062,7 +1062,7 @@ bool ClientHandler::ExecuteTestMenu(int command_id) {
 }
 
 bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_method,
-	const char* utf8_parm, HGLOBAL* outstr,
+	const char* utf8_parm, CStringW* outstr,
 	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
 {
 	bool ret = false;
@@ -1081,12 +1081,13 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 		if ( outstr && outVal->getList().GetSize() > 0 )
 		{
 			std::wstring retVal = outVal->getList().GetWStrVal(0);
-			int len = sizeof(WCHAR) * (retVal.length() + 1);
+			/*int len = sizeof(WCHAR) * (retVal.length() + 1);
 			HGLOBAL hNewMem = GlobalReAlloc(*outstr, len+1, GMEM_MOVEABLE | GMEM_ZEROINIT);			
 			WCHAR* ptr = (WCHAR*)GlobalLock(hNewMem);
 			wcscpy_s(ptr, len, retVal.c_str());
 			GlobalUnlock(hNewMem);
-			*outstr = hNewMem;
+			*outstr = hNewMem;*/
+			*outstr = retVal.c_str();
 		}		
 		ret = outVal->getSucc();
 	}
@@ -1094,7 +1095,7 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 }
 
 bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
-	const char* utf8_frame_name, HGLOBAL* outstr)
+	const char* utf8_frame_name, CStringW* outstr)
 {
 	bool ret = false;
 	cyjh::Instruct parm;
@@ -1110,12 +1111,13 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 		if (outstr && outVal->getList().GetSize() > 0)
 		{
 			std::wstring retVal = outVal->getList().GetWStrVal(0);
-			int len = sizeof(WCHAR) * (retVal.length() + 1);
+			/*int len = sizeof(WCHAR) * (retVal.length() + 1);
 			HGLOBAL hNewMem = GlobalReAlloc(*outstr, len+1, GMEM_MOVEABLE | GMEM_ZEROINIT);
 			WCHAR* ptr = (WCHAR*)GlobalLock(hNewMem);
 			wcscpy_s(ptr, len, retVal.c_str());
 			GlobalUnlock(hNewMem);
-			*outstr = hNewMem;
+			*outstr = hNewMem;*/
+			*outstr = retVal.c_str();
 		}
 		ret = outVal->getSucc();
 	}
