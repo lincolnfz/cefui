@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <string>
 #include "cefexprot.h"
+//#include <atlstr.h>
 
 
 SHARED_EXPORT_API int InitCef(HINSTANCE hInstance, HACCEL hAccelTable);
@@ -83,14 +84,14 @@ namespace wrapQweb {
 	//操作脚本
 	//
 	SHARED_EXPORT_API bool callJSMethod(const HWND&, const char* fun_name, const char* utf8_parm,
-		const char* utf8_frame_name = 0, std::wstring* outstr = 0);
+		const char* utf8_frame_name = 0, HGLOBAL* outstr = 0);
 
 	//软件标准的通信方法(模块，方法 ，参数，返回值， 框架名，前端使用的参数bNoticeJSTrans2JSON）
 	SHARED_EXPORT_API bool invokedJSMethod(const HWND&, const char* utf8_module, const char* utf8_method,
-		const char* utf8_parm, std::wstring* outstr,
+		const char* utf8_parm, HGLOBAL* outstr,
 		const char* utf8_frame_name = 0, bool bNoticeJSTrans2JSON = true);	
 
-
+	SHARED_EXPORT_API bool freeMem(HGLOBAL hMem);
 
 }
 

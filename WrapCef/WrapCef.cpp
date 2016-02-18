@@ -591,7 +591,7 @@ namespace wrapQweb{
 	}
 
 	bool callJSMethod(const HWND& hWnd, const char* fun_name, const char* utf8_parm,
-		const char* utf8_frame_name/* = 0*/, std::wstring* outstr/* = 0*/)
+		const char* utf8_frame_name/* = 0*/, HGLOBAL* outstr/* = 0*/)
 	{
 		bool bret = false;
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
@@ -604,7 +604,7 @@ namespace wrapQweb{
 	}
 
 	bool invokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
-		const char* utf8_parm, std::wstring* outstr,
+		const char* utf8_parm, HGLOBAL* outstr,
 		const char* utf8_frame_name /*= 0*/, bool bNoticeJSTrans2JSON /*= true*/)
 	{
 		bool bret = false;
@@ -615,6 +615,11 @@ namespace wrapQweb{
 		}
 
 		return bret;
+	}
+
+	bool freeMem(HGLOBAL hMem)
+	{
+		return GlobalFree(hMem) == NULL;
 	}
 
 	void CloseWebview(const HWND& hWnd)

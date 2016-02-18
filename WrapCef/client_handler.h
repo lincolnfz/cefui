@@ -315,11 +315,11 @@ class ClientHandler : public CefClient,
   bool Save(const std::string& path, const std::string& data);
 
   bool invokedJSMethod(const char* utf8_module, const char* utf8_method,
-	  const char* utf8_parm, std::wstring* outstr,
+	  const char* utf8_parm, HGLOBAL* outstr,
 	  const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 
   bool callJSMethod(const char* fun_name, const char* utf8_parm,
-	  const char* utf8_frame_name, std::wstring* outstr);
+	  const char* utf8_frame_name, HGLOBAL* outstr);
 
  private:
   void SetLoading(bool isLoading);
