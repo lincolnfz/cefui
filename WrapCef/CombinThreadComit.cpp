@@ -429,6 +429,7 @@ namespace cyjh{
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		std::shared_ptr<RequestContext> ret;
+
 		/*if (!eventRequestStack_.empty()){
 			ret = eventRequestStack_.front();
 			eventRequestStack_.pop_front();
@@ -444,6 +445,22 @@ namespace cyjh{
 		return ret;
 	}
 
+	bool CombinThreadComit::isSameMyReqID(int id)
+	{
+		bool ret = true;
+		if (!eventRequestStack_.empty()){
+			ret = eventRequestStack_.front()->id_ == id;
+#ifdef _DEBUG
+			if (!ret)
+			{
+				OutputDebugStringW(L"----reqID no match ==========");
+			}
+			assert(ret);
+#endif
+		}
+		return ret;
+	}
+
 	void CombinThreadComit::RecvData(const unsigned char* data, DWORD len)
 	{
 		cyjh::Pickle pick(reinterpret_cast<const char*>(data), len);
@@ -451,6 +468,7 @@ namespace cyjh{
 		bool objected = Instruct::ObjectInstruct(pick, spInstruct.get()); //¶ÔÏñ»¯
 		assert(objected);
 
+		bool match = isSameMyReqID(spInstruct->getID());
 		std::shared_ptr<RequestContext> top = getReqStackTop(spInstruct->getID());
 		if ( top.get() )
 		{

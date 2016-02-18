@@ -294,6 +294,9 @@ namespace cyjh{
 
 		int generateID();
 
+		//是不是和自已目前处理的请求id一样，如果自已有请求id,则忽略
+		bool isSameMyReqID(int id);
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackTop(int id);
 
