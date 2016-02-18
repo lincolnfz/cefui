@@ -429,9 +429,10 @@ namespace cyjh{
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		std::shared_ptr<RequestContext> ret;
-		//if (!eventRequestStack_.empty()){
-		//	ret = eventRequestStack_.front();
-		//}
+		/*if (!eventRequestStack_.empty()){
+			ret = eventRequestStack_.front();
+			eventRequestStack_.pop_front();
+		}*/
 		std::deque<std::shared_ptr<RequestContext>>::iterator it = eventRequestStack_.begin();
 		for (; it != eventRequestStack_.end(); ++it){
 			if ( it->get()->id_ == id )
