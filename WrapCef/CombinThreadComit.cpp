@@ -299,13 +299,13 @@ namespace cyjh{
 	{
 	}
 
-	void CombinThreadComit::pushEvent(std::shared_ptr<RequestContext>& events)
+	void CombinThreadComit::pushRequestEvent(std::shared_ptr<RequestContext>& events)
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		eventRequestStack_.push_front(events);
 	}
 
-	void CombinThreadComit::popEvent()
+	void CombinThreadComit::popRequestEvent()
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		eventRequestStack_.pop_front();
@@ -364,7 +364,7 @@ namespace cyjh{
 		//sp->outval_ = &response_val;
 		//sp->id_ = requestID_;
 		sp->id_ = reqeustid;
-		pushEvent(sp);
+		pushRequestEvent(sp);
 		//向另一个线程请求
 		//ipc_send		
 		//这里放ipc的发送操作
@@ -398,7 +398,7 @@ namespace cyjh{
 				procRecvRequest(sp->parm_);
 			}
 		}
-		popEvent();
+		popRequestEvent();
 	}
 
 	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id)
@@ -470,15 +470,6 @@ namespace cyjh{
 			{
 				//pushRecvRequestID(spInstruct->getID()); //移到ui线程或render线程中处理
 				procRecvRequest(spInstruct);
-
-				/*if ( THREAD_UI == threadType_ )
-				{
-					CefPostTask(TID_UI, base::Bind(&CombinThreadComit::procRecvRequest, this, spInstruct));
-				}
-				else if ( THREAD_RENDER == threadType_ )
-				{
-					CefPostTask(TID_RENDERER, base::Bind(&CombinThreadComit::procRecvRequest, this, spInstruct));
-				}*/
 			}
 		}
 		

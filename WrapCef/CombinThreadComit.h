@@ -284,9 +284,9 @@ namespace cyjh{
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
 		
-		void pushEvent(std::shared_ptr<RequestContext>&);
+		void pushRequestEvent(std::shared_ptr<RequestContext>&);
 
-		void popEvent();
+		void popRequestEvent();
 
 		void pushRecvRequestID(int id);
 
