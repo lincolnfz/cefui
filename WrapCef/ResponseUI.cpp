@@ -340,6 +340,7 @@ bool ResponseUI::rsp_writePrivateProfileString(const CefRefPtr<CefBrowser> brows
 	*pos = '\0';
 	mirage_CreateDirectory(path);
 	ret = WritePrivateProfileString(appName.c_str(), keyName.c_str(), val.c_str(), file.c_str());
+	//assert(ret);
 	return ret;
 }
 
@@ -357,19 +358,27 @@ bool ResponseUI::rsp_getPrivateProfileInt(const CefRefPtr<CefBrowser> browser, c
 
 bool ResponseUI::rsp_setProfile(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
 {
-	bool ret = false;
+	bool ret = true;
 	boost::hash<std::wstring> string_hash;
 	std::wstring keyName = req_parm->getList().GetWStrVal(0);
 	size_t key = string_hash(keyName);
 	std::wstring val = req_parm->getList().GetWStrVal(1);
-	std::pair<std::map<unsigned int, std::wstring>::iterator, bool> insret = m_profile.insert(std::make_pair(key, val));
-	ret = insret.second;
+	std::map<unsigned int, std::wstring>::iterator it = m_profile.find(key);
+	if ( it != m_profile.end() )
+	{
+		it->second = val;
+	}
+	else{
+		std::pair<std::map<unsigned int, std::wstring>::iterator, bool> insret = m_profile.insert(std::make_pair(key, val));
+		//ret = insret.second;
+	}	
+	//assert(ret);
 	return ret;
 }
 
 bool ResponseUI::rsp_getProfile(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
 {
-	bool ret = false;
+	bool ret = true;
 	boost::hash<std::wstring> string_hash;
 	std::wstring keyName = req_parm->getList().GetWStrVal(0);
 	size_t key = string_hash(keyName);
@@ -377,9 +386,12 @@ bool ResponseUI::rsp_getProfile(const CefRefPtr<CefBrowser> browser, const std::
 	if ( it != m_profile.end() )
 	{
 		out->getList().AppendVal(it->second);
-		ret = true;
+		//ret = true;
 	}
-
+	else{
+		out->getList().AppendVal(L"");
+	}
+	//assert(ret);
 	return ret;
 }
 
