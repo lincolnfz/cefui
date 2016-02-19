@@ -34,7 +34,7 @@ ResponseUI::ResponseUI()
 	*lch = '\0';
 	wcsncpy(m_szPath, szPath, MAX_PATH);
 
-	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser);
+	//REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser); //注册浏览器放不放在框架中处理
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getPrivateProfileString);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_window_x);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_window_y);

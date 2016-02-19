@@ -241,6 +241,13 @@ namespace cyjh{
 			id_ = id;
 		}
 
+		void setNewSession(const bool& bNew){
+			newSession_ = bNew;
+		}
+
+		const bool& newSession() const{
+			return newSession_;
+		}
 
 	private:
 		InstructType type_;
@@ -248,6 +255,7 @@ namespace cyjh{
 		int id_;
 		int browserID_;
 		bool succ_;
+		bool newSession_;
 		cyjh_value_list list_;
 	};
 
@@ -269,6 +277,56 @@ namespace cyjh{
 			CloseHandle(events_[0]);
 			CloseHandle(events_[1]);
 		}
+	};
+
+	struct ReqInfo
+	{
+	public:
+		ReqInfo(){
+			len_ = 0;
+			pData_ = NULL;
+		}
+		void set(const unsigned char* data, int len){
+			len_ = len;
+			pData_ = new unsigned char[len];
+			memcpy_s(pData_, len, data, len);
+		}
+		~ReqInfo(){
+			delete pData_;
+		}
+		unsigned char* pData_;
+		int len_;
+
+	};
+
+	class CombinThreadComit;
+
+	class SyncRequestQueue : public CDataProcessQueue<ReqInfo>
+	{
+	public:
+		SyncRequestQueue(CombinThreadComit* obj) :obj_(obj){
+			hEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+		}
+
+		virtual ~SyncRequestQueue(){
+			CloseHandle(hEvent_);
+		}
+
+		virtual BOOL ProcDataPack(std::shared_ptr<ReqInfo> sp);
+
+		BOOL SubmitPack(std::shared_ptr<ReqInfo> pack);
+
+		void SetEvent(){
+			::SetEvent(hEvent_);
+		}
+
+		void ResetEvent(){
+			::ResetEvent(hEvent_);
+		}
+
+	private:
+		CombinThreadComit* obj_;
+		HANDLE hEvent_;
 	};
 	
 	class CombinThreadComit : public CefBase
@@ -297,6 +355,9 @@ namespace cyjh{
 		//是不是和自已目前处理的请求id一样，如果自已有请求id,则忽略
 		bool isSameMyReqID(int id);
 
+		//注册浏览器不放在公共调用模块中执行
+		void RegisertBrowserHelp(std::shared_ptr<Instruct> spInfo);
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackTop(int id);
 
@@ -312,6 +373,10 @@ namespace cyjh{
 		int requestID_;
 
 		static DWORD s_tid_;
+
+		//SyncRequestQueue requestQueue_;
+
+		//std::deque<std::shared_ptr<ReqInfo>> pendingReqQueue_;
 
 		IMPLEMENT_REFCOUNTING(CombinThreadComit);
 	};

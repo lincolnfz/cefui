@@ -47,9 +47,22 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
 			}
 			ret = true;
+		}else{
+			int end = excp->GetEndPosition();
+			int col = excp->GetEndColumn();
+			int line = excp->GetLineNumber();
+			//const char* p = excp->GetScriptResourceName().ToString().c_str();
+			//excp->
+			int startcol = excp->GetStartColumn();
+			//OutputDebugStringA(excp->GetMessageW().ToString().c_str());
+#ifdef _DEBUG
+			char szTmp[8192] = { 0 };
+			sprintf_s(szTmp, "------invokejs Fail! render  %d , invokeMethod: %s", GetCurrentThreadId(), strJs.c_str());
+			OutputDebugStringA(szTmp);
+#endif
 		}
 	}
-	
+	assert(ret);
 	return ret;
 }
 
