@@ -184,11 +184,15 @@ namespace cyjh{
 	};
 
 	class CombinThreadComit;
+	class UIThreadCombin;
+	class RenderThreadCombin;
 
 	class Instruct
 	{
 	public:
 		friend CombinThreadComit;
+		friend UIThreadCombin;
+		friend RenderThreadCombin;
 		Instruct();
 		virtual ~Instruct();
 
@@ -216,6 +220,10 @@ namespace cyjh{
 			return id_;
 		}
 
+		const int& getAtom() const{
+			return atom_;
+		}
+
 		void setSucc(const bool& succ){
 			succ_ = succ;
 		}
@@ -241,6 +249,10 @@ namespace cyjh{
 			id_ = id;
 		}
 
+		void setAtom(const int& atom){
+			atom_ = atom;
+		}
+
 		void setNewSession(const bool& bNew){
 			newSession_ = bNew;
 		}
@@ -254,6 +266,7 @@ namespace cyjh{
 		std::string name_;		
 		int id_;
 		int browserID_;
+		int atom_;
 		bool succ_;
 		bool newSession_;
 		cyjh_value_list list_;
@@ -263,6 +276,7 @@ namespace cyjh{
 	struct RequestContext 
 	{
 		int id_;
+		int atom_;
 		BlockEvents events_;
 		std::shared_ptr<Instruct> parm_; //收到的请求参数放在这里
 		std::shared_ptr<Instruct> outval_; //收到的最终返回结果放在这里
@@ -277,6 +291,17 @@ namespace cyjh{
 			CloseHandle(events_[0]);
 			CloseHandle(events_[1]);
 		}
+	};
+
+	//记录收到的请求上下文id
+	struct RecvReqItem
+	{
+		RecvReqItem(const int& id, const int& atom){
+			id_ = id;
+			atom_ = atom;
+		}
+		int id_;
+		int atom_;
 	};
 
 	struct ReqInfo
@@ -339,16 +364,16 @@ namespace cyjh{
 		virtual void RecvData(const unsigned char*, DWORD);
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
-		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id);
+		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
 		
 		void pushRequestEvent(std::shared_ptr<RequestContext>&);
 
 		void popRequestEvent();
 
-		void pushRecvRequestID(int id);
+		void pushRecvRequestID(int id, int atom);
 
-		bool popRecvRequestID(int id);
+		bool popRecvRequestID(int id, int atom);
 
 		int generateID();
 
@@ -358,6 +383,9 @@ namespace cyjh{
 		//注册浏览器不放在公共调用模块中执行
 		void RegisertBrowserHelp(std::shared_ptr<Instruct> spInfo);
 
+		//拒绝请求,当已在处理一个会话时,不会接受新的会话
+		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) = 0;
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackTop(int id);
 
@@ -365,7 +393,7 @@ namespace cyjh{
 		std::deque<std::shared_ptr<RequestContext>> eventRequestStack_;
 		std::mutex eventRequestStackMutex_;
 
-		std::deque<int> eventResponsStack_;
+		std::deque<RecvReqItem> eventResponsStack_;
 		std::mutex eventResponseStackMutex_;
 
 		std::mutex generateIDMutex_;

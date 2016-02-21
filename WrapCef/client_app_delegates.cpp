@@ -963,9 +963,11 @@ public:
 
 		CefRefPtr<CefV8Handler> myV8handle = new NativeappHandler(browser, frame);
 
+		bool testSetVal = false;
 #define REG_JS_FUN(fnName) \
 		static_cast<NativeappHandler*>(myV8handle.get())->RegisterFunction(#fnName, &NativeappHandler::##fnName); \
-		pObjApp->SetValue(#fnName, CefV8Value::CreateFunction(#fnName, myV8handle), attributes);
+		testSetVal = pObjApp->SetValue(#fnName, CefV8Value::CreateFunction(#fnName, myV8handle), attributes);\
+		assert(testSetVal);
 
 		//注册给js调用的函数
 		REG_JS_FUN(setWindowSize);

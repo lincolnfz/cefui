@@ -110,6 +110,7 @@ namespace cyjh{
 	{
 		pick.WriteInt(inst->type_);
 		pick.WriteInt(inst->id_);
+		pick.WriteInt(inst->atom_);
 		pick.WriteInt(inst->browserID_);
 		pick.WriteBool(inst->succ_);
 		pick.WriteBool(inst->newSession_);
@@ -176,6 +177,13 @@ namespace cyjh{
 				break;
 			}
 			inst->setID(id);
+
+			int atom = 0;
+			if (!pick.ReadInt(&itor, &atom)){
+				bret = false;
+				break;
+			}
+			inst->setAtom(atom);
 
 			int browseid = 0;
 			if (!pick.ReadInt(&itor, &browseid)){
@@ -338,28 +346,30 @@ namespace cyjh{
 		eventRequestStack_.pop_front();
 	}
 
-	void CombinThreadComit::pushRecvRequestID(int id)
+	void CombinThreadComit::pushRecvRequestID(int id, int atom)
 	{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 #ifdef _DEBUG
 		char szTmp[256] = { 0 };
-		sprintf(szTmp, "---- pushRecvReq id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		sprintf_s(szTmp, "---- pushRecvReq id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 		OutputDebugStringA(szTmp);
 #endif
-		eventResponsStack_.push_front(id);
+		RecvReqItem item(id, atom);
+		eventResponsStack_.push_front(item);
 	}
 
-	bool CombinThreadComit::popRecvRequestID(int id)
+	bool CombinThreadComit::popRecvRequestID(int id, int atom)
 	{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 #ifdef _DEBUG
-		assert(eventResponsStack_.front() == id);
+		RecvReqItem item = eventResponsStack_.front();
+		assert(item.id_ == id && item.atom_ == atom);
 #endif
 		bool ret = false;
-		std::deque<int>::iterator it = eventResponsStack_.begin();
+		std::deque<RecvReqItem>::iterator it = eventResponsStack_.begin();
 		for (; it != eventResponsStack_.end(); ++it)
 		{
-			if ( *it == id )
+			if ( it->id_ == id && it->atom_ == atom )
 			{
 				eventResponsStack_.erase(it);
 				ret = true;
@@ -386,7 +396,7 @@ namespace cyjh{
 
 	void CombinThreadComit::procRecvRequest(const std::shared_ptr<Instruct> parm)
 	{
-		pushRecvRequestID(parm->getID());
+		pushRecvRequestID(parm->getID(), parm->getAtom());
 	}
 
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
@@ -396,16 +406,16 @@ namespace cyjh{
 		eventResponseStackMutex_.lock();
 		if (!eventResponsStack_.empty())
 		{
-			reqeustid = eventResponsStack_.front();
+			reqeustid = eventResponsStack_.front().id_;
 		}
 		eventResponseStackMutex_.unlock();
 		parm.setNewSession(reqeustid == 0);
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
-		parm.setID(reqeustid);		
+		parm.setID(reqeustid);
+		parm.setAtom(generateID());
 		std::shared_ptr<RequestContext> sp(new RequestContext());
-		//sp->outval_ = &response_val;
-		//sp->id_ = requestID_;
 		sp->id_ = reqeustid;
+		sp->atom_ = parm.getAtom();
 		pushRequestEvent(sp);
 		//向另一个线程请求
 		//ipc_send		
@@ -486,7 +496,7 @@ namespace cyjh{
 		//requestQueue_.SetEvent();
 	}
 
-	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id)
+	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id, const int& req_atom)
 	{
 		assert(ipc);
 		if ( !ipc )
@@ -502,7 +512,8 @@ namespace cyjh{
 		eventResponseStackMutex_.unlock();
 		assert(responseID!=0);*/
 		resp->setID(req_id);
-		popRecvRequestID(req_id);
+		resp->setAtom(req_atom);
+		popRecvRequestID(req_id, req_atom);
 		resp->setInstructType(InstructType::INSTRUCT_RESPONSE);
 		Pickle pick;
 		Instruct::SerializationInstruct(resp.get(), pick);
@@ -536,6 +547,7 @@ namespace cyjh{
 		bool ret = true;
 		if (!eventRequestStack_.empty()){
 			ret = eventRequestStack_.front()->id_ == id;
+/*
 #ifdef _DEBUG
 			if (!ret)
 			{
@@ -543,6 +555,7 @@ namespace cyjh{
 			}
 			assert(ret);
 #endif
+			*/
 		}
 		return ret;
 	}
@@ -580,6 +593,7 @@ namespace cyjh{
 		if ( ipc.get() )
 		{
 			spOut->setID(spInfo->getID());
+			spOut->setAtom(spInfo->getAtom());
 			spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
 			Pickle pick;
 			Instruct::SerializationInstruct(spOut.get(), pick);
@@ -612,7 +626,13 @@ namespace cyjh{
 			//info->set(data, len);
 			//requestQueue_.SubmitPack(info);
 			//return;
-			int i = 0;
+#ifdef _DEBUG
+			OutputDebugStringW(L"----reqID no match ==========");
+#endif			
+			RejectReq(spInstruct);
+			assert(false);
+			//int i = 0;
+			return;
 		}
 
 		std::shared_ptr<RequestContext> top = getReqStackTop(spInstruct->getID());
@@ -620,6 +640,14 @@ namespace cyjh{
 		{
 			if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
 			{
+#ifdef _DEBUG
+				bool match = (top->id_ == spInstruct->getID()) && (top->atom_ == spInstruct->getAtom());
+				if ( !match )
+				{
+					int i = 0;
+				}
+				assert(match);
+#endif				
 				top->outval_ = spInstruct;
 				SetEvent(top->events_[0]);
 			}

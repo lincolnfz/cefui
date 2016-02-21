@@ -61,15 +61,51 @@ namespace cyjh{
 			}
 		}
 		std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
-		Response(ipc.get(), spOut, spReq->getID());
+		Response(ipc.get(), spOut, spReq->getID(), spReq->getAtom() );
 		
 		//Response(spOut, spReq->getID());
 	}
 
 
+	void UIThreadCombin::RejectReqHelp(std::shared_ptr<Instruct> spInfo)
+	{
+		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(spInfo->getBrowserID());
+		int ipcID = 0;
+		if (browser.get())
+		{
+			CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+			if (item.get())
+			{
+				ipcID = item->m_ipcID;
+			}
+		}
+		std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
+		if (ipc.get())
+		{
+			std::shared_ptr<Instruct> spOut(new Instruct);
+			spOut->setName(spInfo->getName().c_str());
+			spOut->setBrowserID(spInfo->getBrowserID());
+			spOut->setSucc(false);
+			spOut->setID(spInfo->getID());
+			spOut->setAtom(spInfo->getAtom());
+			spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
+			Pickle pick;
+			Instruct::SerializationInstruct(spOut.get(), pick);
+			ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		}
+		else{
+			assert(false);
+		}
+	}
 
-
-
+	void UIThreadCombin::RejectReq(std::shared_ptr<Instruct> spInfo)
+	{
+		if (!CefCurrentlyOn(TID_UI)){
+			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::RejectReqHelp, this, spInfo));
+			return;
+		}
+		RejectReqHelp(spInfo);
+	}
 
 
 	////////////RenderThreadCombin//////
@@ -109,7 +145,29 @@ namespace cyjh{
 		bool bOut = handle_.handleQuest(browser, spReq, spOut);
 		spOut->setSucc(bOut);		
 		//Response(spOut, spReq->getID());
-		Response(ipc_.get(),spOut, spReq->getID());
+		Response(ipc_.get(),spOut, spReq->getID(), spReq->getAtom());
 	}
 
+	void RenderThreadCombin::RejectReqHelp(std::shared_ptr<Instruct> spInfo)
+	{
+		std::shared_ptr<Instruct> spOut(new Instruct);
+		spOut->setName(spInfo->getName().c_str());
+		spOut->setBrowserID(spInfo->getBrowserID());
+		spOut->setSucc(false);
+		spOut->setID(spInfo->getID());
+		spOut->setAtom(spInfo->getAtom());
+		spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
+		Pickle pick;
+		Instruct::SerializationInstruct(spOut.get(), pick);
+		ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+	}
+
+	void RenderThreadCombin::RejectReq(std::shared_ptr<Instruct> spInfo)
+	{
+		if (!CefCurrentlyOn(TID_RENDERER)){
+			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::RejectReqHelp, this, spInfo));
+			return;
+		}
+		RejectReqHelp(spInfo);
+	}
 }

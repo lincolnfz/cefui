@@ -18,6 +18,10 @@ namespace cyjh{
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
 
+		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
+
+		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
+
 	protected:
 		ResponseUI handle_;
 
@@ -44,6 +48,9 @@ namespace cyjh{
 
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
+		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
+		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
+
 		std::shared_ptr<IPCUnit> ipc_;
 
 	protected:
