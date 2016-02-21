@@ -42,7 +42,8 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
 		CefRefPtr<CefV8Value> retVal;
 		CefRefPtr<CefV8Exception> excp;
-		if (v8->Eval(CefString(strJs), retVal, excp)){
+		CefString cefjs(strJs);
+		if (v8->Eval(cefjs, retVal, excp)){
 			if (retVal->IsString()){
 				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
 			}
