@@ -35,7 +35,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 	}
 	if ( frame.get() )
 	{		
-		boost::format fmt("invokeMethod('%1%', '%2%', '%3%', %4%)");
+		boost::format fmt("window.invokeMethod('%1%', '%2%', '%3%', %4%)");
 		fmt % module % method % parm % (bNotifyJson ? _ture:_false);
 		std::string strJs = fmt.str();
 		//frame->ExecuteJavaScript(CefString(strJs), CefString(""), 0);
@@ -55,14 +55,16 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 			//excp->
 			int startcol = excp->GetStartColumn();
 			//OutputDebugStringA(excp->GetMessageW().ToString().c_str());
+			std::string err = excp->GetMessageW().ToString();
 #ifdef _DEBUG
 			char szTmp[8192] = { 0 };
-			sprintf_s(szTmp, "------invokejs Fail! render  %d , invokeMethod: %s", GetCurrentThreadId(), strJs.c_str());
+			sprintf_s(szTmp, "------invokejs Fail! render  %d ; err msg: %s ; %s", GetCurrentThreadId(),
+				err.c_str(), strJs.c_str());
 			OutputDebugStringA(szTmp);
 #endif
 		}
 	}
-	assert(ret);
+	//assert(ret);
 	return ret;
 }
 
