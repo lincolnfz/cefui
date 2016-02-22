@@ -43,8 +43,18 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Value> retVal;
 		CefRefPtr<CefV8Exception> excp;
 		CefString cefjs(strJs);
-		if (v8->Eval(cefjs, retVal, excp)){
-			if (retVal->IsString()){
+		
+		bool bEval = false;
+		if (parm.empty())
+		{
+			bEval = v8->Eval(cefjs, retVal, excp);
+		}
+		else{
+			bEval = v8->CallInvokeMethod(CefString("invokeMethod"), CefString(module), CefString(method), CefString(parm), bNotifyJson, retVal, excp);
+		}
+		
+		if( bEval ){
+			if (retVal.get() && retVal.get()->IsString()){
 				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
 			}
 			ret = true;
@@ -93,7 +103,7 @@ bool ResponseRender::rsp_callJSMethod(const CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefV8Value> retVal;
 		CefRefPtr<CefV8Exception> excp;
 		if (v8->Eval(CefString(strJs), retVal, excp)){
-			if (retVal->IsString()){
+			if (retVal.get() && retVal.get()->IsString()){
 				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
 			}
 			ret = true;

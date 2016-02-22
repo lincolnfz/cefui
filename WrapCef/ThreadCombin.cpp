@@ -21,6 +21,7 @@ namespace cyjh{
 
 	void UIThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
+		CEF_REQUIRE_UI_THREAD();
 		parm.setBrowserID(browser->GetIdentifier());
 		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 		if ( item.get() )
@@ -122,6 +123,7 @@ namespace cyjh{
 
 	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
+		CEF_REQUIRE_RENDERER_THREAD();
 		parm.setBrowserID(browser->GetIdentifier());
 		SendRequest(ipc_.get(), parm, val);
 	}
