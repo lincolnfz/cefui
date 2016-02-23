@@ -402,6 +402,7 @@ namespace cyjh{
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
 	{
 		//requestQueue_.ResetEvent();
+		static volatile int s_atom = 0;
 		int reqeustid = 0;
 		eventResponseStackMutex_.lock();
 		if (!eventResponsStack_.empty())
@@ -412,7 +413,8 @@ namespace cyjh{
 		parm.setNewSession(reqeustid == 0);
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
 		parm.setID(reqeustid);
-		parm.setAtom(generateID());
+		int atom = InterlockedIncrement((long*)&s_atom);
+		parm.setAtom(atom);
 		std::shared_ptr<RequestContext> sp(new RequestContext());
 		sp->id_ = reqeustid;
 		sp->atom_ = parm.getAtom();
