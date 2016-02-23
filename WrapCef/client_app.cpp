@@ -134,6 +134,7 @@ void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
 	//OutputDebugString(L"OnBrowserCreated++++");
 	cyjh::Instruct parm;
 	parm.setName("RegisterBrowser");
+	parm.setInstructType(cyjh::InstructType::INSTRUCT_REGBROWSER);
 	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getCliName()));
 	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getSrvName()));
 	std::shared_ptr<cyjh::Instruct> outval;

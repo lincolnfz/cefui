@@ -3,6 +3,7 @@
 #pragma once
 
 #include "cefclient_osr_widget_win.h"
+//#include <mutex>
 
 class BrowserProvider;
 class OSRWindow;
@@ -75,6 +76,7 @@ protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;
 	WebViewMap m_viewMap;
+	//std::mutex factoryMutex_;
 };
 
 #endif

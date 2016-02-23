@@ -5,6 +5,7 @@
 #include "ResponseRender.h"
 #include "ResponseUI.h"
 #include "IPC.h"
+//#include "BlockThread.h"
 
 namespace cyjh{
 
@@ -24,7 +25,7 @@ namespace cyjh{
 
 	protected:
 		ResponseUI handle_;
-
+		UIBlockThread block_;
 		IMPLEMENT_REFCOUNTING(UIThreadCombin);
 	};
 
@@ -55,7 +56,7 @@ namespace cyjh{
 
 	protected:
 		ResponseRender handle_;
-
+		RenderBlockThread block_;
 		IMPLEMENT_REFCOUNTING(RenderThreadCombin);
 	};
 

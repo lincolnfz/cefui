@@ -84,6 +84,15 @@
     <ClInclude Include="TipWin.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MainProcQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BlockThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ShareHelper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -174,6 +183,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TipWin.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MainProcQueue.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BlockThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ShareHelper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

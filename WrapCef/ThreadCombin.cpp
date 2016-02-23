@@ -5,12 +5,14 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "WebViewFactory.h"
+#include "MainProcQueue.h"
 
 namespace cyjh{
 
-	UIThreadCombin::UIThreadCombin() :CombinThreadComit(THREAD_UI)
+	UIThreadCombin::UIThreadCombin() :CombinThreadComit(THREAD_UI), block_(this)
 	{
-
+		blockThread_ = &block_;
+		MainProcQueue::getInst().setCombinThread(this);
 	}
 
 
@@ -111,9 +113,10 @@ namespace cyjh{
 
 	////////////RenderThreadCombin//////
 	/////й╣ож
-	RenderThreadCombin::RenderThreadCombin() :CombinThreadComit(THREAD_RENDER)
+	RenderThreadCombin::RenderThreadCombin() :CombinThreadComit(THREAD_RENDER), block_(this)
 	{
-
+		blockThread_ = &block_;
+		MainProcQueue::getInst().setCombinThread(this);
 	}
 
 	RenderThreadCombin::~RenderThreadCombin()

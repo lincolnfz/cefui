@@ -85,6 +85,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BlockThread.h" />
     <ClInclude Include="Bridage.h" />
     <ClInclude Include="BridageHost.h" />
     <ClInclude Include="BridageRender.h" />
@@ -95,11 +96,13 @@
     <ClInclude Include="client_handler.h" />
     <ClInclude Include="client_renderer.h" />
     <ClInclude Include="client_switches.h" />
+    <ClInclude Include="MainProcQueue.h" />
     <ClInclude Include="osrenderer.h" />
     <ClInclude Include="ResponseHandle.h" />
     <ClInclude Include="ResponseRender.h" />
     <ClInclude Include="ResponseUI.h" />
     <ClInclude Include="scheme_test.h" />
+    <ClInclude Include="ShareHelper.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="string_util.h" />
     <ClInclude Include="targetver.h" />
@@ -109,6 +112,7 @@
     <ClInclude Include="WrapCef.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlockThread.cpp" />
     <ClCompile Include="Bridage.cpp" />
     <ClCompile Include="BridageHost.cpp" />
     <ClCompile Include="BridageRender.cpp" />
@@ -153,11 +157,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="MainProcQueue.cpp" />
     <ClCompile Include="osrenderer.cpp" />
     <ClCompile Include="ResponseHandle.cpp" />
     <ClCompile Include="ResponseRender.cpp" />
     <ClCompile Include="ResponseUI.cpp" />
     <ClCompile Include="scheme_test.cpp" />
+    <ClCompile Include="ShareHelper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

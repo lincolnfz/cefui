@@ -5,94 +5,11 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "BrowserIdentifier.h"
 #include "WebViewFactory.h"
+#include "MainProcQueue.h"
+#include "BlockThread.h"
+#include "ShareHelper.h"
 
 namespace cyjh{
-
-	static void DoEvents()
-	{
-		MSG msg;
-
-		// window message         
-		while (PeekMessage(&msg, NULL, NULL, NULL, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-
-	static DWORD WaitWithMessageLoop(HANDLE* hEvent, DWORD nCount, DWORD dwMilliseconds)
-	{
-		DWORD dwRet = WAIT_FAILED;
-
-		DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? INFINITE : GetTickCount() + dwMilliseconds;
-
-		while (1)
-		{
-			DWORD dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
-			// wait for event or message, if it's a message, process it and return to waiting state
-			dwRet = MsgWaitForMultipleObjects(nCount, hEvent, FALSE, dwTimeOut/*dwMaxTick - GetTickCount()*/, QS_ALLINPUT);
-			if (dwRet == WAIT_OBJECT_0 + nCount - 1)
-			{
-				//OutputDebugStringA("WaitWithMessageLoop() event triggered.\n");
-				return dwRet;
-			}
-			else if (dwRet == WAIT_OBJECT_0 + nCount)
-			{
-				// process window messages
-				//OutputDebugStringA("DoEvents.\n");
-				DoEvents();
-			}
-			else if (dwRet == WAIT_TIMEOUT)
-			{
-				// timed out !
-				//OutputDebugStringA("timed out!\n");
-				return dwRet;
-			}
-			else if (dwRet == WAIT_FAILED)
-			{
-				//OutputDebugStringA("wait failed!\n");
-				return dwRet;
-			}
-			else{
-				return dwRet;
-			}
-
-		}
-	}
-
-	static DWORD WaitForMultiEvent(HANDLE* hEvent, DWORD nCount, DWORD dwMilliseconds)
-	{
-		DWORD dwRet = WAIT_FAILED;
-
-		DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? INFINITE : GetTickCount() + dwMilliseconds;
-
-		while (1)
-		{
-			DWORD dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
-			// wait for event or message, if it's a message, process it and return to waiting state
-			dwRet = WaitForMultipleObjects(nCount, hEvent, FALSE, dwTimeOut);
-			if (dwRet == WAIT_OBJECT_0 + nCount - 1)
-			{
-				//OutputDebugStringA("WaitWithMessageLoop() event triggered.\n");
-				return dwRet;
-			}
-			else if (dwRet == WAIT_TIMEOUT)
-			{
-				// timed out !
-				//OutputDebugStringA("timed out!\n");
-				return dwRet;
-			}
-			else if (dwRet == WAIT_FAILED)
-			{
-				//OutputDebugStringA("wait failed!\n");
-				return dwRet;
-			}
-			else{
-				return dwRet;
-			}
-
-		}
-	}
 
 	double unif_rand(){  //生成(0,1)的实数均匀分布
 		static unsigned int stal = 0;
@@ -320,6 +237,7 @@ namespace cyjh{
 	{
 		threadType_ = type;
 		requestID_ = 0;
+		blockThread_ = NULL;
 		CombinThreadComit::s_tid_ = GetCurrentThreadId();
 	}
 
@@ -413,22 +331,9 @@ namespace cyjh{
 		parm.setNewSession(reqeustid == 0);
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
 		parm.setID(reqeustid);
-		int atom = InterlockedIncrement((long*)&s_atom);
-		parm.setAtom(atom);
-		std::shared_ptr<RequestContext> sp(new RequestContext());
-		sp->id_ = reqeustid;
-		sp->atom_ = parm.getAtom();
-		pushRequestEvent(sp);
-		//向另一个线程请求
-		//ipc_send		
-		//这里放ipc的发送操作
-		parm.setInstructType(InstructType::INSTRUCT_REQUEST);
-
-		Pickle pick;
-		Instruct::SerializationInstruct(&parm, pick);
 
 #ifdef _DEBUG
-		if (parm.getName().compare("invokedJSMethod") == 0 )
+		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
 			char szTmp[8192] = { 0 };
 			sprintf_s(szTmp, "----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
@@ -467,6 +372,69 @@ namespace cyjh{
 			OutputDebugStringA(szTmp);
 		}
 #endif
+		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession())
+		{
+			//注册新的一次请求（可能是会话中的请求）
+			RegisterReqID(ipc, parm.getBrowserID(), reqeustid);
+		}
+
+		int atom = InterlockedIncrement((long*)&s_atom);
+		parm.setAtom(atom);
+		std::shared_ptr<RequestContext> sp(new RequestContext());
+		sp->id_ = reqeustid;
+		sp->atom_ = parm.getAtom();
+		pushRequestEvent(sp);
+		//向另一个线程请求
+		//ipc_send		
+		//这里放ipc的发送操作
+		if (parm.getInstructType() == INSTRUCT_NULL)
+		{
+			parm.setInstructType(InstructType::INSTRUCT_REQUEST);
+		}
+
+		Pickle pick;
+		Instruct::SerializationInstruct(&parm, pick);
+
+#ifdef _DEBUG
+		/*if (parm.getName().compare("invokedJSMethod") == 0 )
+		{
+			char szTmp[8192] = { 0 };
+			sprintf_s(szTmp, "----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
+				parm.getList().GetStrVal(0).c_str(), parm.getList().GetStrVal(1).c_str(), parm.getList().GetStrVal(2).c_str(),
+				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+		}
+		else if (parm.getName().compare("crossInvokeWebMethod") == 0)
+		{
+			WCHAR szTmp[8192] = { 0 };
+			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod",
+				parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(),
+				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
+			OutputDebugStringW(szTmp);
+		}
+		else if (parm.getName().compare("invokeMethod") == 0)
+		{
+			WCHAR szTmp[8192] = { 0 };
+			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"invokeMethod",
+				parm.getList().GetWStrVal(0).c_str(), parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(),
+				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
+			OutputDebugStringW(szTmp);
+		}
+		else if (parm.getName().compare("crossInvokeWebMethod2") == 0)
+		{
+			WCHAR szTmp[8192] = { 0 };
+			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod2",
+				parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(), parm.getList().GetWStrVal(4).c_str(),
+				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
+			OutputDebugStringW(szTmp);
+		}
+		else{
+			char szTmp[256] = { 0 };
+			sprintf_s(szTmp, "----name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
+				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+		}*/
+#endif
 
 		//pick.data(), pick.size()
 		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
@@ -494,7 +462,9 @@ namespace cyjh{
 			}
 		}
 		popRequestEvent();
-
+		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession()){
+			UnRegisterReqID(ipc, reqeustid);
+		}
 		//requestQueue_.SetEvent();
 	}
 
@@ -564,7 +534,10 @@ namespace cyjh{
 
 	void CombinThreadComit::RegisertBrowserHelp(std::shared_ptr<Instruct> spInfo)
 	{
-		DCHECK(CefCurrentlyOn(TID_UI));
+		if (!CefCurrentlyOn(TID_UI)){
+			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::RegisertBrowserHelp, this, spInfo));
+			return;
+		}
 		bool ret = false;
 		std::wstring szSrvPipe = spInfo->getList().GetWStrVal(0);
 		std::wstring szCliPipe = spInfo->getList().GetWStrVal(1);
@@ -607,6 +580,77 @@ namespace cyjh{
 		}
 	}
 
+	void CombinThreadComit::SendRenderWakeUpHelp(int browserID)
+	{
+		if (!CefCurrentlyOn(TID_UI)){
+			CefPostTask(TID_UI, base::Bind(&CombinThreadComit::SendRenderWakeUpHelp, this, browserID));
+			return;
+		}
+		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(browserID);
+		int ipcID = 0;
+		if (browser.get())
+		{
+			CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+			if (item.get())
+			{
+				ipcID = item->m_ipcID;
+			}
+		}
+		std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
+		if (ipc.get())
+		{
+			std::shared_ptr<Instruct> spOut(new Instruct);
+			spOut->setInstructType(InstructType::INSTRUCT_WAKEUP);
+			Pickle pick;
+			Instruct::SerializationInstruct(spOut.get(), pick);
+			ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		}
+	}
+
+	void CombinThreadComit::RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id)
+	{
+		//先询问是否可以请求
+		if ( threadType_ == THREAD_RENDER )
+		{
+			cyjh::Instruct parm;
+			parm.setBrowserID(browser_id);
+			parm.setID(req_id);
+			parm.setInstructType(InstructType::INSTRUCT_INQUEUE);
+			Pickle pick;
+			Instruct::SerializationInstruct(&parm, pick);
+			ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		}else if ( threadType_ == THREAD_UI )
+		{
+			if (MainProcQueue::getInst().pushReq(0, req_id)){
+				return;
+			}
+		}
+		assert(blockThread_);
+		blockThread_->block();
+	}
+
+	void CombinThreadComit::UnRegisterReqID(IPCUnit* ipc, int req_id)
+	{
+		if (threadType_ == THREAD_RENDER)
+		{
+			cyjh::Instruct parm;
+			parm.setID(req_id);
+			parm.setInstructType(InstructType::INSTRUCT_OUTQUEUE);
+			Pickle pick;
+			Instruct::SerializationInstruct(&parm, pick);
+			ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		}
+		else if (threadType_ == THREAD_UI)
+		{
+			MainProcQueue::getInst().popReq(req_id);
+		}
+	}
+
+	void CombinThreadComit::WakeUp()
+	{
+		blockThread_->WakeUp();
+	}
+
 	void CombinThreadComit::RecvData(const unsigned char* data, DWORD len)
 	{
 		cyjh::Pickle pick(reinterpret_cast<const char*>(data), len);
@@ -614,11 +658,49 @@ namespace cyjh{
 		bool objected = Instruct::ObjectInstruct(pick, spInstruct.get()); //对像化
 		assert(objected);
 
-		if ( spInstruct->getName().compare( "RegisterBrowser" ) == 0 &&
-			spInstruct->getInstructType() == INSTRUCT_REQUEST)
+		if (!blockThread_->ProcTrunk(spInstruct)){
+			ProcTrunkReq(spInstruct);
+		}
+	}
+
+	void CombinThreadComit::ProcTrunkReq(std::shared_ptr<Instruct> spInstruct)
+	{
+		if (spInstruct->getInstructType() == INSTRUCT_INQUEUE)
 		{
 			assert(threadType_ == THREAD_UI);
-			CefPostTask(TID_UI, base::Bind(&CombinThreadComit::RegisertBrowserHelp, this, spInstruct));
+			int browserid = spInstruct->getBrowserID();
+			int req = spInstruct->getID();
+			if (MainProcQueue::getInst().pushReq(browserid, req))
+			{
+				//通知渲染线程可以直接向下执行 wake up
+				//CefPostTask(TID_UI, base::Bind(&CombinThreadComit::SendRenderWakeUpHelp, this, browserid));
+				this->SendRenderWakeUpHelp(browserid);
+			}
+			return;
+		}
+
+		if (spInstruct->getInstructType() == INSTRUCT_OUTQUEUE)
+		{
+			assert(threadType_ == THREAD_UI);
+			int req = spInstruct->getID();
+			MainProcQueue::getInst().popReq(req);
+			return;
+		}
+
+		if (spInstruct->getInstructType() == INSTRUCT_WAKEUP)
+		{
+			assert(threadType_ == THREAD_RENDER);
+			WakeUp();
+			return;
+		}
+
+		//正式处理流程
+		if (//spInstruct->getName().compare("RegisterBrowser") == 0 &&
+			spInstruct->getInstructType() == INSTRUCT_REGBROWSER)
+		{
+			assert(threadType_ == THREAD_UI);
+			//CefPostTask(TID_UI, base::Bind(&CombinThreadComit::RegisertBrowserHelp, this, spInstruct));
+			this->RegisertBrowserHelp(spInstruct);
 			return;
 		}
 
@@ -638,13 +720,13 @@ namespace cyjh{
 		}
 
 		std::shared_ptr<RequestContext> top = getReqStackTop(spInstruct->getID());
-		if ( top.get() )
+		if (top.get())
 		{
 			if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
 			{
 #ifdef _DEBUG
 				bool match = (top->id_ == spInstruct->getID()) && (top->atom_ == spInstruct->getAtom());
-				if ( !match )
+				if (!match)
 				{
 					int i = 0;
 				}
@@ -667,7 +749,5 @@ namespace cyjh{
 				procRecvRequest(spInstruct);
 			}
 		}
-		
-		
 	}
 }

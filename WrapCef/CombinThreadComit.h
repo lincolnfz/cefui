@@ -9,6 +9,7 @@
 #include "IPC.h"
 #include "include/cef_base.h"
 #include "include/cef_browser.h"
+#include "BlockThread.h"
 
 namespace cyjh{
 
@@ -180,6 +181,10 @@ namespace cyjh{
 	{
 		INSTRUCT_REQUEST,
 		INSTRUCT_RESPONSE,
+		INSTRUCT_INQUEUE,
+		INSTRUCT_OUTQUEUE,
+		INSTRUCT_WAKEUP,
+		INSTRUCT_REGBROWSER,
 		INSTRUCT_NULL,
 	};
 
@@ -236,10 +241,11 @@ namespace cyjh{
 
 		static bool ObjectInstruct(const Pickle& pick, Instruct* inst);
 
-	protected:
 		void setInstructType(InstructType type){
 			type_ = type;
 		}
+
+	protected:		
 
 		const InstructType& getInstructType() const{
 			return type_;
@@ -353,19 +359,26 @@ namespace cyjh{
 		CombinThreadComit* obj_;
 		HANDLE hEvent_;
 	};
-	
+
 	class CombinThreadComit : public CefBase
 	{
+		friend UIBlockThread;
+		friend RenderBlockThread;
 	public:
 		CombinThreadComit(ThreadType type);
 		virtual ~CombinThreadComit();
 
 		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) = 0;
 		virtual void RecvData(const unsigned char*, DWORD);
+		void WakeUp();
+		void SendRenderWakeUpHelp(int browserID);
+
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
+		void RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
+		void UnRegisterReqID(IPCUnit* ipc, int req_id);
 		
 		void pushRequestEvent(std::shared_ptr<RequestContext>&);
 
@@ -386,6 +399,8 @@ namespace cyjh{
 		//拒绝请求,当已在处理一个会话时,不会接受新的会话
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) = 0;
 
+		virtual void ProcTrunkReq(std::shared_ptr<Instruct> spInfo);
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackTop(int id);
 
@@ -405,6 +420,7 @@ namespace cyjh{
 		//SyncRequestQueue requestQueue_;
 
 		//std::deque<std::shared_ptr<ReqInfo>> pendingReqQueue_;
+		BlockThread* blockThread_;
 
 		IMPLEMENT_REFCOUNTING(CombinThreadComit);
 	};

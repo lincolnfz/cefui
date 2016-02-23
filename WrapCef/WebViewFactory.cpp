@@ -36,6 +36,7 @@ static void SetFocusBrowser(CefRefPtr<CefBrowser> browser) {
 HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
 	const int& height, const CefString& url, const int& alpha, const bool& taskbar)
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<WebItem> item = new  WebItem;
 	item->m_handle = new ClientHandler();
 	item->m_handle->SetMainWindowHandle(NULL);
@@ -88,6 +89,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 
 void WebViewFactory::RemoveWindow(HWND hWnd)
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	WebViewMap::iterator it = m_viewMap.find(hWnd);
 	if ( it != m_viewMap.end() )
 	{
@@ -95,7 +97,9 @@ void WebViewFactory::RemoveWindow(HWND hWnd)
 	}
 }
 
-CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd){
+CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd)
+{
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<WebItem> ptr;
 	WebViewMap::iterator it = m_viewMap.find(hWnd);
 	if ( it != m_viewMap.end() )
@@ -107,6 +111,7 @@ CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd){
 
 CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<CefBrowser> ptr;
 	WebViewMap::iterator it = m_viewMap.begin();
 	for (; it != m_viewMap.end(); ++it)
@@ -122,6 +127,7 @@ CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
 
 CefRefPtr<WebItem> WebViewFactory::GetBrowserItem(int browserID)
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<WebItem> ptr;
 	WebViewMap::iterator it = m_viewMap.begin();
 	for (; it != m_viewMap.end(); ++it)
@@ -138,6 +144,7 @@ CefRefPtr<WebItem> WebViewFactory::GetBrowserItem(int browserID)
 
 HWND WebViewFactory::GetBrowserHwnd(int browserID)
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	HWND hWnd = NULL;
 	CefRefPtr<CefBrowser> ptr;
 	WebViewMap::iterator it = m_viewMap.begin();
@@ -154,6 +161,7 @@ HWND WebViewFactory::GetBrowserHwnd(int browserID)
 
 void WebViewFactory::CloseAll()
 {
+	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	std::vector<CefRefPtr<WebItem>> weblist;
 	WebViewMap::iterator it = m_viewMap.begin();
 	for (; it != m_viewMap.end(); ++it)
