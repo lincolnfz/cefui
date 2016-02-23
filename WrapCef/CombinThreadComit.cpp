@@ -375,7 +375,7 @@ namespace cyjh{
 		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession())
 		{
 			//注册新的一次请求（可能是会话中的请求）
-			RegisterReqID(ipc, parm.getBrowserID(), reqeustid);
+			//RegisterReqID(ipc, parm.getBrowserID(), reqeustid);
 		}
 
 		int atom = InterlockedIncrement((long*)&s_atom);
@@ -463,7 +463,7 @@ namespace cyjh{
 		}
 		popRequestEvent();
 		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession()){
-			UnRegisterReqID(ipc, reqeustid);
+			//UnRegisterReqID(ipc, reqeustid);
 		}
 		//requestQueue_.SetEvent();
 	}
