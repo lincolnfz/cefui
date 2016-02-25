@@ -37,6 +37,11 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	const int& height, const CefString& url, const int& alpha, const bool& taskbar)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
+#ifdef _DEBUG
+	char szTmp[8192] = { 0 };
+	sprintf_s(szTmp, "------GetWebView   %s", url.ToString().c_str() );
+	OutputDebugStringA(szTmp);
+#endif
 	CefRefPtr<WebItem> item = new  WebItem;
 	item->m_handle = new ClientHandler();
 	item->m_handle->SetMainWindowHandle(NULL);
