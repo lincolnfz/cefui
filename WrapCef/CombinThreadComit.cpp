@@ -296,7 +296,12 @@ namespace cyjh{
 		OutputDebugStringA(szTmp);
 #endif
 		RecvReqItem item(id, atom);
+#ifdef _SINGLE_INSTRUCT_PROC
 		eventResponsStack_.push_front(item);
+#else
+		eventResponsStack_.push_back(item);
+#endif
+		
 	}
 
 	bool CombinThreadComit::popRecvRequestID(int id, int atom)
@@ -304,6 +309,11 @@ namespace cyjh{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 #ifdef _DEBUG
 		RecvReqItem item = eventResponsStack_.front();
+		bool match = item.id_ == id && item.atom_ == atom;
+		if ( !match )
+		{
+			int i = 0;
+		}
 		assert(item.id_ == id && item.atom_ == atom);
 #endif
 		bool ret = false;
@@ -818,6 +828,7 @@ namespace cyjh{
 			return;
 		}
 
+#ifdef _SINGLE_INSTRUCT_PROC
 		bool match = isSameMyReqID(spInstruct->getID());
 		if (!match){
 			//std::shared_ptr<ReqInfo> info(new ReqInfo());
@@ -830,9 +841,10 @@ namespace cyjh{
 			spInstruct->setProcState(PROC_STATE_REJ);
 			RejectReq(spInstruct);
 			//assert(match);
-			//int i = 0;
 			return;
 		}
+#else
+#endif
 
 		std::shared_ptr<RequestContext> top = getReqStackTop(spInstruct->getID());
 		if (top.get())
