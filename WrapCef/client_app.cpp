@@ -82,6 +82,13 @@ std::wstring RandChr(int len)
 	return strRand;
 }
 
+void MainProcessClosed(DWORD, DWORD)
+{
+#ifdef _DEBUG
+	OutputDebugStringW(L"----------------MainProcessClosed!!!!!!!!!!!");
+#endif
+}
+
 void ClientApp::OnRenderProcessThreadCreated(
     CefRefPtr<CefListValue> extra_info) {
   BrowserDelegateSet::iterator it = browser_delegates_.begin();
@@ -93,6 +100,7 @@ void ClientApp::OnRenderProcessThreadCreated(
   swprintf_s(szCliPipeName, L"\\\\.\\pipe\\cli_%s_%d", RandChr(3).c_str(), num);
   extra_info->SetString(extra_info->GetSize(), CefString(szSrvPipeName)); //主线程设置扩展属性
   extra_info->SetString(extra_info->GetSize(), CefString(szCliPipeName));
+  extra_info->SetInt(extra_info->GetSize(), (int)GetCurrentProcessId());
   //OutputDebugString(L"OnRenderProcessThreadCreated");
   std::shared_ptr<cyjh::IPCUnit> spIpc = cyjh::IPC_Manager::getInstance().GenerateIPC(szSrvPipeName, szCliPipeName);
   spIpc.get()->BindRecvCallback(&cyjh::UIThreadCombin::RecvData, UIThreadSync_.get());
@@ -104,8 +112,18 @@ void ClientApp::OnRenderThreadCreated(CefRefPtr<CefListValue> extra_info) {
   CreateRenderDelegates(render_delegates_);
 
   RenderDelegateSet::iterator it = render_delegates_.begin();
-  CefString srvPipe = extra_info->GetString(extra_info->GetSize() - 2);
-  CefString cliPipe = extra_info->GetString(extra_info->GetSize() - 1); //子线程得到扩展属性
+  CefString srvPipe = extra_info->GetString(extra_info->GetSize() - 3);
+  CefString cliPipe = extra_info->GetString(extra_info->GetSize() - 2); 
+  DWORD dwProcessID = extra_info->GetInt(extra_info->GetSize() - 1);//子线程得到扩展属性
+  DWORD dwCurrentProcessID = GetCurrentProcessId();
+  if (dwProcessID != dwCurrentProcessID)
+  {
+#ifdef _DEBUG
+	  OutputDebugStringA("-------need dect process");
+#endif
+	  //dectMainProcess_.RegisterAlertFun(MainProcessClosed);
+	  //dectMainProcess_.Detect(dwCurrentProcessID);
+  }
   //OutputDebugString(L"OnRenderThreadCreated");
   std::shared_ptr<cyjh::IPCUnit> spIpc = cyjh::IPC_Manager::getInstance().GenerateIPC(cliPipe.ToWString().c_str(), srvPipe.ToWString().c_str());
   spIpc.get()->BindRecvCallback(&cyjh::RenderThreadCombin::RecvData, RenderThreadSync_.get());

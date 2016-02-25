@@ -96,6 +96,7 @@
     <ClInclude Include="client_handler.h" />
     <ClInclude Include="client_renderer.h" />
     <ClInclude Include="client_switches.h" />
+    <ClInclude Include="detectProcess.h" />
     <ClInclude Include="MainProcQueue.h" />
     <ClInclude Include="osrenderer.h" />
     <ClInclude Include="ResponseHandle.h" />
@@ -133,6 +134,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="detectProcess.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

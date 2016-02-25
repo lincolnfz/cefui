@@ -14,6 +14,7 @@
 #include "include/cef_app.h"
 #include "ThreadCombin.h"
 #include "MainProcQueue.h"
+#include "detectProcess.h"
 
 class ClientApp : public CefApp,
                   public CefBrowserProcessHandler,
@@ -240,6 +241,8 @@ class ClientApp : public CefApp,
   CefRefPtr<cyjh::UIThreadCombin> UIThreadSync_;
 
   CefRefPtr<cyjh::RenderThreadCombin> RenderThreadSync_;
+
+  //CDetectProcess dectMainProcess_;
 
   IMPLEMENT_REFCOUNTING(ClientApp);
 };
