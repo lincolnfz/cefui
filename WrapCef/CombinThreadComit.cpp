@@ -619,6 +619,7 @@ namespace cyjh{
 			spOut->setID(spInfo->getID());
 			spOut->setAtom(spInfo->getAtom());
 			spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
+			spOut->setProcState(PROC_STATE_FIN);
 			Pickle pick;
 			Instruct::SerializationInstruct(spOut.get(), pick);
 			//pick.data(), pick.size()
