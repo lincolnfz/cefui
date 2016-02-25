@@ -624,6 +624,17 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                    bool is_redirect) {
   CEF_REQUIRE_UI_THREAD();
 
+  /*CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+  const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+  std::wstring name = frame->GetName().ToWString();
+  std::wstring url = frame->GetURL().ToWString();
+  HWND hWnd = NULL;
+  if (fun && !frame->IsMain() && item.get())
+  {
+	  hWnd = item->m_window->hwnd();
+	  fun->nativeFrameBegin(hWnd, url.c_str(), name.c_str());
+  }*/
+
   message_router_->OnBeforeBrowse(browser, frame);
   return false;
 }

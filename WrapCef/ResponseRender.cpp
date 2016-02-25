@@ -64,14 +64,18 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 			}
 			ret = true;
 		}else{
-			int end = excp->GetEndPosition();
-			int col = excp->GetEndColumn();
-			int line = excp->GetLineNumber();
-			//const char* p = excp->GetScriptResourceName().ToString().c_str();
-			//excp->
-			int startcol = excp->GetStartColumn();
-			//OutputDebugStringA(excp->GetMessageW().ToString().c_str());
-			std::string err = excp->GetMessageW().ToString();
+			std::string err;
+			if ( excp.get() )
+			{
+				int end = excp->GetEndPosition();
+				int col = excp->GetEndColumn();
+				int line = excp->GetLineNumber();
+				//const char* p = excp->GetScriptResourceName().ToString().c_str();
+				//excp->
+				int startcol = excp->GetStartColumn();
+				//OutputDebugStringA(excp->GetMessageW().ToString().c_str());
+				err = excp->GetMessageW().ToString();
+			}
 #ifdef _DEBUG
 			char szTmp[8192] = { 0 };
 			sprintf_s(szTmp, "------invokejs Fail! render  %d ; err msg: %s ; %s", GetCurrentThreadId(),

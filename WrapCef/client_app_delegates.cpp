@@ -891,7 +891,7 @@ public:
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
 				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), 200, true);
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, true);
 			}
 		}
 	}
