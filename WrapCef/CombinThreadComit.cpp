@@ -355,7 +355,7 @@ namespace cyjh{
 
 	void CombinThreadComit::procRecvRequest(const std::shared_ptr<Instruct> parm)
 	{
-		//pushRecvRequestID(parm->getID(), parm->getAtom());
+		pushRecvRequestID(parm->getID(), parm->getAtom());
 	}
 
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
@@ -719,13 +719,14 @@ namespace cyjh{
 		bool objected = Instruct::ObjectInstruct(pick, spInstruct.get()); //对像化
 		assert(objected);
 
-		newSessinBlockMutex_.lock();
+		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
+		//newSessinBlockMutex_.lock();
 		if (spInstruct->getInstructType() == INSTRUCT_OUTQUEUE)
 		{
 			assert(threadType_ == THREAD_UI);
 			int req = spInstruct->getID();
 			MainProcQueue::getInst().popReq(req);
-			newSessinBlockMutex_.unlock();
+			//newSessinBlockMutex_.unlock();
 			return;
 		}
 
@@ -737,7 +738,7 @@ namespace cyjh{
 			OutputDebugStringW(L"-----wake up");
 #endif
 			WakeUp();
-			newSessinBlockMutex_.unlock();
+			//newSessinBlockMutex_.unlock();
 			return;
 		}
 
@@ -755,7 +756,7 @@ namespace cyjh{
 			}*/
 			if (!MainProcQueue::getInst().pushReq(browserid, req))
 			{
-				newSessinBlockMutex_.unlock();
+				//newSessinBlockMutex_.unlock();
 				return;
 			}
 			//成功立可向渲染线程发送解除block
@@ -772,7 +773,7 @@ namespace cyjh{
 			OutputDebugStringW(L"-----in block");
 #endif			
 		}
-		newSessinBlockMutex_.unlock();
+		//newSessinBlockMutex_.unlock();
 	}
 
 	void CombinThreadComit::ProcTrunkReq(std::shared_ptr<Instruct> spInstruct)
@@ -852,14 +853,14 @@ namespace cyjh{
 			else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
 				top->parm_ = spInstruct;
-				pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
+				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
 				SetEvent(top->events_[1]);
 			}
 		}
 		else{
 			if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
-				pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
+				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
 				procRecvRequest(spInstruct);
 			}
 		}
