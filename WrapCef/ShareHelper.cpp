@@ -20,14 +20,21 @@ namespace cyjh{
 	{
 		DWORD dwRet = WAIT_FAILED;
 
-		DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? INFINITE : GetTickCount() + dwMilliseconds;
+		DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? 0 : GetTickCount() + dwMilliseconds;
 
 		while (1)
 		{
-			DWORD dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
+			DWORD dwTimeOut = 0;
+			if (dwMilliseconds == INFINITE)
+			{
+				dwTimeOut == INFINITE;
+			}
+			else{
+				dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
+			}
 			// wait for event or message, if it's a message, process it and return to waiting state
-			dwRet = MsgWaitForMultipleObjects(nCount, hEvent, FALSE, dwTimeOut/*dwMaxTick - GetTickCount()*/, QS_ALLINPUT);
-			if (dwRet == WAIT_OBJECT_0 + nCount - 1)
+			dwRet = MsgWaitForMultipleObjectsEx(nCount, hEvent, dwTimeOut/*dwMaxTick - GetTickCount()*/, QS_ALLINPUT, MWMO_ALERTABLE);
+			if (dwRet < WAIT_OBJECT_0 + nCount)
 			{
 				//OutputDebugStringA("WaitWithMessageLoop() event triggered.\n");
 				return dwRet;
@@ -60,14 +67,14 @@ namespace cyjh{
 	{
 		DWORD dwRet = WAIT_FAILED;
 
-		DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? INFINITE : GetTickCount() + dwMilliseconds;
+		//DWORD dwMaxTick = (dwMilliseconds == INFINITE) ? INFINITE : GetTickCount() + dwMilliseconds;
 
-		while (1)
+		//while (1)
 		{
-			DWORD dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
+			//DWORD dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
 			// wait for event or message, if it's a message, process it and return to waiting state
-			dwRet = WaitForMultipleObjects(nCount, hEvent, FALSE, dwTimeOut);
-			if (dwRet == WAIT_OBJECT_0 + nCount - 1)
+			dwRet = WaitForMultipleObjects(nCount, hEvent, FALSE, dwMilliseconds);
+			if (dwRet < WAIT_OBJECT_0 + nCount )
 			{
 				//OutputDebugStringA("WaitWithMessageLoop() event triggered.\n");
 				return dwRet;
