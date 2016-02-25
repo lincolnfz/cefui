@@ -43,6 +43,8 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_NativeFrameComplate)(const HWND&, const WCHAR* url, const WCHAR* frameName);
 
+	typedef void(__stdcall *call_NativeFrameBegin)(const HWND&, const WCHAR* url, const WCHAR* frameName);
+
 	typedef void(__stdcall *call_newNativeUrl)(const HWND&, const WCHAR* url, const WCHAR* frameName);
 
 	typedef struct _FunMap{
@@ -58,6 +60,7 @@ namespace wrapQweb {
 		call_softwareAttribute softAttr;
 		call_NativeComplate nativeComplate;
 		call_NativeFrameComplate nativeFrameComplate;
+		//call_NativeFrameBegin nativeFrameBegin;
 		call_newNativeUrl newNativeUrl;
 	}FunMap;
 
