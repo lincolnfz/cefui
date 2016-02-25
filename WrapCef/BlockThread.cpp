@@ -6,8 +6,8 @@
 namespace cyjh{
 	BlockThread::BlockThread(CombinThreadComit* ptr) :threadComit_(ptr)
 	{
-		hEnv_[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
-		hEnv_[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
+		hEnv_[0] = CreateEvent(NULL, TRUE, FALSE, NULL);
+		hEnv_[1] = CreateEvent(NULL, TRUE, FALSE, NULL);
 	}
 
 
@@ -19,11 +19,15 @@ namespace cyjh{
 
 	bool BlockThread::ProcTrunk(std::shared_ptr<Instruct> val)
 	{
-		//swap_ = val;
+		/*if (swap_.get())
+			swap_.reset();
+		swap_ = val;*/
 		if (Empty()){
 			return false;
 		}
 		else{
+			if (swap_.get())
+				swap_.reset();
 			swap_ = val;
 			SetEvent(hEnv_[1]);
 		}		
@@ -33,6 +37,9 @@ namespace cyjh{
 	void BlockThread::WakeUp()
 	{
 		SetEvent(hEnv_[0]);
+#ifdef _DEBUG
+		OutputDebugStringW(L"------BlockThread::WakeUp()");
+#endif		
 	}
 
 	void BlockThread::Push()
@@ -65,13 +72,20 @@ namespace cyjh{
 
 	}
 
-	void UIBlockThread::block()
+	void UIBlockThread::block(bool haveNewInstruct)
 	{
-		Push();
+		//Push();
+		ResetEvent(hEnv_[0]);
+		ResetEvent(hEnv_[1]);
+		if ( haveNewInstruct )
+		{
+			SetEvent(hEnv_[1]);
+		}
 		while ( true )
 		{
-			DWORD dwWait = WaitWithMessageLoop(hEnv_, 2, INFINITE);
-			if (dwWait == WAIT_OBJECT_0){
+			//DWORD dwWait = WaitWithMessageLoop(hEnv_, 2, INFINITE);
+			DWORD dwWait = WaitForMultiEvent(hEnv_, 2, INFINITE);
+			if (dwWait == WAIT_OBJECT_0 + 0){
 				break;
 			}else if ( dwWait == WAIT_OBJECT_0 + 1 )
 			{
@@ -79,9 +93,11 @@ namespace cyjh{
 				continue;
 			}
 			else{
-				break;
+				continue;;
 			}
 		}
+		ResetEvent(hEnv_[0]);
+		ResetEvent(hEnv_[1]);
 		Pop();
 	}
 
@@ -98,9 +114,15 @@ namespace cyjh{
 
 	}
 
-	void RenderBlockThread::block()
+	void RenderBlockThread::block(bool haveNewInstruct)
 	{
-		Push();
+		//Push();
+		ResetEvent(hEnv_[0]);
+		ResetEvent(hEnv_[1]);
+		if (haveNewInstruct)
+		{
+			SetEvent(hEnv_[1]);
+		}
 		while (true)
 		{
 			DWORD dwWait = WaitForMultiEvent(hEnv_, 2, INFINITE);
@@ -116,6 +138,8 @@ namespace cyjh{
 				break;
 			}
 		}
+		ResetEvent(hEnv_[0]);
+		ResetEvent(hEnv_[1]);
 		Pop();
 	}
 }

@@ -47,7 +47,7 @@ namespace cyjh{
 			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvRequest, this, spReq));
 			return;
 		}
-		CombinThreadComit::procRecvRequest(spReq);
+		//CombinThreadComit::procRecvRequest(spReq);
 		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(spReq->getBrowserID());
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spReq->getName().c_str());
@@ -142,7 +142,7 @@ namespace cyjh{
 			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::procRecvRequest, this, spReq));
 			return;
 		}		
-		CombinThreadComit::procRecvRequest(spReq);
+		//CombinThreadComit::procRecvRequest(spReq);
 		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(spReq->getBrowserID());
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spReq->getName().c_str());

@@ -16,7 +16,7 @@ namespace cyjh{
 		BlockThread(CombinThreadComit*);
 		virtual ~BlockThread();
 
-		virtual void block() = 0;
+		virtual void block( bool haveNewInstruct ) = 0;
 
 		virtual bool ProcTrunk(std::shared_ptr<Instruct> val);
 
@@ -41,7 +41,7 @@ namespace cyjh{
 		UIBlockThread(CombinThreadComit*);
 		virtual ~UIBlockThread();
 
-		virtual void block() override;
+		virtual void block(bool haveNewInstruct) override;
 	};
 
 	class RenderBlockThread : public BlockThread
@@ -50,7 +50,7 @@ namespace cyjh{
 		RenderBlockThread(CombinThreadComit*);
 		virtual ~RenderBlockThread();
 
-		virtual void block() override;
+		virtual void block(bool haveNewInstruct) override;
 	};
 
 }

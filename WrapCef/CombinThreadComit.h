@@ -11,6 +11,12 @@
 #include "include/cef_browser.h"
 #include "BlockThread.h"
 
+#define OP_TIMEOUT 3000
+
+#define PROC_STATE_NIL 0
+#define PROC_STATE_FIN 1
+#define PROC_STATE_REJ 1
+
 namespace cyjh{
 
 	class cyjh_value
@@ -229,6 +235,10 @@ namespace cyjh{
 			return atom_;
 		}
 
+		const int& getProcState(){
+			return procState_;
+		}
+
 		void setSucc(const bool& succ){
 			succ_ = succ;
 		}
@@ -259,6 +269,10 @@ namespace cyjh{
 			atom_ = atom;
 		}
 
+		void setProcState(const int& procState){
+			procState_ = procState;
+		}
+
 		void setNewSession(const bool& bNew){
 			newSession_ = bNew;
 		}
@@ -273,8 +287,9 @@ namespace cyjh{
 		int id_;
 		int browserID_;
 		int atom_;
+		int procState_; //PROC_STATE_NUL,需要发送请求处理 PROC_STATE_FIN,处理完毕 PROC_STATE_REJ,对方繁忙,处理失败
 		bool succ_;
-		bool newSession_;
+		bool newSession_;		
 		cyjh_value_list list_;
 	};
 
@@ -371,22 +386,28 @@ namespace cyjh{
 		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) = 0;
 		virtual void RecvData(const unsigned char*, DWORD);
 		void WakeUp();
-		void SendRenderWakeUpHelp(int browserID);
+		void SendRenderWakeUpHelp(int browserID/*, int reqid, int atom*/);
 
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
-		void RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
+		bool RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
 		void UnRegisterReqID(IPCUnit* ipc, int req_id);
 		
 		void pushRequestEvent(std::shared_ptr<RequestContext>&);
 
-		void popRequestEvent();
+		bool popRequestEvent(int reqid);
 
 		void pushRecvRequestID(int id, int atom);
 
 		bool popRecvRequestID(int id, int atom);
+
+		bool isRecvRequestEmpty();
+
+		bool isSendRenderImmedNoBlockEmpty();
+
+		bool isSendRegBrowserEmpty();
 
 		int generateID();
 
@@ -401,6 +422,8 @@ namespace cyjh{
 
 		virtual void ProcTrunkReq(std::shared_ptr<Instruct> spInfo);
 
+		void ProcRecvDataHelp(std::shared_ptr<Instruct> spInfo);
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackTop(int id);
 
@@ -412,6 +435,14 @@ namespace cyjh{
 		std::mutex eventResponseStackMutex_;
 
 		std::mutex generateIDMutex_;
+
+		std::mutex newSessinBlockMutex_;
+
+		std::deque<int> sendRenderImmedNoBlockQueue_;
+		std::mutex sendRenderImmedNoBlockQueue_Mutex_;
+
+		std::deque<int> sendRegBrowserQueue_;
+		std::mutex sendRegBrowserQueue_Mutex_;
 
 		int requestID_;
 
