@@ -2,6 +2,8 @@
 #include "ResponseRender.h"
 #include <boost/format.hpp>
 #include <include/cef_v8.h>
+//#include <iostream>
+#include <sstream>
 //#include "client_app.h"
 
 ResponseRender::ResponseRender()
@@ -13,6 +15,53 @@ ResponseRender::ResponseRender()
 
 ResponseRender::~ResponseRender()
 {
+}
+
+template <class T>
+std::wstring ConvertToString(T value) {
+	std::wstringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+std::wstring V8ValtoWstring(CefRefPtr<CefV8Value> val)
+{
+	std::wstring strVal;
+	if ( val.get() )
+	{
+		if ( val->IsBool() )
+		{
+			strVal = val->GetBoolValue() ? L"true" : L"false";
+		}
+		else if ( val->IsDouble() )
+		{
+			strVal = ConvertToString(val->GetDoubleValue());
+		}
+		else if ( val->IsInt() )
+		{
+			strVal = ConvertToString(val->GetIntValue());
+		}
+		else if ( val->IsUInt() )
+		{
+			strVal = ConvertToString(val->GetUIntValue());
+		}
+		else if ( val->IsNull() )
+		{
+			strVal = L"null";
+		}
+		else if ( val->IsString() )
+		{
+			strVal = val->GetStringValue().ToWString();
+		}
+		else if ( val->IsUndefined() )
+		{
+			strVal = L"undefined";
+		}
+		else{
+			strVal = L"undefined";
+		}
+	}
+	return strVal;
 }
 
 bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
@@ -59,8 +108,8 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		}
 		
 		if( bEval ){
-			if (retVal.get() && retVal.get()->IsString()){
-				outVal->getList().AppendVal(retVal->GetStringValue().ToWString());
+			if (retVal.get()){
+				outVal->getList().AppendVal(V8ValtoWstring(retVal));
 			}
 			ret = true;
 		}else{

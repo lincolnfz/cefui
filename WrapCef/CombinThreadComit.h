@@ -425,7 +425,8 @@ namespace cyjh{
 		void ProcRecvDataHelp(std::shared_ptr<Instruct> spInfo);
 
 	protected:
-		std::shared_ptr<RequestContext> getReqStackTop(int id);
+		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);
+		std::shared_ptr<RequestContext> getReqStackTop();
 
 		ThreadType threadType_;
 		std::deque<std::shared_ptr<RequestContext>> eventRequestStack_;

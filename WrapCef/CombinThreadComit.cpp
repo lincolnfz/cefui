@@ -309,12 +309,23 @@ namespace cyjh{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 #ifdef _DEBUG
 		RecvReqItem item = eventResponsStack_.front();
-		bool match = item.id_ == id && item.atom_ == atom;
+		//bool match = item.id_ == id && item.atom_ == atom;
+		bool match = item.id_ == id;
 		if ( !match )
 		{
-			int i = 0;
+			WCHAR szbuf[1024] = {0};
+			swprintf_s(szbuf, L"-----popRecvRequestID error id: %d ; queue: ", id);
+			std::deque<RecvReqItem>::iterator it = eventResponsStack_.begin();
+			for (; it != eventResponsStack_.end(); ++it)
+			{
+				WCHAR item[64] = {0};
+				swprintf_s(item, L",[%d, %d]", it->id_, it->atom_);
+				wcscat_s(szbuf, item);
+			}
+			OutputDebugStringW(szbuf);
 		}
-		assert(item.id_ == id && item.atom_ == atom);
+		//assert(item.id_ == id && item.atom_ == atom);
+		assert(item.id_ == id);
 #endif
 		bool ret = false;
 		std::deque<RecvReqItem>::iterator it = eventResponsStack_.begin();
@@ -371,6 +382,7 @@ namespace cyjh{
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
 	{
 		//requestQueue_.ResetEvent();
+		newSessinBlockMutex_.lock();
 		static volatile int s_atom = 0;
 		int reqeustid = 0;
 		eventResponseStackMutex_.lock();
@@ -465,6 +477,7 @@ namespace cyjh{
 		sp->id_ = reqeustid;
 		sp->atom_ = parm.getAtom();
 		pushRequestEvent(sp);
+		newSessinBlockMutex_.unlock();
 		//向另一个线程请求
 		//ipc_send		
 		//这里放ipc的发送操作
@@ -477,14 +490,15 @@ namespace cyjh{
 		Instruct::SerializationInstruct(&parm, pick);
 
 #ifdef _DEBUG
-		char szTmp[8192] = { 0 };
-		sprintf_s(szTmp, "---- continue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
-			parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
-		OutputDebugStringA(szTmp);
+		//char szTmp[8192] = { 0 };
+		//sprintf_s(szTmp, "---- continue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
+		//	parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		//OutputDebugStringA(szTmp);
 #endif
 
 		//pick.data(), pick.size()
 		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		
 		/////ipc
 		while (true)
 		{
@@ -551,7 +565,7 @@ namespace cyjh{
 		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 	}
 
-	std::shared_ptr<RequestContext> CombinThreadComit::getReqStackTop(int id)
+	std::shared_ptr<RequestContext> CombinThreadComit::getReqStackNearlTopID(int id)
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		std::shared_ptr<RequestContext> ret;
@@ -571,6 +585,17 @@ namespace cyjh{
 		return ret;
 	}
 
+	std::shared_ptr<RequestContext> CombinThreadComit::getReqStackTop()
+	{
+		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
+		std::shared_ptr<RequestContext> ret;
+
+		if (!eventRequestStack_.empty()){
+			ret = eventRequestStack_.front();
+		}
+		return ret;
+	}
+
 	bool CombinThreadComit::isSameMyReqID(int id)
 	{
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
@@ -585,7 +610,7 @@ namespace cyjh{
 			}			
 #endif
 		}
-		assert(ret);
+		//assert(ret);
 		return ret;
 	}
 
@@ -774,7 +799,7 @@ namespace cyjh{
 		}
 		if (!blockThread_->ProcTrunk(spInstruct)){
 #ifdef _DEBUG
-			OutputDebugStringW(L"-----no block");
+			//OutputDebugStringW(L"-----no block");
 #endif			
 			ProcTrunkReq(spInstruct);
 		}
@@ -846,7 +871,20 @@ namespace cyjh{
 #else
 #endif
 
-		std::shared_ptr<RequestContext> top = getReqStackTop(spInstruct->getID());
+		std::shared_ptr<RequestContext> top;
+#ifdef _SINGLE_INSTRUCT_PROC
+		top = getReqStackNearlTopID(spInstruct->getID());
+#else
+		if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
+		{
+			top = getReqStackNearlTopID(spInstruct->getID());
+			assert(top.get());
+		}
+		else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
+		{
+			top = getReqStackTop();
+		}
+#endif
 		if (top.get())
 		{
 			if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
