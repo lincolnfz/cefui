@@ -50,25 +50,30 @@ public:
 	}
 	virtual ~DectetFrameLoad(){}
 
-	void Add(unsigned int browser, unsigned int frame, unsigned int id){
+	bool Add(unsigned int browser, unsigned int frame, unsigned int id){
+		bool ret = false;
 		if (hit(browser, frame, id) == false){
 			DectetFrameID dectItem;
 			dectItem.browserID_ = browser;
 			dectItem.frameID_ = frame;
 			dectItem.dectID_ = id;
 			m_dectList.push_back(dectItem);
+			ret = true;
 		}
-		
+		return ret;
 	}
 
-	void Remove(unsigned int browser, unsigned int frame, unsigned int id){
+	bool Remove(unsigned int browser, unsigned int frame, unsigned int id){
+		bool ret = false;
 		std::list<DectetFrameID>::iterator it = m_dectList.begin();
 		for (; it != m_dectList.end(); ++it){
 			if (it->browserID_ == browser && it->frameID_ == frame && it->dectID_ == id){
 				m_dectList.erase(it);
+				ret = true;
 				break;
 			}
 		}
+		return ret;
 	}
 
 	bool hit(unsigned int browser, unsigned int frame, unsigned int id){
@@ -605,14 +610,16 @@ public:
 		std::wstring id = list[0]->GetStringValue().ToWString();
 		boost::hash<std::wstring> string_hash;
 		unsigned int uid = string_hash(id);
-		DectetFrameLoad::getInst().Add(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
+		bool bAdd = DectetFrameLoad::getInst().Add(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
+		val = CefV8Value::CreateInt ( bAdd ? 1 : 0 );
 	}
 
 	void removeFrameStateChanged(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::wstring id = list[0]->GetStringValue().ToWString();
 		boost::hash<std::wstring> string_hash;
 		unsigned int uid = string_hash(id);
-		DectetFrameLoad::getInst().Remove(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
+		bool bAdd = DectetFrameLoad::getInst().Remove(browser_->GetIdentifier(), frame_->GetIdentifier(), uid);
+		val = CefV8Value::CreateInt(bAdd ? 1 : 0);
 	}
 
 protected:
@@ -860,7 +867,7 @@ bool call_FrameStateChanged(CefRefPtr<CefFrame>& frame, const char* frameName, c
 	Json::StyledWriter write;
 	std::string strJson = write.write(root);
 
-	boost::format fmt("_onFrameStateChanged('%1%')");
+	boost::format fmt("_onFrameStateChanged(%1%)");
 	fmt % strJson;
 	std::string strJs = fmt.str();
 	CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
@@ -907,7 +914,7 @@ public:
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
 				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, true);
 			}
 		}
 	}
