@@ -348,6 +348,36 @@ namespace cyjh{
 		return ret;
 	}
 
+	bool CombinThreadComit::matchRecvRequestID(int id)
+	{
+		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
+		bool ret = true;
+		if (!eventResponsStack_.empty())
+		{
+			ret = (eventResponsStack_.front().id_ == id);
+		}
+		return ret;
+	}
+
+	void CombinThreadComit::pushPengingRequest(std::shared_ptr<Instruct> sp)
+	{
+		std::unique_lock<std::mutex> lock(pendingProcReqQueue_Mutex_);
+		pendingProcReqQueue_.push_back(sp);
+	}
+
+	std::shared_ptr<Instruct> CombinThreadComit::getTopPengingRequest()
+	{
+		std::unique_lock<std::mutex> lock(pendingProcReqQueue_Mutex_);
+		std::shared_ptr<Instruct> data;
+		if (!pendingProcReqQueue_.empty())
+		{
+			data = pendingProcReqQueue_.front();
+			pendingProcReqQueue_.pop_front();
+		}
+		return data;
+	}
+
+
 	bool CombinThreadComit::isRecvRequestEmpty()
 	{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
@@ -374,8 +404,14 @@ namespace cyjh{
 		return unif_int(1, 0xfffffff);
 	}
 
-	void CombinThreadComit::procRecvRequest(const std::shared_ptr<Instruct> parm)
+	//void CombinThreadComit::procRecvRequest(const std::shared_ptr<Instruct> parm)
+	//{
+	//	pushRecvRequestID(parm->getID(), parm->getAtom());
+	//}
+
+	void CombinThreadComit::prepareResponse(const std::shared_ptr<Instruct> parm)
 	{
+		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
 		pushRecvRequestID(parm->getID(), parm->getAtom());
 	}
 
@@ -536,7 +572,58 @@ namespace cyjh{
 				response_val->getID(), response_val->newSession(), GetCurrentThreadId(), response_val->getProcState(), threadType_ == THREAD_UI ? "ui" : "render");
 			OutputDebugStringA(szTmp);
 		}
-#endif		
+#endif
+		proxy_checkPendingReq();
+	}
+
+	void CombinThreadComit::proxy_checkPendingReq()
+	{
+		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
+		checkPendingReq();
+	}
+
+	struct TmpSwapData
+	{
+		TmpSwapData(){
+		}
+
+		~TmpSwapData(){
+			delete []buf_;
+		}
+		CombinThreadComit* obj_;
+		unsigned char* buf_;
+		unsigned int len_;
+
+	};
+
+	unsigned int __stdcall CombinThreadComit::ProcPendingReq(void * parm)
+	{
+		TmpSwapData* data = reinterpret_cast<TmpSwapData*>(parm);
+		data->obj_->RecvData(data->buf_, data->len_);
+		delete data;
+		return 0;
+	}
+
+	void CombinThreadComit::checkPendingReq()
+	{
+		std::shared_ptr<Instruct>data = getTopPengingRequest();
+		if ( data.get() )
+		{
+			//if (!matchRecvRequestID(data->getID())){
+			//	return;
+			//}
+			Pickle pick;
+			Instruct::SerializationInstruct(data.get(), pick);
+			TmpSwapData* tmpdata = new TmpSwapData;
+			tmpdata->obj_ = this;
+			tmpdata->len_ = pick.size();
+			tmpdata->buf_ = new unsigned char[tmpdata->len_];
+			memcpy_s(tmpdata->buf_, tmpdata->len_,
+				static_cast<const unsigned char*>(pick.data()), pick.size());
+			unsigned int id;
+			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcPendingReq, tmpdata, 0, &id);
+			CloseHandle(hThread);
+		}
 	}
 
 	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id, const int& req_atom)
@@ -546,7 +633,7 @@ namespace cyjh{
 		{
 			return;
 		}
-		int responseID = 0;
+		//std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
 		/*eventResponseStackMutex_.lock();
 		if (!eventResponsStack_.empty())
 		{
@@ -563,6 +650,7 @@ namespace cyjh{
 		Instruct::SerializationInstruct(resp.get(), pick);
 		//pick.data(), pick.size()
 		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		checkPendingReq();
 	}
 
 	std::shared_ptr<RequestContext> CombinThreadComit::getReqStackNearlTopID(int id)
@@ -883,6 +971,15 @@ namespace cyjh{
 		else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 		{
 			top = getReqStackTop();
+		}
+#endif
+
+#ifdef _SINGLE_INSTRUCT_PROC
+#else
+		if ( !matchRecvRequestID(spInstruct->getID()))
+		{
+			pushPengingRequest(spInstruct);
+			return;
 		}
 #endif
 		if (top.get())

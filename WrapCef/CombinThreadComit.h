@@ -391,7 +391,8 @@ namespace cyjh{
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
-		virtual void procRecvRequest(const std::shared_ptr<Instruct>);
+		virtual void procRecvRequest(const std::shared_ptr<Instruct>) = 0;
+		virtual void prepareResponse(const std::shared_ptr<Instruct> parm);
 		bool RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
 		void UnRegisterReqID(IPCUnit* ipc, int req_id);
 		
@@ -402,6 +403,19 @@ namespace cyjh{
 		void pushRecvRequestID(int id, int atom);
 
 		bool popRecvRequestID(int id, int atom);
+
+		bool matchRecvRequestID(int id);
+
+		void pushPengingRequest(std::shared_ptr<Instruct> sp);
+
+		std::shared_ptr<Instruct> getTopPengingRequest();
+
+		void checkPendingReq();
+
+		//这个在请求函数处理完执行，防止请求函数处理时，收到新的请求，因为respone中只能处理一个id,而放在pengding队列中
+		void proxy_checkPendingReq();
+
+		static unsigned int __stdcall ProcPendingReq(void * parm);
 
 		bool isRecvRequestEmpty();
 
@@ -444,6 +458,9 @@ namespace cyjh{
 
 		std::deque<int> sendRegBrowserQueue_;
 		std::mutex sendRegBrowserQueue_Mutex_;
+
+		std::deque<std::shared_ptr<Instruct>> pendingProcReqQueue_;
+		std::mutex pendingProcReqQueue_Mutex_;
 
 		int requestID_;
 
