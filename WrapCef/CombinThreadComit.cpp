@@ -560,7 +560,7 @@ namespace cyjh{
 			DWORD dwWait = 0;
 			if ( threadType_ == THREAD_UI )
 			{
-				dwWait = WaitWithMessageLoop(sp->events_, 2, INFINITE);
+				dwWait = WaitForMultiEvent(sp->events_, 2, INFINITE);
 			}else if ( threadType_ == THREAD_RENDER )
 			{
 				dwWait = WaitForMultiEvent(sp->events_, 2, INFINITE);
