@@ -178,12 +178,15 @@ namespace cyjh{
 					SleepEx(20, true);
 					continue;
 				}
+#ifdef _DEBUG
 				WCHAR sz[128];
 				wsprintf(sz, L"IPC::ProcDataPack WriteFile fail = %d", err);
-				//OutputDebugString(sz);
+				OutputDebugString(sz);
+#endif
 				break;
 			}
 		}
+		assert(bResult);
 		return bResult;
 	}
 

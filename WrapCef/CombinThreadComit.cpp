@@ -287,8 +287,9 @@ namespace cyjh{
 		return ret;
 	}
 
-	void CombinThreadComit::pushRecvRequestID(int id, int atom)
+	bool CombinThreadComit::pushRecvRequestID(int id, int atom)
 	{
+		bool ret = true;
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 #ifdef _DEBUG
 		char szTmp[256] = { 0 };
@@ -299,9 +300,22 @@ namespace cyjh{
 #ifdef _SINGLE_INSTRUCT_PROC
 		eventResponsStack_.push_front(item);
 #else
+		if ( !eventResponsStack_.empty() )
+		{
+			if (eventResponsStack_.front().id_ != id){
+				ret = false;
+				return ret;
+			}
+		}
+#ifdef _DEBUG
+		if (!eventResponsStack_.empty())
+		{
+			assert(eventResponsStack_.back().id_ == id);
+		}
+#endif
 		eventResponsStack_.push_back(item);
 #endif
-		
+		return ret;
 	}
 
 	bool CombinThreadComit::popRecvRequestID(int id, int atom)
@@ -409,10 +423,15 @@ namespace cyjh{
 	//	pushRecvRequestID(parm->getID(), parm->getAtom());
 	//}
 
-	void CombinThreadComit::prepareResponse(const std::shared_ptr<Instruct> parm)
+	bool CombinThreadComit::prepareResponse(const std::shared_ptr<Instruct> parm)
 	{
 		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
-		pushRecvRequestID(parm->getID(), parm->getAtom());
+		bool ret = true;
+		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
+			pushPengingRequest(parm);
+			ret = false;
+		}
+		return ret;
 	}
 
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
@@ -620,6 +639,12 @@ namespace cyjh{
 			tmpdata->buf_ = new unsigned char[tmpdata->len_];
 			memcpy_s(tmpdata->buf_, tmpdata->len_,
 				static_cast<const unsigned char*>(pick.data()), pick.size());
+#ifdef _DEBUG
+			char szTmp[256] = { 0 };
+			sprintf_s(szTmp, "----proc penging queue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", data->getName().c_str(),
+				data->getID(), data->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+#endif
 			unsigned int id;
 			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcPendingReq, tmpdata, 0, &id);
 			CloseHandle(hThread);

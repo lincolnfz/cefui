@@ -392,7 +392,7 @@ namespace cyjh{
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) = 0;
-		virtual void prepareResponse(const std::shared_ptr<Instruct> parm);
+		virtual bool prepareResponse(const std::shared_ptr<Instruct> parm);
 		bool RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
 		void UnRegisterReqID(IPCUnit* ipc, int req_id);
 		
@@ -400,7 +400,7 @@ namespace cyjh{
 
 		bool popRequestEvent(int reqid);
 
-		void pushRecvRequestID(int id, int atom);
+		bool pushRecvRequestID(int id, int atom);
 
 		bool popRecvRequestID(int id, int atom);
 

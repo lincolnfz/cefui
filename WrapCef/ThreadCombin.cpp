@@ -48,7 +48,9 @@ namespace cyjh{
 			return;
 		}
 		//CombinThreadComit::procRecvRequest(spReq);
-		CombinThreadComit::prepareResponse(spReq);
+		if (!CombinThreadComit::prepareResponse(spReq)){
+			return;
+		}
 		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(spReq->getBrowserID());
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spReq->getName().c_str());
@@ -144,7 +146,9 @@ namespace cyjh{
 			return;
 		}		
 		//CombinThreadComit::procRecvRequest(spReq);
-		CombinThreadComit::prepareResponse(spReq);
+		if (!CombinThreadComit::prepareResponse(spReq)){
+			return;
+		}
 		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(spReq->getBrowserID());
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spReq->getName().c_str());
