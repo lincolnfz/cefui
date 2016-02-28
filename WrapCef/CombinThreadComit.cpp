@@ -430,6 +430,7 @@ namespace cyjh{
 		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
 			pushPengingRequest(parm);
 			ret = false;
+			assert(ret);
 		}
 		return ret;
 	}
