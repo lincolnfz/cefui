@@ -27,7 +27,7 @@ namespace cyjh{
 			DWORD dwTimeOut = 0;
 			if (dwMilliseconds == INFINITE)
 			{
-				dwTimeOut == INFINITE;
+				dwTimeOut = INFINITE;
 			}
 			else{
 				dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
