@@ -430,7 +430,7 @@ namespace cyjh{
 		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
 			pushPengingRequest(parm);
 			ret = false;
-			assert(ret);
+			//assert(ret);
 		}
 		return ret;
 	}
@@ -452,9 +452,10 @@ namespace cyjh{
 		parm.setID(reqeustid);
 
 #ifdef _DEBUG
+#define buf_size 102400
 		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
-			char szTmp[8192] = { 0 };
+			char szTmp[buf_size] = { 0 };
 			sprintf_s(szTmp, "----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
 				parm.getList().GetStrVal(0).c_str(), parm.getList().GetStrVal(1).c_str(), parm.getList().GetStrVal(2).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -462,7 +463,7 @@ namespace cyjh{
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod") == 0)
 		{
-			WCHAR szTmp[8192] = { 0 };
+			WCHAR szTmp[buf_size] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod",
 				parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
@@ -470,7 +471,7 @@ namespace cyjh{
 		}
 		else if (parm.getName().compare("invokeMethod") == 0)
 		{
-			WCHAR szTmp[8192] = { 0 };
+			WCHAR szTmp[buf_size] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"invokeMethod",
 				parm.getList().GetWStrVal(0).c_str(), parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
@@ -478,7 +479,7 @@ namespace cyjh{
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod2") == 0)
 		{
-			WCHAR szTmp[8192] = { 0 };
+			WCHAR szTmp[buf_size] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod2",
 				parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(), parm.getList().GetWStrVal(4).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");

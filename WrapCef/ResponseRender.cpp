@@ -93,7 +93,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Exception> excp;
 		CefString cefjs(strJs);
 #ifdef _DEBUG
-		char szTmp[8192] = { 0 };
+		char szTmp[10240] = { 0 };
 		sprintf_s(szTmp, "------js invoke in render  %d ;  %s", GetCurrentThreadId(),
 			 strJs.c_str());
 		OutputDebugStringA(szTmp);
@@ -126,7 +126,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 				err = excp->GetMessageW().ToString();
 			}
 #ifdef _DEBUG
-			char szTmp[8192] = { 0 };
+			char szTmp[10240] = { 0 };
 			sprintf_s(szTmp, "------invokejs Fail! render  %d ; err msg: %s ; %s", GetCurrentThreadId(),
 				err.c_str(), strJs.c_str());
 			OutputDebugStringA(szTmp);
