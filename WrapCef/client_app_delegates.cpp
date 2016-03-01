@@ -898,7 +898,7 @@ public:
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
 				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, true);
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, false);
 			}
 		}
 	}
@@ -933,6 +933,21 @@ public:
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
 				std::string url = frame->GetURL().ToString();
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, false);
+			}
+		}
+	}
+
+	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame){
+		CefRefPtr<CefFrame> parent = frame->GetParent();
+		if (parent.get())
+		{
+			boost::hash<std::string> string_hash;
+			std::string frameNam = frame->GetName().ToString();
+			unsigned int id = string_hash(frameNam);
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), parent->GetIdentifier(), id)){
+				std::string url = frame->GetURL().ToString();
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), 200, false);
 			}
 		}
 	}
