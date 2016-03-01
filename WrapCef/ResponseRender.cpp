@@ -92,7 +92,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Value> retVal;
 		CefRefPtr<CefV8Exception> excp;
 		CefString cefjs(strJs);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		char szTmp[10240] = { 0 };
 		sprintf_s(szTmp, "------js invoke in render  %d ;  %s", GetCurrentThreadId(),
 			 strJs.c_str());
@@ -135,8 +135,8 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 	}
 
 #ifdef _DEBUG
-	char szTmp[8192] = { 0 };
-	sprintf_s(szTmp, "------js invoke okkk!!!  %d ; ", GetCurrentThreadId());
+	char szTmp[256] = { 0 };
+	sprintf_s(szTmp, "------js invoke finish!!!  %d ; ", GetCurrentThreadId());
 	OutputDebugStringA(szTmp);
 #endif
 	//assert(ret);

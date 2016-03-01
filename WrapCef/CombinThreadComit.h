@@ -197,6 +197,7 @@ namespace cyjh{
 	class CombinThreadComit;
 	class UIThreadCombin;
 	class RenderThreadCombin;
+	struct MaybeLockItem;
 
 	class Instruct
 	{
@@ -204,6 +205,7 @@ namespace cyjh{
 		friend CombinThreadComit;
 		friend UIThreadCombin;
 		friend RenderThreadCombin;
+		friend MaybeLockItem;
 		Instruct();
 		virtual ~Instruct();
 
@@ -277,8 +279,16 @@ namespace cyjh{
 			newSession_ = bNew;
 		}
 
+		void setProcTimeout(const bool& bTimeout){
+			procTimeout_ = bTimeout;
+		}
+
 		const bool& newSession() const{
 			return newSession_;
+		}
+
+		const bool& procTimeout() const{
+			return procTimeout_;
 		}
 
 	private:
@@ -289,7 +299,8 @@ namespace cyjh{
 		int atom_;
 		int procState_; //PROC_STATE_NUL,需要发送请求处理 PROC_STATE_FIN,处理完毕 PROC_STATE_REJ,对方繁忙,处理失败
 		bool succ_;
-		bool newSession_;		
+		bool newSession_;
+		bool procTimeout_;
 		cyjh_value_list list_;
 	};
 
@@ -323,6 +334,15 @@ namespace cyjh{
 		}
 		int id_;
 		int atom_;
+	};
+
+	struct MaybeProcItem
+	{
+		MaybeProcItem(const int& id, const int& atom) :reqContext_(id, atom){
+			hitProc_ = false;
+		}
+		RecvReqItem reqContext_;
+		bool hitProc_;
 	};
 
 	struct ReqInfo
@@ -375,10 +395,32 @@ namespace cyjh{
 		HANDLE hEvent_;
 	};
 
+	struct MaybeLockItem
+	{
+		std::shared_ptr<Instruct> spRemote_Req_;
+		//HANDLE hEvent_;
+		CombinThreadComit* srv_;
+		//HANDLE hThread_;
+		HANDLE hTimer_;
+		bool bTimeout_;
+
+		static unsigned int __stdcall WaitReqTimeOut(void * parm);
+
+		static void __stdcall WaitOrTimerCallback(
+			PVOID   lpParameter,
+			BOOLEAN TimerOrWaitFired);
+
+		void cancelTimer();
+		MaybeLockItem(std::shared_ptr<Instruct>& remote_req, CombinThreadComit* srv);
+
+		~MaybeLockItem();
+	};
+
 	class CombinThreadComit : public CefBase
 	{
 		friend UIBlockThread;
 		friend RenderBlockThread;
+		friend MaybeLockItem;
 	public:
 		CombinThreadComit(ThreadType type);
 		virtual ~CombinThreadComit();
@@ -416,6 +458,16 @@ namespace cyjh{
 		void proxy_checkPendingReq();
 
 		static unsigned int __stdcall ProcPendingReq(void * parm);
+
+		void pushMaybelockQueue(std::shared_ptr<Instruct>& spReq);
+
+		void removeMaybelockQueue(const std::shared_ptr<Instruct>& spReq);
+
+		void pushProcedQueue(int id, int atom);
+
+		bool hitProcedQueue(int id, int atom);
+
+		bool removeProcedQueue(int id, int atom);
 
 		bool isRecvRequestEmpty();
 
@@ -462,6 +514,12 @@ namespace cyjh{
 		std::deque<std::shared_ptr<Instruct>> pendingProcReqQueue_;
 		std::mutex pendingProcReqQueue_Mutex_;
 
+		std::deque<std::shared_ptr<MaybeLockItem>> maybeLockReqQueue_;
+		std::mutex maybeLockReqQueue_Mutex_;
+
+		std::deque<MaybeProcItem> hasProcedQueue_;
+		std::mutex hasProcedQueue_Mutex_;
+
 		int requestID_;
 
 		static DWORD s_tid_;
@@ -470,6 +528,8 @@ namespace cyjh{
 
 		//std::deque<std::shared_ptr<ReqInfo>> pendingReqQueue_;
 		BlockThread* blockThread_;
+
+		HANDLE m_hTimeQueue;
 
 		IMPLEMENT_REFCOUNTING(CombinThreadComit);
 	};

@@ -32,6 +32,7 @@ namespace cyjh{
 		pick.WriteInt(inst->procState_);
 		pick.WriteBool(inst->succ_);
 		pick.WriteBool(inst->newSession_);
+		pick.WriteBool(inst->procTimeout_);
 		pick.WriteString(inst->name_);
 		int len = inst->list_.GetSize();
 		pick.WriteInt(len);
@@ -131,6 +132,13 @@ namespace cyjh{
 			}
 			inst->setNewSession(newSession);
 
+			bool timeout = false;
+			if (!pick.ReadBool(&itor, &timeout)){
+				bret = false;
+				break;
+			}
+			inst->setProcTimeout(timeout);
+
 			std::string name;
 			if ( !pick.ReadString(&itor, &name) ){
 				bret = false;
@@ -222,6 +230,7 @@ namespace cyjh{
 		type_ = INSTRUCT_NULL;
 		newSession_ = true;
 		procState_ = PROC_STATE_NIL;
+		procTimeout_ = false;
 	}
 
 	Instruct::~Instruct()
@@ -241,6 +250,64 @@ namespace cyjh{
 		return Submit(pack);
 	}
 
+	unsigned int __stdcall MaybeLockItem::WaitReqTimeOut(void * parm)
+	{
+		/*MaybeLockItem* obj = reinterpret_cast<MaybeLockItem*>(parm);
+		DWORD dwRet = WaitForSingleObject(obj->hEvent_, 1500);
+		if (dwRet == WAIT_TIMEOUT)
+		{
+			obj->srv_->pushProcedQueue(obj->spRemote_Req_->getID(), obj->spRemote_Req_->getAtom());
+			Pickle pick;
+			Instruct::SerializationInstruct(obj->spRemote_Req_.get() , pick);
+			obj->srv_->RecvData(static_cast<const unsigned char*>(pick.data()), pick.size());
+		}*/
+		return 0;
+	}
+
+	void __stdcall MaybeLockItem::WaitOrTimerCallback(
+		PVOID   lpParameter,
+		BOOLEAN TimerOrWaitFired){
+		MaybeLockItem* obj = reinterpret_cast<MaybeLockItem*>(lpParameter);
+		if ( obj->bTimeout_ )
+		{
+#ifdef _DEBUG
+			char szTmp[256] = { 0 };
+			sprintf_s(szTmp, "----time out proc name = %s ; id = %d ; theadID=%d ; %s\n", obj->spRemote_Req_->getName().c_str(),
+				obj->spRemote_Req_->getID(), GetCurrentThreadId(), obj->srv_->threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+#endif
+			obj->spRemote_Req_->setProcTimeout(true);
+			obj->srv_->pushProcedQueue(obj->spRemote_Req_->getID(), obj->spRemote_Req_->getAtom());
+			Pickle pick;
+			Instruct::SerializationInstruct(obj->spRemote_Req_.get(), pick);
+			obj->srv_->RecvData(static_cast<const unsigned char*>(pick.data()), pick.size());
+		}
+	}
+
+	MaybeLockItem::MaybeLockItem(std::shared_ptr<Instruct>& remote_req, CombinThreadComit* srv){
+		spRemote_Req_ = remote_req;
+		srv_ = srv;
+		//hEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+		//unsigned int id;
+		bTimeout_ = true;
+		//hThread_ = (HANDLE)_beginthreadex(nullptr, 0, WaitReqTimeOut, this, 0, &id);
+		//CloseHandle(hThread);
+		CreateTimerQueueTimer(&hTimer_, srv->m_hTimeQueue, WaitOrTimerCallback, this, 1500, 0, WT_EXECUTEDEFAULT);
+	}
+
+	MaybeLockItem::~MaybeLockItem(){
+		//SetEvent(hEvent_);
+		//WaitForSingleObject(hThread_, INFINITE);
+		//CloseHandle(hThread_);
+		
+	}
+
+	void MaybeLockItem::cancelTimer()
+	{
+		bTimeout_ = false;
+		DeleteTimerQueueTimer(srv_->m_hTimeQueue, hTimer_, INVALID_HANDLE_VALUE);
+	}
+
 	DWORD  CombinThreadComit::s_tid_ = 0;
 	CombinThreadComit::CombinThreadComit(ThreadType type) //:requestQueue_(this)
 	{
@@ -248,11 +315,13 @@ namespace cyjh{
 		requestID_ = 0;
 		blockThread_ = NULL;
 		CombinThreadComit::s_tid_ = GetCurrentThreadId();
+		m_hTimeQueue = CreateTimerQueue();
 	}
 
 
 	CombinThreadComit::~CombinThreadComit()
 	{
+		DeleteTimerQueue(m_hTimeQueue);
 	}
 
 	void CombinThreadComit::pushRequestEvent(std::shared_ptr<RequestContext>& events)
@@ -425,8 +494,14 @@ namespace cyjh{
 
 	bool CombinThreadComit::prepareResponse(const std::shared_ptr<Instruct> parm)
 	{
+		if (hitProcedQueue(parm->getID(), parm->getAtom()))
+		{
+			return false;
+		}
+
 		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
 		bool ret = true;
+		removeMaybelockQueue(parm);
 		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
 			pushPengingRequest(parm);
 			ret = false;
@@ -451,7 +526,7 @@ namespace cyjh{
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
 		parm.setID(reqeustid);
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 #define buf_size 102400
 		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
@@ -651,6 +726,82 @@ namespace cyjh{
 			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcPendingReq, tmpdata, 0, &id);
 			CloseHandle(hThread);
 		}
+	}
+
+	void CombinThreadComit::pushMaybelockQueue(std::shared_ptr<Instruct>& spReq)
+	{
+		std::unique_lock<std::mutex> lock(maybeLockReqQueue_Mutex_);
+		std::shared_ptr<MaybeLockItem> spitem( new MaybeLockItem(spReq, this));
+		maybeLockReqQueue_.push_back(spitem);
+		//assert(maybeLockReqQueue_.size() > 1);
+	}
+
+	void CombinThreadComit::removeMaybelockQueue(const std::shared_ptr<Instruct>& spReq)
+	{
+		std::unique_lock<std::mutex> lock(maybeLockReqQueue_Mutex_);
+		std::deque<std::shared_ptr<MaybeLockItem>>::iterator it = maybeLockReqQueue_.begin();
+		for (; it != maybeLockReqQueue_.end(); ++it)
+		{
+			if (it->get()->spRemote_Req_->getID() == spReq->getID() && it->get()->spRemote_Req_->getAtom() == spReq->getAtom())
+			{
+				it->get()->cancelTimer();
+				maybeLockReqQueue_.erase(it);
+				break;
+			}
+		}
+	}
+
+	void CombinThreadComit::pushProcedQueue(int id, int atom)
+	{
+		std::unique_lock<std::mutex> lock(hasProcedQueue_Mutex_);
+		MaybeProcItem item(id, atom);
+		hasProcedQueue_.push_back(item);
+	}
+
+	bool CombinThreadComit::removeProcedQueue(int id, int atom)
+	{
+		bool ret = false;
+		std::unique_lock<std::mutex> lock(hasProcedQueue_Mutex_);
+		std::deque<MaybeProcItem>::iterator it = hasProcedQueue_.begin();
+		for (; it != hasProcedQueue_.end(); ++it)
+		{
+			if (it->reqContext_.id_ == id && it->reqContext_.atom_ == atom)
+			{
+				hasProcedQueue_.erase(it);
+				ret = true;
+				break;
+			}
+		}
+		return ret;
+	}
+
+	bool CombinThreadComit::hitProcedQueue(int id, int atom)
+	{
+		bool ret = false;
+		std::unique_lock<std::mutex> lock(hasProcedQueue_Mutex_);
+		std::deque<MaybeProcItem>::iterator it = hasProcedQueue_.begin();
+		for (; it != hasProcedQueue_.end(); ++it)
+		{
+			if (it->reqContext_.id_ == id && it->reqContext_.atom_ == atom)
+			{
+				ret = it->hitProc_;
+				if (it->hitProc_ == false)
+				{
+					it->hitProc_ = true;
+				}
+				if (ret){
+					hasProcedQueue_.erase(it);
+#ifdef _DEBUG
+					char szTmp[256] = { 0 };
+					sprintf_s(szTmp, "----has proc request  id = %d ; atom = %d; theadID=%d ; %s\n", id,
+						atom, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+					OutputDebugStringA(szTmp);
+#endif
+				}
+				break;
+			}
+		}
+		return ret;
 	}
 
 	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id, const int& req_atom)
@@ -1026,6 +1177,12 @@ namespace cyjh{
 			}
 			else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
+#ifdef _DEBUG
+				char szTmp[256] = { 0 };
+				sprintf_s(szTmp, "----recv req in block name = %s ; id = %d ; theadID=%d ; %s\n", spInstruct->getName().c_str(),
+					spInstruct->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+				OutputDebugStringA(szTmp);
+#endif
 				top->parm_ = spInstruct;
 				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
 				SetEvent(top->events_[1]);
@@ -1035,6 +1192,16 @@ namespace cyjh{
 			if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
 				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
+				if (spInstruct->procTimeout())
+				{
+					//这里因为有可能用户在调试代码的情况,不作处理
+					removeProcedQueue(spInstruct->getID(), spInstruct->getAtom());
+					assert(false);
+					return;
+				}
+				else{
+				}
+				pushMaybelockQueue(spInstruct);
 				procRecvRequest(spInstruct);
 			}
 		}
