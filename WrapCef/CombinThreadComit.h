@@ -457,11 +457,13 @@ namespace cyjh{
 		//这个在请求函数处理完执行，防止请求函数处理时，收到新的请求，因为respone中只能处理一个id,而放在pengding队列中
 		void proxy_checkPendingReq();
 
-		static unsigned int __stdcall ProcPendingReq(void * parm);
+		static unsigned int __stdcall ProcForkReq(void * parm);
 
 		void pushMaybelockQueue(std::shared_ptr<Instruct>& spReq);
 
 		void removeMaybelockQueue(const std::shared_ptr<Instruct>& spReq);
+
+		bool checkMaybelockQueue();
 
 		void pushProcedQueue(int id, int atom);
 

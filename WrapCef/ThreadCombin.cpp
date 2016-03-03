@@ -56,8 +56,8 @@ namespace cyjh{
 		}
 #ifdef _DEBUG
 		char szTmp[256] = { 0 };
-		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
-			spReq->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; browser = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
+			spReq->getID(), spReq->getBrowserID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 		OutputDebugStringA(szTmp);
 #endif
 		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(spReq->getBrowserID());
@@ -163,8 +163,8 @@ namespace cyjh{
 		}
 #ifdef _DEBUG
 		char szTmp[256] = { 0 };
-		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
-			spReq->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; browser = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
+			spReq->getID(), spReq->getBrowserID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 		OutputDebugStringA(szTmp);
 #endif
 		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(spReq->getBrowserID());

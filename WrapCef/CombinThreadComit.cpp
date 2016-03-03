@@ -292,7 +292,7 @@ namespace cyjh{
 		bTimeout_ = true;
 		//hThread_ = (HANDLE)_beginthreadex(nullptr, 0, WaitReqTimeOut, this, 0, &id);
 		//CloseHandle(hThread);
-		CreateTimerQueueTimer(&hTimer_, srv->m_hTimeQueue, WaitOrTimerCallback, this, 1500, 0, WT_EXECUTEDEFAULT);
+		//CreateTimerQueueTimer(&hTimer_, srv->m_hTimeQueue, WaitOrTimerCallback, this, 1500, 0, WT_EXECUTEDEFAULT);
 	}
 
 	MaybeLockItem::~MaybeLockItem(){
@@ -514,6 +514,7 @@ namespace cyjh{
 	{
 		//requestQueue_.ResetEvent();
 		newSessinBlockMutex_.lock();
+		bool bLock = true;
 		static volatile int s_atom = 0;
 		int reqeustid = 0;
 		eventResponseStackMutex_.lock();
@@ -526,37 +527,37 @@ namespace cyjh{
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
 		parm.setID(reqeustid);
 
-#ifdef _DEBUG1
-#define buf_size 102400
+#ifdef _DEBUG
+#define buf_size 10240
 		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
 			char szTmp[buf_size] = { 0 };
-			sprintf_s(szTmp, "----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
-				parm.getList().GetStrVal(0).c_str(), parm.getList().GetStrVal(1).c_str(), parm.getList().GetStrVal(2).c_str(),
+			sprintf_s(szTmp, "----name = %s ; %s | %s  ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
+				parm.getList().GetStrVal(0).c_str(), parm.getList().GetStrVal(1).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 			OutputDebugStringA(szTmp);
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod") == 0)
 		{
 			WCHAR szTmp[buf_size] = { 0 };
-			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod",
-				parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(),
+			swprintf_s(szTmp, L"----name = %s ; %s | %s  ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod",
+				parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
 		else if (parm.getName().compare("invokeMethod") == 0)
 		{
 			WCHAR szTmp[buf_size] = { 0 };
-			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"invokeMethod",
-				parm.getList().GetWStrVal(0).c_str(), parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(),
+			swprintf_s(szTmp, L"----name = %s ; %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"invokeMethod",
+				parm.getList().GetWStrVal(0).c_str(), parm.getList().GetWStrVal(1).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod2") == 0)
 		{
 			WCHAR szTmp[buf_size] = { 0 };
-			swprintf_s(szTmp, L"----name = %s ; %s | %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod2",
-				parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(), parm.getList().GetWStrVal(4).c_str(),
+			swprintf_s(szTmp, L"----name = %s ; %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod2",
+				parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(),
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
@@ -634,9 +635,15 @@ namespace cyjh{
 		/////ipc
 		while (true)
 		{
+			checkMaybelockQueue();
+			if (bLock){
+				bLock = false;
+				//newSessinBlockMutex_.unlock();
+			}
 			DWORD dwWait = 0;
 			if ( threadType_ == THREAD_UI )
 			{
+				//dwWait = WaitWithMessageLoop(sp->events_, 2, INFINITE);
 				dwWait = WaitForMultiEvent(sp->events_, 2, INFINITE);
 			}else if ( threadType_ == THREAD_RENDER )
 			{
@@ -692,7 +699,7 @@ namespace cyjh{
 
 	};
 
-	unsigned int __stdcall CombinThreadComit::ProcPendingReq(void * parm)
+	unsigned int __stdcall CombinThreadComit::ProcForkReq(void * parm)
 	{
 		TmpSwapData* data = reinterpret_cast<TmpSwapData*>(parm);
 		data->obj_->RecvData(data->buf_, data->len_);
@@ -723,7 +730,7 @@ namespace cyjh{
 			OutputDebugStringA(szTmp);
 #endif
 			unsigned int id;
-			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcPendingReq, tmpdata, 0, &id);
+			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcForkReq, tmpdata, 0, &id);
 			CloseHandle(hThread);
 		}
 	}
@@ -744,11 +751,45 @@ namespace cyjh{
 		{
 			if (it->get()->spRemote_Req_->getID() == spReq->getID() && it->get()->spRemote_Req_->getAtom() == spReq->getAtom())
 			{
-				it->get()->cancelTimer();
+				//it->get()->cancelTimer();
 				maybeLockReqQueue_.erase(it);
 				break;
 			}
 		}
+	}
+
+	bool CombinThreadComit::checkMaybelockQueue()
+	{
+		bool ret = false;
+		std::unique_lock<std::mutex> lock(maybeLockReqQueue_Mutex_);
+		if (!maybeLockReqQueue_.empty())
+		{
+			std::shared_ptr<MaybeLockItem> item = maybeLockReqQueue_.front();
+			pushProcedQueue(item->spRemote_Req_->getID(), item->spRemote_Req_->getAtom());
+			item->spRemote_Req_->setProcTimeout(true);
+
+			Pickle pick;
+			Instruct::SerializationInstruct(item->spRemote_Req_.get(), pick);
+			TmpSwapData* tmpdata = new TmpSwapData;
+			tmpdata->obj_ = this;
+			tmpdata->len_ = pick.size();
+			tmpdata->buf_ = new unsigned char[tmpdata->len_];
+			memcpy_s(tmpdata->buf_, tmpdata->len_,
+				static_cast<const unsigned char*>(pick.data()), pick.size());
+#ifdef _DEBUG
+			char szTmp[256] = { 0 };
+			sprintf_s(szTmp, "----proc may lock queue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", item->spRemote_Req_->getName().c_str(),
+				item->spRemote_Req_->getID(), item->spRemote_Req_->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+#endif
+			unsigned int id;
+			HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcForkReq, tmpdata, 0, &id);
+			CloseHandle(hThread);
+
+			maybeLockReqQueue_.pop_front();
+			ret = true;
+		}
+		return ret;
 	}
 
 	void CombinThreadComit::pushProcedQueue(int id, int atom)
@@ -903,6 +944,13 @@ namespace cyjh{
 			assert(false);
 			//OutputDebugString(L"----------rsp_RegisterBrowser fail");
 		}
+
+#ifdef _DEBUG
+		char szTmp[256] = { 0 };
+		sprintf_s(szTmp, "----reg browser = %d ; theadID=%d ; %s\n", spInfo->getBrowserID(),
+			GetCurrentThreadId(),  threadType_ == THREAD_UI ? "ui" : "render");
+		OutputDebugStringA(szTmp);
+#endif
 
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spInfo->getName().c_str());
@@ -1144,7 +1192,29 @@ namespace cyjh{
 		if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
 		{
 			top = getReqStackNearlTopID(spInstruct->getID());
-			assert(top.get());
+#ifdef _DEBUG
+			char szTmp[256] = { 0 };
+			sprintf_s(szTmp, "-----recv response name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", spInstruct->getName().c_str(),
+				spInstruct->getID(), spInstruct->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+#endif
+			if ( !top.get() )
+			{
+				//收到的反馈没有在，自已的请求列表。
+				//出现这样的原因可能是关闭的时候,主线程已经结束。所以请求列表已经不存在了
+				assert(top.get());
+				return;
+			}			
+
+#ifdef _DEBUG
+			if (!top.get())
+			{
+				char szTmp[256] = { 0 };
+				sprintf_s(szTmp, "----- fail recv response id = %d ; theadID=%d ; %s\n",
+					spInstruct->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+				OutputDebugStringA(szTmp);
+			}
+#endif
 		}
 		else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 		{
@@ -1196,7 +1266,7 @@ namespace cyjh{
 				{
 					//这里因为有可能用户在调试代码的情况,不作处理
 					removeProcedQueue(spInstruct->getID(), spInstruct->getAtom());
-					assert(false);
+					assert(spInstruct->procTimeout());
 					return;
 				}
 				else{
