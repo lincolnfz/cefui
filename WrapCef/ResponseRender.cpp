@@ -10,6 +10,7 @@ ResponseRender::ResponseRender()
 {
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_invokedJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_callJSMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_queryElementAttrib);
 }
 
 
@@ -100,7 +101,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		delete[]szTmp;
 #endif
 		bool bEval = false;
-		if (parm.empty())
+		if ( parm.empty())
 		{
 			bEval = v8->Eval(cefjs, retVal, excp);
 		}
@@ -175,5 +176,21 @@ bool ResponseRender::rsp_callJSMethod(const CefRefPtr<CefBrowser> browser,
 		}
 	}
 
+	return ret;
+}
+
+bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool ret = false;
+	int x = req_parm->getList().GetIntVal(0);
+	int y = req_parm->getList().GetIntVal(1);
+	int g_x = req_parm->getList().GetIntVal(2);
+	int g_y = req_parm->getList().GetIntVal(3);
+	double dt = req_parm->getList().GetDoubleVal(4);
+	CefString val;
+	browser->Query_xy_Element(x, y, g_x, g_y, dt, CefString(L"data-nc"), val);
+	outVal->getList().AppendVal(val.ToWString());
+	ret = true;
 	return ret;
 }

@@ -321,6 +321,8 @@ class ClientHandler : public CefClient,
   bool callJSMethod(const char* fun_name, const char* utf8_parm,
 	  const char* utf8_frame_name, CStringW* outstr);
 
+  bool queryElementAttrib( int x, int y , int g_x, int g_y, std::wstring& val );
+
  private:
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);

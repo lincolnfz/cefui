@@ -1134,3 +1134,28 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 	}
 	return ret;
 }
+
+bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstring& val)
+{
+	bool ret = false;
+	cyjh::Instruct parm;
+	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.getList().AppendVal(x);
+	parm.getList().AppendVal(y);
+	parm.getList().AppendVal(g_x);
+	parm.getList().AppendVal(g_y);
+	double dt = GetMessageTime() / 1000.0;
+	parm.getList().AppendVal(dt);
+	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	std::shared_ptr<cyjh::Instruct> outVal;
+	ipc->Request(this->browser_, parm, outVal);
+	if (outVal.get())
+	{
+		if (outVal->getList().GetSize() > 0)
+		{
+			val = outVal->getList().GetWStrVal(0);
+		}
+		ret = outVal->getSucc();
+	}
+	return ret;
+}
