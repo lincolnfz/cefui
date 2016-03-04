@@ -37,7 +37,7 @@ namespace cyjh{
 	void BlockThread::WakeUp()
 	{
 		SetEvent(hEnv_[0]);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		OutputDebugStringW(L"------BlockThread::WakeUp()");
 #endif		
 	}

@@ -25,7 +25,7 @@ namespace cyjh{
 		{
 			m_inProcStack.push_front(req);
 			ret = true;
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			char szTmp[8192] = { 0 };
 			sprintf_s(szTmp, "---- pushReq main  -----= id = %d ; browser = %d; size = %d", req, browserid, m_inProcStack.size());
 			OutputDebugStringA(szTmp);
@@ -36,7 +36,7 @@ namespace cyjh{
 			{
 				m_inProcStack.push_front(req);
 				ret = true;
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				char szTmp[8192] = { 0 };
 				sprintf_s(szTmp, "---- pushReq main  -----= id = %d ; browser = %d; size = %d", req, browserid, m_inProcStack.size());
 				OutputDebugStringA(szTmp);
@@ -45,7 +45,7 @@ namespace cyjh{
 			else{
 				PENDING_REQ pend_req(browserid, req);
 				m_pendingQueue.push_back(pend_req);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				char szTmp[8192] = { 0 };
 				sprintf_s(szTmp, "---- pushReq pending  -----= id = %d ; browser = %d; size = %d", req, browserid, m_pendingQueue.size());
 				OutputDebugStringA(szTmp);
@@ -67,7 +67,7 @@ namespace cyjh{
 	{
 		std::unique_lock<std::mutex> lock(inProcStackMutex_);
 		assert(m_inProcStack.front() == req);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		int front_req = m_inProcStack.front();
 		char szTmp[8192] = { 0 };
 		sprintf_s(szTmp, "---- popReq main  -----= id = %d", front_req);
@@ -81,7 +81,7 @@ namespace cyjh{
 				int newReqid = m_pendingQueue.front().reqID_;
 				int browserid = m_pendingQueue.front().browserID_;
 				m_pendingQueue.pop_front();
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				char szTmp[8192] = { 0 };
 				sprintf_s(szTmp, "---- pushReq from pending  -----= id = %d ; browser = %d", newReqid, browserid);
 				OutputDebugStringA(szTmp);
@@ -95,13 +95,13 @@ namespace cyjh{
 						unsigned int id;
 						HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, WakeUpUIBlock, combinThread_, 0, &id);
 						CloseHandle(hThread);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 						OutputDebugStringW(L"wake up in uiThread!!!!!");
 #endif
 					}
 					else{
 						combinThread_->WakeUp();
-#ifdef _DEBUG
+#ifdef _DEBUG1
 						OutputDebugStringW(L"wake up no in uiThread");
 #endif
 					}

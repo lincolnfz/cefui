@@ -578,11 +578,20 @@ namespace wrapQweb{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if ( item )
 		{
-			CefString val(L"data-nc");			
-			item->m_provider->GetBrowser()->GetHost()->SendQueryElement(x, y, val);
+			//CefString val(L"data-nc");
+			//item->m_provider->GetBrowser()->GetHost()->SendQueryElement(x, y, val);
+			POINT pt;
+			pt.x = x;
+			pt.y = y;
+			ClientToScreen(hWnd, &pt);
+			int g_x = pt.x;
+			int g_y = pt.y;
+			std::wstring val;
+			item->m_handle->queryElementAttrib(x, y, g_x, g_y, val);
 			if ( len > 0 )
 			{
-				wcscpy_s(outVal, len, val.ToWString().c_str());
+				//wcscpy_s(outVal, len, val.ToWString().c_str());
+				wcscpy_s(outVal, len, val.c_str());
 				bret = true;
 			}
 		}		

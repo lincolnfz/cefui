@@ -84,7 +84,7 @@ std::wstring RandChr(int len)
 
 void MainProcessClosed(DWORD, DWORD)
 {
-#ifdef _DEBUG
+#ifdef _DEBUG1
 	OutputDebugStringW(L"----------------MainProcessClosed!!!!!!!!!!!");
 #endif
 }
@@ -118,7 +118,7 @@ void ClientApp::OnRenderThreadCreated(CefRefPtr<CefListValue> extra_info) {
   DWORD dwCurrentProcessID = GetCurrentProcessId();
   if (dwProcessID != dwCurrentProcessID)
   {
-#ifdef _DEBUG
+#ifdef _DEBUG1
 	  OutputDebugStringA("-------need dect process");
 #endif
 	  //dectMainProcess_.RegisterAlertFun(MainProcessClosed);
@@ -152,7 +152,7 @@ void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
 	//OutputDebugString(L"OnBrowserCreated++++");
 	cyjh::Instruct parm;
 	parm.setName("RegisterBrowser");
-	parm.setInstructType(cyjh::InstructType::INSTRUCT_REGBROWSER);
+	//parm.setInstructType(cyjh::InstructType::INSTRUCT_REGBROWSER);
 	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getCliName()));
 	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getSrvName()));
 	std::shared_ptr<cyjh::Instruct> outval;

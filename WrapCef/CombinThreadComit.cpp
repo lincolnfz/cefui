@@ -270,7 +270,7 @@ namespace cyjh{
 		MaybeLockItem* obj = reinterpret_cast<MaybeLockItem*>(lpParameter);
 		if ( obj->bTimeout_ )
 		{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			char szTmp[256] = { 0 };
 			sprintf_s(szTmp, "----time out proc name = %s ; id = %d ; theadID=%d ; %s\n", obj->spRemote_Req_->getName().c_str(),
 				obj->spRemote_Req_->getID(), GetCurrentThreadId(), obj->srv_->threadType_ == THREAD_UI ? "ui" : "render");
@@ -340,7 +340,7 @@ namespace cyjh{
 			std::shared_ptr<RequestContext> context = *it;
 			if ( context->id_ == reqid )
 			{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				//std::shared_ptr<RequestContext> context = eventRequestStack_.front();
 				char szTmp[256] = { 0 };
 				sprintf_s(szTmp, "---- popReq id = %d , theadID=%d ; %s\n", context->id_, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -360,7 +360,7 @@ namespace cyjh{
 	{
 		bool ret = true;
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		char szTmp[256] = { 0 };
 		sprintf_s(szTmp, "---- pushRecvReq id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 		OutputDebugStringA(szTmp);
@@ -376,7 +376,7 @@ namespace cyjh{
 				return ret;
 			}
 		}
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		if (!eventResponsStack_.empty())
 		{
 			assert(eventResponsStack_.back().id_ == id);
@@ -390,7 +390,7 @@ namespace cyjh{
 	bool CombinThreadComit::popRecvRequestID(int id, int atom)
 	{
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		RecvReqItem item = eventResponsStack_.front();
 		//bool match = item.id_ == id && item.atom_ == atom;
 		bool match = item.id_ == id;
@@ -418,7 +418,7 @@ namespace cyjh{
 			{
 				eventResponsStack_.erase(it);
 				ret = true;
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				char szTmp[256] = { 0 };
 				sprintf_s(szTmp, "---- popResponse id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 				OutputDebugStringA(szTmp);
@@ -500,6 +500,7 @@ namespace cyjh{
 		}
 
 		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
+
 		bool ret = true;
 		removeMaybelockQueue(parm);
 		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
@@ -527,7 +528,7 @@ namespace cyjh{
 		reqeustid = parm.newSession() ? generateID() : reqeustid;
 		parm.setID(reqeustid);
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 #define buf_size 10240
 		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
@@ -574,7 +575,7 @@ namespace cyjh{
 			/*bool trylock = newSessinBlockMutex_.try_lock();
 			if ( !trylock )
 			{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				OutputDebugStringW(L" fail trylock ");
 				//assert(false);
 #endif
@@ -622,7 +623,7 @@ namespace cyjh{
 		Pickle pick;
 		Instruct::SerializationInstruct(&parm, pick);
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		//char szTmp[8192] = { 0 };
 		//sprintf_s(szTmp, "---- continue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
 		//	parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -667,7 +668,7 @@ namespace cyjh{
 			//UnRegisterReqID(ipc, reqeustid);
 		}
 		//requestQueue_.SetEvent();		
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		if (response_val->getProcState() != PROC_STATE_FIN)
 		{
 			char szTmp[8192] = { 0 };
@@ -723,7 +724,7 @@ namespace cyjh{
 			tmpdata->buf_ = new unsigned char[tmpdata->len_];
 			memcpy_s(tmpdata->buf_, tmpdata->len_,
 				static_cast<const unsigned char*>(pick.data()), pick.size());
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			char szTmp[256] = { 0 };
 			sprintf_s(szTmp, "----proc penging queue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", data->getName().c_str(),
 				data->getID(), data->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -776,7 +777,7 @@ namespace cyjh{
 			tmpdata->buf_ = new unsigned char[tmpdata->len_];
 			memcpy_s(tmpdata->buf_, tmpdata->len_,
 				static_cast<const unsigned char*>(pick.data()), pick.size());
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			char szTmp[256] = { 0 };
 			sprintf_s(szTmp, "----proc may lock queue name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", item->spRemote_Req_->getName().c_str(),
 				item->spRemote_Req_->getID(), item->spRemote_Req_->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -832,7 +833,7 @@ namespace cyjh{
 				}
 				if (ret){
 					hasProcedQueue_.erase(it);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 					char szTmp[256] = { 0 };
 					sprintf_s(szTmp, "----has proc request  id = %d ; atom = %d; theadID=%d ; %s\n", id,
 						atom, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -910,7 +911,7 @@ namespace cyjh{
 		if (!eventRequestStack_.empty()){
 			ret = eventRequestStack_.front()->id_ == id;
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			if (!ret)
 			{
 				OutputDebugStringW(L"----reqID no match 1111 ==========");
@@ -945,7 +946,7 @@ namespace cyjh{
 			//OutputDebugString(L"----------rsp_RegisterBrowser fail");
 		}
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		char szTmp[256] = { 0 };
 		sprintf_s(szTmp, "----reg browser = %d ; theadID=%d ; %s\n", spInfo->getBrowserID(),
 			GetCurrentThreadId(),  threadType_ == THREAD_UI ? "ui" : "render");
@@ -1083,7 +1084,7 @@ namespace cyjh{
 		if (spInstruct->getInstructType() == INSTRUCT_WAKEUP)
 		{
 			assert(threadType_ == THREAD_RENDER);
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			OutputDebugStringW(L"-----wake up");
 #endif
 			WakeUp();
@@ -1112,13 +1113,13 @@ namespace cyjh{
 			//return;
 		}
 		if (!blockThread_->ProcTrunk(spInstruct)){
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			//OutputDebugStringW(L"-----no block");
 #endif			
 			ProcTrunkReq(spInstruct);
 		}
 		else{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			OutputDebugStringW(L"-----in block");
 #endif			
 		}
@@ -1174,7 +1175,7 @@ namespace cyjh{
 			//info->set(data, len);
 			//requestQueue_.SubmitPack(info);
 			//return;
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			//OutputDebugStringW(L"----reqID no match 2==========");
 #endif			
 			spInstruct->setProcState(PROC_STATE_REJ);
@@ -1192,7 +1193,7 @@ namespace cyjh{
 		if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
 		{
 			top = getReqStackNearlTopID(spInstruct->getID());
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			char szTmp[256] = { 0 };
 			sprintf_s(szTmp, "-----recv response name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", spInstruct->getName().c_str(),
 				spInstruct->getID(), spInstruct->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -1206,7 +1207,7 @@ namespace cyjh{
 				return;
 			}			
 
-#ifdef _DEBUG
+#ifdef _DEBUG1
 			if (!top.get())
 			{
 				char szTmp[256] = { 0 };
@@ -1234,7 +1235,7 @@ namespace cyjh{
 		{
 			if (spInstruct->getInstructType() == INSTRUCT_RESPONSE)
 			{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				bool match = (top->id_ == spInstruct->getID()) && (top->atom_ == spInstruct->getAtom());
 				if (!match)
 				{
@@ -1247,7 +1248,7 @@ namespace cyjh{
 			}
 			else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 				char szTmp[256] = { 0 };
 				sprintf_s(szTmp, "----recv req in block name = %s ; id = %d ; theadID=%d ; %s\n", spInstruct->getName().c_str(),
 					spInstruct->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");

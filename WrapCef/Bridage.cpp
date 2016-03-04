@@ -38,6 +38,7 @@ bool WaitWithMessageLoop(HANDLE hEvent, DWORD dwMilliseconds)
 
 	while (1)
 	{
+		assert(false);
 		DWORD dwNow = GetTickCount();
 		DWORD dwTimeOut = (dwMaxTick < dwNow) ? 0 : dwMaxTick - dwNow; //记算还要等待多秒微秒
 		// wait for event or message, if it's a message, process it and return to waiting state

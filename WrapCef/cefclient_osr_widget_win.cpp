@@ -966,7 +966,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   case WM_KILLFOCUS:{
 	  if (browser.get())
 	  {
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		  WCHAR sz[256];
 		  wsprintf(sz, L"----- is focus hwnd=%0x, %d", hWnd, message == WM_SETFOCUS);
 		  OutputDebugStringW(sz);
@@ -974,7 +974,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  browser->SendFocusEvent(message == WM_SETFOCUS);
 	  }
 	  else{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		  WCHAR sz[256];
 		  wsprintf(sz, L"----- focus no find browser=%0x, %d", hWnd, message == WM_SETFOCUS);
 		  OutputDebugStringW(sz);

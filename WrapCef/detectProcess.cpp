@@ -32,7 +32,7 @@ unsigned int _stdcall CDetectProcess::WaitExitProcess( void* vparm )
 	DWORD dwRet = WaitForSingleObjectEx( parm->hProcess , INFINITE , TRUE );
 	if ( WAIT_OBJECT_0 == dwRet )
 	{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		OutputDebugStringW(L"----------------main process exit!!!!!!!!!!!");
 #endif
 		DWORD dwCode = 0;
@@ -53,7 +53,7 @@ bool CDetectProcess::Detect(DWORD dwProcessID)
 	HANDLE hProcess = OpenProcess( PROCESS_ALL_ACCESS , FALSE , dwProcessID );
 	if ( hProcess )
 	{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		OutputDebugStringA( "CDetectProcess::Detect--------------\n" );
 #endif
 		bRet = true;
@@ -67,7 +67,7 @@ bool CDetectProcess::Detect(DWORD dwProcessID)
 		m_thread_lock.unlock();
 	}else
 	{
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		DWORD dwCode = GetLastError();
 		char szMsg[128]={0};
 		sprintf_s( szMsg , "CDetectProcess::Detect--------fail---- %d --\n" , dwCode );

@@ -47,14 +47,14 @@ namespace cyjh{
 			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvRequest, this, spReq));
 			return;
 		}
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		OutputDebugStringA("---calc begin");
 #endif
 		//CombinThreadComit::procRecvRequest(spReq);
 		if (!CombinThreadComit::prepareResponse(spReq)){
 			return;
 		}
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		char szTmp[256] = { 0 };
 		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; browser = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
 			spReq->getID(), spReq->getBrowserID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
@@ -154,14 +154,14 @@ namespace cyjh{
 			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::procRecvRequest, this, spReq));
 			return;
 		}
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		OutputDebugStringA("---calc begin");
 #endif
 		//CombinThreadComit::procRecvRequest(spReq);
 		if (!CombinThreadComit::prepareResponse(spReq)){
 			return;
 		}
-#ifdef _DEBUG
+#ifdef _DEBUG1
 		char szTmp[256] = { 0 };
 		sprintf_s(szTmp, "----calc response data name = %s ; id = %d ; browser = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
 			spReq->getID(), spReq->getBrowserID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");

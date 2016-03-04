@@ -33,7 +33,8 @@ namespace cyjh{
 				dwTimeOut = (dwMaxTick < GetTickCount()) ? 0 : dwMaxTick - GetTickCount(); //记算还要等待多秒微秒
 			}
 			// wait for event or message, if it's a message, process it and return to waiting state
-			dwRet = MsgWaitForMultipleObjectsEx(nCount, hEvent, dwTimeOut/*dwMaxTick - GetTickCount()*/, QS_ALLINPUT, MWMO_ALERTABLE);
+			//dwRet = MsgWaitForMultipleObjectsEx(nCount, hEvent, dwTimeOut, QS_ALLINPUT, MWMO_ALERTABLE);
+			dwRet = MsgWaitForMultipleObjectsEx(nCount, hEvent, dwTimeOut, QS_PAINT | QS_TIMER|QS_SENDMESSAGE|QS_POSTMESSAGE , MWMO_ALERTABLE);
 			if (dwRet < WAIT_OBJECT_0 + nCount)
 			{
 				//OutputDebugStringA("WaitWithMessageLoop() event triggered.\n");
