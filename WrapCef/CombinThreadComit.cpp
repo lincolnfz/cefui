@@ -651,19 +651,33 @@ namespace cyjh{
 				dwWait = WaitForMultiEvent(sp->events_, 2, INFINITE);
 			}
 
-			if (dwWait == WAIT_OBJECT_0)
+			if ( dwWait == WAIT_OBJECT_0 + 1 )
+			{
+				//收到请求
+				procRecvRequest(sp->parm_);
+				sp->bResponse = true;
+				//sp->parm_.reset();
+			}
+			else if (dwWait == WAIT_OBJECT_0)
 			{
 				//收到返馈
 				response_val = sp->outval_;
 				break;
-			}else if ( dwWait == WAIT_OBJECT_0 + 1 )
-			{
-				//收到请求
-				procRecvRequest(sp->parm_);
 			}
 		}
+		
+		if ( !sp->bResponse /*sp->parm_.get()*/ )
+		{
+#ifdef _DEBUG1
+			char szTmp[512] = { 0 };
+			sprintf_s(szTmp, "---- !!!!!!lost proc instruct id = %d ; new = %d ; theadID=%d ;  %s\n",
+				sp->parm_->getID(), sp->parm_->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szTmp);
+#endif
+			checkMaybeLostInstruct(sp->parm_);
+		}
 		assert(response_val.get());
-		popRequestEvent(sp->id_);
+		//popRequestEvent(sp->id_); //放到数据接收线程中处理??????????????
 		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession()){
 			//UnRegisterReqID(ipc, reqeustid);
 		}
@@ -844,6 +858,27 @@ namespace cyjh{
 			}
 		}
 		return ret;
+	}
+
+	void CombinThreadComit::checkMaybeLostInstruct(std::shared_ptr<Instruct>& spReq)
+	{
+		Pickle pick;
+		Instruct::SerializationInstruct(spReq.get(), pick);
+		TmpSwapData* tmpdata = new TmpSwapData;
+		tmpdata->obj_ = this;
+		tmpdata->len_ = pick.size();
+		tmpdata->buf_ = new unsigned char[tmpdata->len_];
+		memcpy_s(tmpdata->buf_, tmpdata->len_,
+			static_cast<const unsigned char*>(pick.data()), pick.size());
+#ifdef _DEBUG1
+		char szTmp[256] = { 0 };
+		sprintf_s(szTmp, "----proc lost instruct name = %s ; id = %d ; new = %d ; theadID=%d ; %s\n", spReq->getName().c_str(),
+			spReq->getID(), spReq->newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		OutputDebugStringA(szTmp);
+#endif
+		unsigned int id;
+		HANDLE hThread = (HANDLE)_beginthreadex(nullptr, 0, ProcForkReq, tmpdata, 0, &id);
+		CloseHandle(hThread);
 	}
 
 	void CombinThreadComit::Response(IPCUnit* ipc, std::shared_ptr<Instruct> resp, const int& req_id, const int& req_atom)
@@ -1244,6 +1279,7 @@ namespace cyjh{
 				assert(match);
 #endif				
 				top->outval_ = spInstruct;
+				popRequestEvent(top->id_); //从主线程移过来处理
 				SetEvent(top->events_[0]);
 			}
 			else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
@@ -1255,6 +1291,7 @@ namespace cyjh{
 				OutputDebugStringA(szTmp);
 #endif
 				top->parm_ = spInstruct;
+				top->bResponse = false;
 				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
 				SetEvent(top->events_[1]);
 			}

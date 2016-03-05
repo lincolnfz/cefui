@@ -309,12 +309,15 @@ namespace cyjh{
 	{
 		int id_;
 		int atom_;
+		bool bResponse;
 		BlockEvents events_;
 		std::shared_ptr<Instruct> parm_; //收到的请求参数放在这里
 		std::shared_ptr<Instruct> outval_; //收到的最终返回结果放在这里
 
 		RequestContext(){			
 			id_ = 0;
+			atom_ = 0;
+			bResponse = true;
 			events_[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
 			events_[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
 		}
@@ -470,6 +473,8 @@ namespace cyjh{
 		bool hitProcedQueue(int id, int atom);
 
 		bool removeProcedQueue(int id, int atom);
+
+		void checkMaybeLostInstruct(std::shared_ptr<Instruct>& spReq);
 
 		bool isRecvRequestEmpty();
 

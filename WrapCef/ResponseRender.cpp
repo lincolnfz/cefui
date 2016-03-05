@@ -6,6 +6,25 @@
 #include <sstream>
 //#include "client_app.h"
 
+struct _HitTest
+{
+	WORD wHitCode;
+	wchar_t szHitTag[16];
+	bool bZoom;
+};
+
+_HitTest hitTestData[] = {
+	{ HTCAPTION, L"caption", true },
+	{ HTTOP, L"top", false },
+	{ HTTOPLEFT, L"topleft", false },
+	{ HTTOPRIGHT, L"topright", false },
+	{ HTLEFT, L"left", false },
+	{ HTRIGHT, L"right", false },
+	{ HTBOTTOM, L"bottom", false },
+	{ HTBOTTOMLEFT, L"bottomleft", false },
+	{ HTBOTTOMRIGHT, L"bottomright", false }
+};
+
 ResponseRender::ResponseRender()
 {
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_invokedJSMethod);
@@ -190,7 +209,42 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 	double dt = req_parm->getList().GetDoubleVal(4);
 	CefString val;
 	browser->Query_xy_Element(x, y, g_x, g_y, dt, CefString(L"data-nc"), val);
-	outVal->getList().AppendVal(val.ToWString());
+	std::wstring attrib = val.ToWString();
+	outVal->getList().AppendVal(attrib);
+
+	bool bHandle = true;
+	if (wcscmp(attrib.c_str(), L""))
+	{
+		int j = sizeof(hitTestData) / sizeof(hitTestData[0]);
+		for (int i = 0; i < j; ++i)
+		{
+			if (_wcsicmp(attrib.c_str(), hitTestData[i].szHitTag) == 0){
+				bHandle = true;
+				break;
+			}
+		}
+	}
+	if ( bHandle )
+	{
+		CefRefPtr<CefFrame> frame;
+		frame = browser->GetMainFrame();
+		if ( frame.get() )
+		{
+			static std::string _ture("true");
+			static std::string _false("false");
+			boost::format fmt("window.invokeMethod('%1%', '%2%', '%3%', %4%)");
+			fmt % "ui" % "NCMouseDown" % "" % (true ? _ture : _false);
+			std::string strJs = fmt.str();
+			//frame->ExecuteJavaScript(CefString(strJs), CefString(""), 0);
+			CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+			CefRefPtr<CefV8Value> retVal;
+			CefRefPtr<CefV8Exception> excp;
+			CefString cefjs(strJs);
+			bool bEval = false;
+			bEval = v8->Eval(cefjs, retVal, excp);
+		}
+	}
+
 	ret = true;
 	return ret;
 }
