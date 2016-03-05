@@ -212,7 +212,7 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 	std::wstring attrib = val.ToWString();
 	outVal->getList().AppendVal(attrib);
 
-	bool bHandle = true;
+	bool bHandle = false;
 	if (wcscmp(attrib.c_str(), L""))
 	{
 		int j = sizeof(hitTestData) / sizeof(hitTestData[0]);
