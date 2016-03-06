@@ -455,6 +455,10 @@ namespace cyjh{
 
 		std::shared_ptr<Instruct> getTopPengingRequest();
 
+		bool removePendingReq(int id, int atom);
+
+		bool isEmptyPengingReq();
+
 		void checkPendingReq();
 
 		//这个在请求函数处理完执行，防止请求函数处理时，收到新的请求，因为respone中只能处理一个id,而放在pengding队列中

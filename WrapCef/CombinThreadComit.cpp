@@ -360,11 +360,7 @@ namespace cyjh{
 	{
 		bool ret = true;
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
-#ifdef _DEBUG1
-		char szTmp[256] = { 0 };
-		sprintf_s(szTmp, "---- pushRecvReq id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
-		OutputDebugStringA(szTmp);
-#endif
+
 		RecvReqItem item(id, atom);
 #ifdef _SINGLE_INSTRUCT_PROC
 		eventResponsStack_.push_front(item);
@@ -375,6 +371,14 @@ namespace cyjh{
 				ret = false;
 				return ret;
 			}
+			std::deque<RecvReqItem>::iterator it = eventResponsStack_.begin();
+			for (; it != eventResponsStack_.end(); ++it)
+			{
+				if ( it->id_ == id && it->atom_ == atom )
+				{
+					return ret;
+				}
+			}
 		}
 #ifdef _DEBUG1
 		if (!eventResponsStack_.empty())
@@ -382,6 +386,13 @@ namespace cyjh{
 			assert(eventResponsStack_.back().id_ == id);
 		}
 #endif
+
+#ifdef _DEBUG1
+		char szTmp[256] = { 0 };
+		sprintf_s(szTmp, "---- pushRecvReq id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+		OutputDebugStringA(szTmp);
+#endif
+
 		eventResponsStack_.push_back(item);
 #endif
 		return ret;
@@ -428,6 +439,8 @@ namespace cyjh{
 		}
 		//eventResponsStack_.pop_front();
 		assert(ret);
+		//popOrderRequestID(id, atom);
+		//removePendingReq(id, atom);
 		return ret;
 	}
 
@@ -445,7 +458,31 @@ namespace cyjh{
 	void CombinThreadComit::pushPengingRequest(std::shared_ptr<Instruct> sp)
 	{
 		std::unique_lock<std::mutex> lock(pendingProcReqQueue_Mutex_);
-		pendingProcReqQueue_.push_back(sp);
+		bool bFind = false;
+		std::deque<std::shared_ptr<Instruct>>::iterator it = pendingProcReqQueue_.begin();
+		for (; it != pendingProcReqQueue_.end(); ++it)
+		{
+			if (it->get()->getID() == sp->getID() && it->get()->getAtom() == sp->getAtom() )
+			{
+				bFind = true;
+				break;
+			}
+		}
+		if ( !bFind )
+		{
+			pendingProcReqQueue_.push_back(sp);
+			//pushOrderRequestID(sp->getID(), sp->getAtom());
+#ifdef _DEBUG1
+			{
+				char szBuf[256] = { 0 };
+				sprintf_s(szBuf, "----in penging id = %d; atom = %d; %s",
+					sp->getID(), sp->getAtom(), threadType_ == THREAD_UI ? "ui" : "render");
+				OutputDebugStringA(szBuf);
+			}
+#endif
+		}
+		
+
 	}
 
 	std::shared_ptr<Instruct> CombinThreadComit::getTopPengingRequest()
@@ -458,6 +495,37 @@ namespace cyjh{
 			pendingProcReqQueue_.pop_front();
 		}
 		return data;
+	}
+
+	bool CombinThreadComit::removePendingReq(int id, int atom)
+	{
+		bool ret = true;
+		std::unique_lock<std::mutex> lock(pendingProcReqQueue_Mutex_);
+		if (!pendingProcReqQueue_.empty())
+		{
+			std::shared_ptr<Instruct> instruct = pendingProcReqQueue_.front();
+			if ( instruct->getID() == id && instruct->getAtom()  )
+			{
+				pendingProcReqQueue_.pop_front();
+			}
+			else{
+#ifdef _DEBUG1
+			char szBuf[256] = { 0 };
+			sprintf_s(szBuf, "----error!!!!!! removePendingReq id = %d; atom = %d; %s",
+				id, atom, threadType_ == THREAD_UI ? "ui" : "render");
+			OutputDebugStringA(szBuf);
+#endif
+				ret = false;
+			}
+		}
+		assert(ret);
+		return ret;
+	}
+
+	bool CombinThreadComit::isEmptyPengingReq()
+	{
+		std::unique_lock<std::mutex> lock(pendingProcReqQueue_Mutex_);
+		return pendingProcReqQueue_.empty();
 	}
 
 
@@ -506,7 +574,7 @@ namespace cyjh{
 		if (!pushRecvRequestID(parm->getID(), parm->getAtom())){
 			pushPengingRequest(parm);
 			ret = false;
-			//assert(ret);
+			assert(ret);
 		}
 		return ret;
 	}
@@ -677,7 +745,7 @@ namespace cyjh{
 			checkMaybeLostInstruct(sp->parm_);
 		}
 		assert(response_val.get());
-		//popRequestEvent(sp->id_); //放到数据接收线程中处理??????????????
+		//popRequestEvent(sp->id_); //放到数据接收线程中处理??????????????,避免接收线程太快，同时处理收到响应，与请求指令
 		if (parm.getInstructType() != INSTRUCT_REGBROWSER && parm.newSession()){
 			//UnRegisterReqID(ipc, reqeustid);
 		}
@@ -691,7 +759,12 @@ namespace cyjh{
 			OutputDebugStringA(szTmp);
 		}
 #endif
-		proxy_checkPendingReq();
+		if (true/*parm.newSession()*/){
+			//如果自身是新的请求就是检测等带队列中的数据。
+			//如果是一组会话中的某次请求，在response中会去检测等待队列中的数据
+			//????
+			proxy_checkPendingReq();
+		}
 	}
 
 	void CombinThreadComit::proxy_checkPendingReq()
@@ -900,7 +973,8 @@ namespace cyjh{
 		resp->setAtom(req_atom);
 		resp->setInstructType(InstructType::INSTRUCT_RESPONSE);
 		resp->setProcState(PROC_STATE_FIN);
-		popRecvRequestID(req_id, req_atom);		
+		popRecvRequestID(req_id, req_atom);
+		//newSessinBlockMutex_.unlock();
 		Pickle pick;
 		Instruct::SerializationInstruct(resp.get(), pick);
 		//pick.data(), pick.size()
@@ -1260,6 +1334,17 @@ namespace cyjh{
 
 #ifdef _SINGLE_INSTRUCT_PROC
 #else
+		//先叛断指令是否有在待处理序列中，如果有检查是否是第一个要处理的。否则进入待处理队列。
+		//这个是保证指令没有乱序的现像
+		/*if ( !isEmptyPengingReq())
+		{
+			if (!matchRecvRequestID(spInstruct->getID()))
+			{
+				pushPengingRequest(spInstruct);
+				return;
+			}
+		}*/
+
 		if ( !matchRecvRequestID(spInstruct->getID()))
 		{
 			pushPengingRequest(spInstruct);
@@ -1277,6 +1362,10 @@ namespace cyjh{
 					int i = 0;
 				}
 				assert(match);
+				char szTmp[256] = { 0 };
+				sprintf_s(szTmp, "----- tigle response event id = %d ; theadID=%d ; %s\n",
+					spInstruct->getID(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+				OutputDebugStringA(szTmp);
 #endif				
 				top->outval_ = spInstruct;
 				popRequestEvent(top->id_); //从主线程移过来处理
@@ -1284,6 +1373,12 @@ namespace cyjh{
 			}
 			else if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
+				//从主线程移这里处理，因为当数据接收线程处理很快时，会出现两次接收到请求事件（在主线程阻塞的情况下）
+				pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理	
+				//if (!pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom())){
+				//	pushPengingRequest(spInstruct);
+				//	return;
+				//}
 #ifdef _DEBUG1
 				char szTmp[256] = { 0 };
 				sprintf_s(szTmp, "----recv req in block name = %s ; id = %d ; theadID=%d ; %s\n", spInstruct->getName().c_str(),
@@ -1292,14 +1387,13 @@ namespace cyjh{
 #endif
 				top->parm_ = spInstruct;
 				top->bResponse = false;
-				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
 				SetEvent(top->events_[1]);
 			}
 		}
 		else{
 			if (spInstruct->getInstructType() == INSTRUCT_REQUEST)
 			{
-				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
+				
 				if (spInstruct->procTimeout())
 				{
 					//这里因为有可能用户在调试代码的情况,不作处理
@@ -1309,6 +1403,11 @@ namespace cyjh{
 				}
 				else{
 				}
+				//pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom()); //移到ui线程或render线程中处理
+				//if (!pushRecvRequestID(spInstruct->getID(), spInstruct->getAtom())){
+				//	pushPengingRequest(spInstruct);
+				//	return;
+				//}
 				pushMaybelockQueue(spInstruct);
 				procRecvRequest(spInstruct);
 			}
