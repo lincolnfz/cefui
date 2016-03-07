@@ -233,7 +233,7 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 			static std::string _ture("true");
 			static std::string _false("false");
 			boost::format fmt("window.invokeMethod('%1%', '%2%', '%3%', %4%)");
-			fmt % "ui" % "NCMouseDown" % "" % (true ? _ture : _false);
+			fmt % "UI" % "NCMouseDown" % "" % (true ? _ture : _false);
 			std::string strJs = fmt.str();
 			//frame->ExecuteJavaScript(CefString(strJs), CefString(""), 0);
 			CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
