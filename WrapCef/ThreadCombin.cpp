@@ -41,6 +41,10 @@ namespace cyjh{
 		CombinThreadComit::RecvData(data, len);
 	}
 
+	void UIThreadCombin::postInstruct(std::shared_ptr<Instruct> spInfo){
+		CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvRequest, this, spInfo));
+	}
+
 	void UIThreadCombin::procRecvRequest(const std::shared_ptr<Instruct> spReq)
 	{
 		if (!CefCurrentlyOn(TID_UI)){
@@ -146,6 +150,10 @@ namespace cyjh{
 	void RenderThreadCombin::RecvData(const unsigned char* data, DWORD len)
 	{
 		CombinThreadComit::RecvData(data, len);
+	}
+
+	void RenderThreadCombin::postInstruct(std::shared_ptr<Instruct> spInfo){
+		CefPostTask(TID_UI, base::Bind(&RenderThreadCombin::procRecvRequest, this, spInfo));
 	}
 
 	void RenderThreadCombin::procRecvRequest(const std::shared_ptr<Instruct> spReq)

@@ -309,7 +309,8 @@ namespace cyjh{
 	{
 		int id_;
 		int atom_;
-		bool bResponse;
+		bool bResponse_;
+		bool single_;
 		BlockEvents events_;
 		std::shared_ptr<Instruct> parm_; //收到的请求参数放在这里
 		std::shared_ptr<Instruct> outval_; //收到的最终返回结果放在这里
@@ -317,7 +318,8 @@ namespace cyjh{
 		RequestContext(){			
 			id_ = 0;
 			atom_ = 0;
-			bResponse = true;
+			bResponse_ = true;
+			single_ = false;
 			events_[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
 			events_[1] = CreateEvent(NULL, FALSE, FALSE, NULL);
 		}
@@ -443,7 +445,7 @@ namespace cyjh{
 		
 		void pushRequestEvent(std::shared_ptr<RequestContext>&);
 
-		bool popRequestEvent(int reqid);
+		bool popRequestEvent(int reqid, int atom);
 
 		bool pushRecvRequestID(int id, int atom);
 
@@ -497,12 +499,15 @@ namespace cyjh{
 		//拒绝请求,当已在处理一个会话时,不会接受新的会话
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) = 0;
 
+		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) = 0;
+
 		virtual void ProcTrunkReq(std::shared_ptr<Instruct> spInfo);
 
 		void ProcRecvDataHelp(std::shared_ptr<Instruct> spInfo);
 
 	protected:
 		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);
+		std::shared_ptr<RequestContext> triggerReqStackID(int id, int atom);
 		std::shared_ptr<RequestContext> getReqStackTop();
 
 		ThreadType threadType_;
