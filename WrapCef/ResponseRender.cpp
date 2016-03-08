@@ -113,11 +113,12 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 		CefRefPtr<CefV8Exception> excp;
 		CefString cefjs(strJs);
 #ifdef _DEBUG1
-		char *szTmp = new char[strJs.size() + 100];
-		sprintf_s(szTmp, strJs.size() + 100, "------js invoke in render  %d ;  %s", GetCurrentThreadId(),
-			 strJs.c_str());
+		char szTmp[512] = {0};
+		char jspart[256] = { 0 };
+		strncpy_s(jspart, strJs.c_str(), 255);
+		sprintf_s(szTmp, "------js invoke in render  %d ;  %s", GetCurrentThreadId(),
+			jspart);
 		OutputDebugStringA(szTmp);
-		delete[]szTmp;
 #endif
 		bool bEval = false;
 		if ( parm.empty())
@@ -134,6 +135,7 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 			}
 			ret = true;
 		}else{
+#ifdef _DEBUG1
 			std::string err;
 			if ( excp.get() )
 			{
@@ -146,10 +148,10 @@ bool ResponseRender::rsp_invokedJSMethod(const CefRefPtr<CefBrowser> browser, co
 				//OutputDebugStringA(excp->GetMessageW().ToString().c_str());
 				err = excp->GetMessageW().ToString();
 			}
-#ifdef _DEBUG1
-			char szTmp[10240] = { 0 };
-			sprintf_s(szTmp, "------invokejs Fail! render  %d ; err msg: %s ; %s", GetCurrentThreadId(),
-				err.c_str(), strJs.c_str());
+
+			char szTmp[512] = { 0 };
+			sprintf_s(szTmp, "------invokejs Fail! render  %d ;  %s", GetCurrentThreadId(),
+				jspart);
 			OutputDebugStringA(szTmp);
 #endif
 		}

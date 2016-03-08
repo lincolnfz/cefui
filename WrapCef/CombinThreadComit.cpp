@@ -590,33 +590,41 @@ namespace cyjh{
 #define buf_size 10240
 		if (parm.getName().compare("invokedJSMethod") == 0)
 		{
-			char szTmp[buf_size] = { 0 };
+			char szParm[256] = {0};
+			strncpy_s(szParm, parm.getList().GetStrVal(1).c_str(), 255);
+			char szTmp[1024] = {0};
 			sprintf_s(szTmp, "----name = %s ; %s | %s  ; id = %d ; new = %d ; theadID=%d ; %s\n", parm.getName().c_str(),
-				parm.getList().GetStrVal(0).c_str(), parm.getList().GetStrVal(1).c_str(),
+				parm.getList().GetStrVal(0).c_str(), szParm,
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
 			OutputDebugStringA(szTmp);
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod") == 0)
 		{
-			WCHAR szTmp[buf_size] = { 0 };
+			WCHAR szParm[256] = {0};
+			wcsncpy_s(szParm, parm.getList().GetWStrVal(2).c_str(), 255);
+			WCHAR szTmp[1024] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s  ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod",
-				parm.getList().GetWStrVal(1).c_str(), parm.getList().GetWStrVal(2).c_str(),
+				parm.getList().GetWStrVal(1).c_str(), szParm,
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
 		else if (parm.getName().compare("invokeMethod") == 0)
-		{
-			WCHAR szTmp[buf_size] = { 0 };
+		{		
+			WCHAR szParm[256] = { 0 };
+			wcsncpy_s(szParm, parm.getList().GetWStrVal(1).c_str(), 255);
+			WCHAR szTmp[1024] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"invokeMethod",
-				parm.getList().GetWStrVal(0).c_str(), parm.getList().GetWStrVal(1).c_str(),
+				parm.getList().GetWStrVal(0).c_str(), szParm,
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
 		else if (parm.getName().compare("crossInvokeWebMethod2") == 0)
 		{
-			WCHAR szTmp[buf_size] = { 0 };
+			WCHAR szParm[256] = { 0 };
+			wcsncpy_s(szParm, parm.getList().GetWStrVal(3).c_str(), 255);
+			WCHAR szTmp[1024] = { 0 };
 			swprintf_s(szTmp, L"----name = %s ; %s | %s ; id = %d ; new = %d ; theadID=%d ; %s\n", L"crossInvokeWebMethod2",
-				parm.getList().GetWStrVal(2).c_str(), parm.getList().GetWStrVal(3).c_str(),
+				parm.getList().GetWStrVal(2).c_str(), szParm,
 				parm.getID(), parm.newSession(), GetCurrentThreadId(), threadType_ == THREAD_UI ? L"ui" : L"render");
 			OutputDebugStringW(szTmp);
 		}
