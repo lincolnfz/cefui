@@ -69,7 +69,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   if(!GetClassInfoExW(hInst, className, &wndClass))
 	  RegisterOSRClass(hInst, className);
 
-  hWnd_ = ::CreateWindowEx(WS_EX_LAYERED | WS_EX_APPWINDOW, className, 0,
+  hWnd_ = ::CreateWindowEx(WS_EX_LAYERED |WS_EX_APPWINDOW, className, 0,
 	  WS_POPUP|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
       rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
       hWndParent, 0, hInst, 0);
@@ -355,6 +355,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 					destSize.cx = dirtyRects[0].width;
 					destSize.cy = dirtyRects[0].height;
 					UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+					//BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
 				}
 				else {
 					destPt.x = 0;
@@ -362,6 +363,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 					destSize.cx = view_width_;
 					destSize.cy = view_height_;
 					UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+					//BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
 				}
 			}
 			else if (type == PET_POPUP) {
