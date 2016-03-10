@@ -12,6 +12,11 @@
 #include "osrenderer.h"
 #include "TipWin.h"
 
+#ifdef _D3DX
+#include <d3d9.h>
+#include <d3dx9.h>
+#endif
+
 class OSRBrowserProvider : public CefBase {
  public:
   virtual CefRefPtr<CefBrowser> GetBrowser() =0;
@@ -126,6 +131,10 @@ class OSRWindow : public ClientHandler::RenderHandler
   int GetPopupYOffset() const;
   void ApplyPopupOffset(int& x, int& y) const;
 
+  bool dx_Init(HWND, int , int);
+  void dx_Render(const void*, unsigned int size, int, int, int, int);
+  void dx_Destroy();
+
   ClientOSRenderer renderer_;
   OSRBrowserProvider* browser_provider_;
   HWND hWnd_;
@@ -145,6 +154,15 @@ class OSRWindow : public ClientHandler::RenderHandler
   bool render_task_pending_;
   bool hidden_;
   TipWin tipinfo_;
+
+#ifdef _D3DX
+  //Direct3D objects
+  LPDIRECT3D9 d3d_;
+  LPDIRECT3DDEVICE9 d3ddev_;
+#endif  
+  bool bRenderDX_;
+  bool bTrans_;
+
   IMPLEMENT_REFCOUNTING(OSRWindow);
 };
 

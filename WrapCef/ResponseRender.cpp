@@ -6,6 +6,34 @@
 #include <sstream>
 //#include "client_app.h"
 
+
+DocComplate DocComplate::s_inst;
+
+bool DocComplate::setBrowsr(int id, bool comp)
+{
+	std::map<int, DocLoadComplate>::iterator it = docLoadMap_.find(id);
+	if (it != docLoadMap_.end())
+	{
+		it->second.bComp_ = comp;
+	}
+	else{
+		DocLoadComplate item(id, comp);
+		docLoadMap_.insert(std::make_pair(id, item));
+	}
+	return true;
+}
+
+bool DocComplate::hitBrowser(int id)
+{
+	bool bFind = false;
+	std::map<int, DocLoadComplate>::iterator it = docLoadMap_.find(id);
+	if ( it != docLoadMap_.end() )
+	{
+		bFind = it->second.bComp_;
+	}
+	return bFind;
+}
+
 struct _HitTest
 {
 	WORD wHitCode;
@@ -209,11 +237,14 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 	int g_x = req_parm->getList().GetIntVal(2);
 	int g_y = req_parm->getList().GetIntVal(3);
 	double dt = req_parm->getList().GetDoubleVal(4);
-	CefString val;
-	browser->Query_xy_Element(x, y, g_x, g_y, dt, CefString(L"data-nc"), val);
-	std::wstring attrib = val.ToWString();
+	CefString val(L"");
+	std::wstring attrib;
+	if ( DocComplate::getInst().hitBrowser(browser->GetIdentifier()) )
+	{
+		browser->Query_xy_Element(x, y, g_x, g_y, dt, CefString(L"data-nc"), val);
+		attrib = val.ToWString();
+	}
 	outVal->getList().AppendVal(attrib);
-
 	bool bHandle = false;
 	if (wcscmp(attrib.c_str(), L""))
 	{

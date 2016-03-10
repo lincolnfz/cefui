@@ -13,6 +13,11 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "BridageRender.h"
 #include "WebViewFactory.h"
+
+#ifdef _D3DX
+#pragma comment(lib,"d3d9.lib")  
+#pragma comment(lib,"d3dx9.lib")
+#endif
 //#include <windows.h>
 //#include "cefclient/resource.h"
 
@@ -69,6 +74,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   if(!GetClassInfoExW(hInst, className, &wndClass))
 	  RegisterOSRClass(hInst, className);
 
+  bTrans_ = true;
   hWnd_ = ::CreateWindowEx(WS_EX_LAYERED |WS_EX_APPWINDOW, className, 0,
 	  WS_POPUP|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
       rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
@@ -77,6 +83,10 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   if (!hWnd_)
     return false;
 
+  if (!bTrans_)
+  {
+	  bRenderDX_ = dx_Init(hWnd_, rect.right - rect.left, rect.bottom - rect.top);
+  }  
   SetWindowLongPtr(hWnd_, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
   /*long styleEx = GetWindowLong(hWnd_, GWL_EXSTYLE);
@@ -325,58 +335,91 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
   return;*/
 
 	BITMAPINFO info;
-	HDC hdc = ::GetDC(hWnd_);
-	HDC hSrcDC = CreateCompatibleDC(hdc);
 	unsigned long datalen = 0;
 	Get32BitmapInfo(width, height, info, datalen);
-	void* bitbuf = NULL;
-	HBITMAP hBitmap = CreateDIBSection(hSrcDC, &info, DIB_RGB_COLORS, (void**)&bitbuf, NULL, 0);
-	if (hBitmap){
-		if (SetBitmapBits(hBitmap, datalen, buffer)){
-			HBITMAP hOldBmp = static_cast<HBITMAP>(SelectObject(hSrcDC, hBitmap));
-			if (type == PET_VIEW) {
-				int old_width = view_width_;
-				int old_height = view_height_;
 
-				view_width_ = width;
-				view_height_ = height;
+	if ( bRenderDX_ )
+	{
+		if (type == PET_VIEW) {
+			int old_width = view_width_;
+			int old_height = view_height_;
 
-				POINT destPt;
-				POINT srcPt = { 0, 0 };
-				SIZE destSize;
-				BLENDFUNCTION pb;
-				pb.AlphaFormat = AC_SRC_ALPHA;
-				pb.BlendOp = AC_SRC_OVER;
-				pb.BlendFlags = 0;
-				pb.SourceConstantAlpha = m_alpah;
-				if (old_width != view_width_ || old_height != view_height_ ||
-					(dirtyRects.size() == 1 &&
-					dirtyRects[0] == CefRect(0, 0, view_width_, view_height_))) {
-					destSize.cx = dirtyRects[0].width;
-					destSize.cy = dirtyRects[0].height;
-					UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
-					//BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
-				}
-				else {
-					destPt.x = 0;
-					destPt.y = 0;
-					destSize.cx = view_width_;
-					destSize.cy = view_height_;
-					UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
-					//BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
-				}
+			view_width_ = width;
+			view_height_ = height;
+			POINT destPt;
+			POINT srcPt = { 0, 0 };
+			SIZE destSize;			
+			if (old_width != view_width_ || old_height != view_height_ ||
+				(dirtyRects.size() == 1 &&
+				dirtyRects[0] == CefRect(0, 0, view_width_, view_height_))) {
+				destSize.cx = dirtyRects[0].width;
+				destSize.cy = dirtyRects[0].height;
+				dx_Render(buffer, datalen, 0, 0, destSize.cx, destSize.cy);
 			}
-			else if (type == PET_POPUP) {
-
+			else{
+				destPt.x = 0;
+				destPt.y = 0;
+				destSize.cx = view_width_;
+				destSize.cy = view_height_;
+				dx_Render(buffer, datalen, 0, 0, destSize.cx, destSize.cy);
 			}
-			SelectObject(hSrcDC, hOldBmp);
-		}
-		DeleteObject(hBitmap);
-	
+		}		
 	}
+	else{
+		HDC hdc = ::GetDC(hWnd_);
+		HDC hSrcDC = CreateCompatibleDC(hdc);
+		void* bitbuf = NULL;
+		HBITMAP hBitmap = CreateDIBSection(hSrcDC, &info, DIB_RGB_COLORS, (void**)&bitbuf, NULL, 0);
+		if (hBitmap){
+			if (SetBitmapBits(hBitmap, datalen, buffer)){
+				HBITMAP hOldBmp = static_cast<HBITMAP>(SelectObject(hSrcDC, hBitmap));
+				if (type == PET_VIEW) {
+					int old_width = view_width_;
+					int old_height = view_height_;
 
-	DeleteDC(hSrcDC);
-	ReleaseDC(hWnd_, hdc);
+					view_width_ = width;
+					view_height_ = height;
+
+					POINT destPt;
+					POINT srcPt = { 0, 0 };
+					SIZE destSize;
+					BLENDFUNCTION pb;
+					pb.AlphaFormat = AC_SRC_ALPHA;
+					pb.BlendOp = AC_SRC_OVER;
+					pb.BlendFlags = 0;
+					pb.SourceConstantAlpha = m_alpah;
+					if (old_width != view_width_ || old_height != view_height_ ||
+						(dirtyRects.size() == 1 &&
+						dirtyRects[0] == CefRect(0, 0, view_width_, view_height_))) {
+						destSize.cx = dirtyRects[0].width;
+						destSize.cy = dirtyRects[0].height;
+						if (bTrans_)
+							UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+						else
+							BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
+					}
+					else {
+						destPt.x = 0;
+						destPt.y = 0;
+						destSize.cx = view_width_;
+						destSize.cy = view_height_;
+						if (bTrans_)
+							UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+						else
+							BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
+					}
+				}
+				else if (type == PET_POPUP) {
+
+				}
+				SelectObject(hSrcDC, hOldBmp);
+			}
+			DeleteObject(hBitmap);
+		}
+
+		DeleteDC(hSrcDC);
+		ReleaseDC(hWnd_, hdc);
+	}
 }
 
 void OSRWindow::OnCursorChange(CefRefPtr<CefBrowser> browser,
@@ -499,10 +542,18 @@ OSRWindow::OSRWindow(OSRBrowserProvider* browser_provider,
 	  view_width_(0),
 	  view_height_(0),
 	  m_alpah(0xff){
+
+	bRenderDX_ = false;
+	bTrans_ = true;
+#ifdef _D3DX
+	d3d_ = NULL;
+	d3ddev_ = NULL;
+#endif
 }
 
 OSRWindow::~OSRWindow() {
   DestroyWidget();
+  dx_Destroy();
 }
 
 void OSRWindow::Render() {
@@ -1043,4 +1094,102 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
 
   return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+
+bool OSRWindow::dx_Init(HWND window, int width, int height)
+{
+#ifdef _D3DX
+	//initialize Direct3D
+	d3d_ = Direct3DCreate9(D3D_SDK_VERSION);
+	if (d3d_ == NULL)
+	{
+		return 0;
+	}
+
+	//set Direct3D presentation parameters
+	D3DPRESENT_PARAMETERS d3dpp;
+	ZeroMemory(&d3dpp, sizeof(d3dpp));
+	d3dpp.Windowed = TRUE;
+	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
+	d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
+	d3dpp.BackBufferCount = 1;
+	d3dpp.BackBufferWidth = 0;
+	d3dpp.BackBufferHeight = 0;
+	d3dpp.hDeviceWindow = window;
+
+	//create Direct3D device
+	d3d_->CreateDevice(
+		D3DADAPTER_DEFAULT,
+		D3DDEVTYPE_HAL,
+		window,
+		D3DCREATE_SOFTWARE_VERTEXPROCESSING,
+		&d3dpp,
+		&d3ddev_);
+
+	if (d3ddev_ == NULL)
+	{
+		return 0;
+	}
+#endif
+	return true;
+}
+
+void OSRWindow::dx_Render(const void* data, unsigned int size, int x, int y, int width, int height)
+{
+#ifdef _D3DX
+	//make sure the Direct3D device is valid
+	if (!d3ddev_) return;
+
+	//clear the backbuffer to bright green
+	d3ddev_->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
+	//d3ddev_->set
+	//start rendering
+	if (d3ddev_->BeginScene())
+	{
+		//do something?
+		{
+			LPD3DXSPRITE pSprite = NULL;
+			LPDIRECT3DTEXTURE9 pTexture = NULL;
+			if (D3DXCreateSprite(d3ddev_, &pSprite) == D3D_OK)
+			{
+				if (D3DXCreateTexture(d3ddev_, width, height, D3DX_DEFAULT, 0,
+					D3DFMT_A8R8G8B8, D3DPOOL_MANAGED,
+					&pTexture) == D3D_OK)
+				{
+					D3DLOCKED_RECT lockrc = { 0, 0 };
+					if (pTexture->LockRect(0, &lockrc, NULL, 0) == D3D_OK)
+					{
+						memcpy(lockrc.pBits, data, size);
+						pTexture->UnlockRect(0);
+						pSprite->Begin(D3DXSPRITE_ALPHABLEND);
+						RECT rct = { x, y, width, height };
+						pSprite->Draw(pTexture, &rct, NULL, NULL, 0xffffffff);
+						pSprite->End();
+					}										
+					pTexture->Release();
+				}
+				pSprite->Release();
+			}
+
+		}
+
+		//stop rendering
+		d3ddev_->EndScene();
+
+		//copy back buffer on the screen
+		d3ddev_->Present(NULL, NULL, NULL, NULL);
+	}
+#endif
+}
+
+void OSRWindow::dx_Destroy()
+{
+#ifdef _D3DX
+	//display close message
+
+	//free memory
+	if (d3ddev_) d3ddev_->Release();
+	if (d3d_) d3d_->Release();
+#endif
 }

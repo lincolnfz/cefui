@@ -22,6 +22,7 @@
 #include <string>
 #include <shlobj.h> 
 #include "json/json.h"
+#include "ResponseRender.h"
 
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
@@ -917,6 +918,10 @@ public:
 
 	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame) {
+
+		if (frame->IsMain())
+			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), false);
+
 		CefRefPtr<CefFrame> parent = frame->GetParent();
 		if ( parent.get() )
 		{
@@ -967,6 +972,10 @@ public:
 
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame){
+
+		if(frame->IsMain())
+			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
+
 		CefRefPtr<CefFrame> parent = frame->GetParent();
 		if (parent.get())
 		{

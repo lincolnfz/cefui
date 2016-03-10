@@ -3,6 +3,42 @@
 #pragma once
 #include "ResponseHandle.h"
 
+struct DocLoadComplate 
+{
+	int browsr_;
+	bool bComp_;
+	DocLoadComplate(int id, bool comp){
+		browsr_ = id;
+		bComp_ = comp;
+	}
+};
+
+class DocComplate
+{
+public:
+	static DocComplate s_inst;
+
+	static DocComplate& getInst(){
+		return s_inst;
+	}
+
+	bool setBrowsr(int id, bool comp);
+
+	bool hitBrowser(int id);
+
+protected:
+	DocComplate(){
+
+	}
+
+	virtual ~DocComplate(){
+
+	}
+
+protected:
+	std::map<int, DocLoadComplate> docLoadMap_;
+};
+
 class ResponseRender : public ResponseHandle
 {
 public:
