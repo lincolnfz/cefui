@@ -730,8 +730,9 @@ public:
 		WCHAR szAppData[MAX_PATH];
 		SHGetSpecialFolderPathW(NULL, szAppData, CSIDL_APPDATA, TRUE);
 		wcscat_s(szAppData, L"\\");
-		//value = CefV8Value::CreateString(CefString(szAppData));
-		cyjh::Instruct parm;
+
+		//为兼容旧版本,不在后面加上程序目录
+		/*cyjh::Instruct parm;
 		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
@@ -743,7 +744,9 @@ public:
 		}
 		else{
 			value = CefV8Value::CreateString(CefString(szAppData));
-		}
+		}*/
+
+		value = CefV8Value::CreateString(CefString(szAppData));
 	}
 
 	void screen_w(CefRefPtr<CefV8Value>& value){

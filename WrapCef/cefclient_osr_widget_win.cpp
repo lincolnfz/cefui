@@ -13,6 +13,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "BridageRender.h"
 #include "WebViewFactory.h"
+#include "IPC.h"
 
 #ifdef _D3DX
 #pragma comment(lib,"d3d9.lib")  
@@ -47,6 +48,8 @@ class ScopedGLContext {
 
 }  // namespace
 
+
+bool OSRWindow::s_singleProcess = true;
 // static
 CefRefPtr<OSRWindow> OSRWindow::Create(
     OSRBrowserProvider* browser_provider,
@@ -66,7 +69,7 @@ CefRefPtr<OSRWindow> OSRWindow::From(
 }
 
 bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
-                             HINSTANCE hInst, LPCTSTR className) {
+                             HINSTANCE hInst, LPCTSTR className, bool trans) {
   DCHECK(hWnd_ == NULL && hDC_ == NULL && hRC_ == NULL);
 
   WNDCLASSEXW wndClass;
@@ -74,8 +77,14 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   if(!GetClassInfoExW(hInst, className, &wndClass))
 	  RegisterOSRClass(hInst, className);
 
-  bTrans_ = true;
-  hWnd_ = ::CreateWindowEx(WS_EX_LAYERED |WS_EX_APPWINDOW, className, 0,
+  bTrans_ = trans;
+  DWORD dwExStyle = WS_EX_APPWINDOW;
+  if ( bTrans_ )
+  {
+	  dwExStyle |= WS_EX_LAYERED;
+	  //dwExStyle &= ~WS_EX_APPWINDOW;	  
+  }
+  hWnd_ = ::CreateWindowEx(dwExStyle/*WS_EX_LAYERED*/ /*|WS_EX_APPWINDOW*/, className, 0,
 	  WS_POPUP|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
       rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
       hWndParent, 0, hInst, 0);
@@ -1086,6 +1095,27 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   {
 	  if ( browser.get() )
 	  {
+		  int ipcID = 0;
+		  if (!OSRWindow::s_singleProcess && window->browser_provider_->GetBrowser().get())
+		  {
+			  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(window->browser_provider_->GetBrowser()->GetIdentifier());
+			  if (item.get())
+			  {
+				  ipcID = item->m_ipcID;
+				  std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
+
+				  cyjh::Instruct parm;
+				  parm.setName("closeBrowser");
+				  //parm.setInstructType(cyjh::INSTRUCT_REQUEST);
+				  //cyjh::Pickle pick;
+				  //cyjh::Instruct::SerializationInstruct(&parm, pick);
+				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
+				  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
+				  ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
+				  ipc->Close();
+			  }
+		  }
+
 		  browser->CloseBrowser(true); //¹Ø±Õµ¥¶À
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
 	  }
@@ -1099,6 +1129,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
 bool OSRWindow::dx_Init(HWND window, int width, int height)
 {
+	bool ret = false;
 #ifdef _D3DX
 	//initialize Direct3D
 	d3d_ = Direct3DCreate9(D3D_SDK_VERSION);
@@ -1131,8 +1162,9 @@ bool OSRWindow::dx_Init(HWND window, int width, int height)
 	{
 		return 0;
 	}
+	ret = true;
 #endif
-	return true;
+	return ret;
 }
 
 void OSRWindow::dx_Render(const void* data, unsigned int size, int x, int y, int width, int height)

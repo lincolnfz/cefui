@@ -475,7 +475,7 @@ bool ResponseUI::rsp_winProty(const CefRefPtr<CefBrowser> browser, const std::sh
 }
 
 bool parseCreateWindowParm(std::string& json, long& x, long& y, long& width, long& height, long& min_cx, long& min_cy, long& max_cx, long& max_cy,
-	std::string& skin, long& alpha, unsigned long& ulStyle, unsigned long& extra, unsigned long& parentSign)
+	std::string& skin, long& alpha, unsigned long& ulStyle, unsigned long& extra, unsigned long& parentSign, bool& trans)
 {
 	bool ret = false;
 	Json::Reader read;
@@ -494,6 +494,7 @@ bool parseCreateWindowParm(std::string& json, long& x, long& y, long& width, lon
 		ulStyle = root.get("ulStyle", 0).asUInt();
 		extra = root.get("extra", 0).asUInt();
 		parentSign = root.get("parentSign", 0).asUInt();
+		trans = root.get("trans", true).asBool();
 		ret = true;
 	}
 
@@ -521,9 +522,9 @@ bool ResponseUI::rsp_createWindow(const CefRefPtr<CefBrowser> browser, const std
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
 			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
-			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign; bool trans;
 			std::string parm = req_parm->getList().GetStrVal(0);
-			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
 				s_fnMap->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
 				ret = true;
@@ -542,9 +543,9 @@ bool ResponseUI::rsp_createModalWindow(const CefRefPtr<CefBrowser> browser, cons
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
 			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
-			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign; bool trans;
 			std::string parm = req_parm->getList().GetStrVal(0);
-			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
 				s_fnMap->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
 				ret = true;
@@ -563,9 +564,9 @@ bool ResponseUI::rsp_createModalWindow2(const CefRefPtr<CefBrowser> browser, con
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
 			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
-			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
+			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign; bool trans;
 			std::string parm = req_parm->getList().GetStrVal(0);
-			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
+			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
 				s_fnMap->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra, parentSign);
 				ret = true;

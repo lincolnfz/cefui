@@ -212,7 +212,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 		rect.top = y;
 		rect.right = width;
 		rect.bottom = height;
-		osr_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass);
+		osr_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, true);
 		info.SetAsWindowless(osr_window->hwnd(), transparent);
 		info.transparent_painting_enabled = true;
 		info.windowless_rendering_enabled = true;
@@ -461,6 +461,7 @@ void CBrowserControl::handle_SetForce()
 
 WCHAR g_szLocalPath[MAX_PATH];
 std::wstring g_strAppDataPath;
+
 namespace wrapQweb{
 
 	static bool getAppDataFolder(std::wstring& directory)
@@ -523,6 +524,7 @@ namespace wrapQweb{
 			cef_string_set(szRender, wcslen(szRender), &settings.browser_subprocess_path, true); //…Ë÷√‰÷»æΩ¯≥Ãexe
 			settings.single_process = false;
 		}
+		OSRWindow::s_singleProcess = settings.single_process;
 		//WCHAR szFile[MAX_PATH] = { 0 };
 		//WCHAR szCache[MAX_PATH] = { 0 };
 		//GetModuleFileName(0, szFile, MAX_PATH);
@@ -541,7 +543,7 @@ namespace wrapQweb{
 
 	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar)
 	{
-		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar);
+		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, true);
 	}
 
 	void InitQWeb(FunMap* map){

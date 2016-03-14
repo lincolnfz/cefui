@@ -138,6 +138,8 @@ namespace cyjh{
 		const WCHAR*  getName() const{
 			return name_;
 		}
+
+		virtual bool Close() = 0;
 	protected:
 		
 		bool IPC::proxy_send(const unsigned char* data, DWORD len, DWORD nTimeout);
@@ -165,6 +167,7 @@ namespace cyjh{
 		int seriaNum_; //·¢ËÍid
 		std::mutex seriaNumberMutex_;
 		WCHAR name_[64];
+		HANDLE hFin_;
 	};
 
 
@@ -173,20 +176,24 @@ namespace cyjh{
 	public:
 		IPCPipeSrv(const WCHAR* name);
 		virtual ~IPCPipeSrv();
-		//virtual bool Send(char* data, int len) override;		
+		//virtual bool Send(char* data, int len) override;
+
+		virtual bool Close() override;
 	protected:
 		//virtual BOOL ProcDataPack(std::shared_ptr<_SENDPACKET>) override;
 
 		static unsigned int __stdcall WorkThread(void*);
 
-		virtual void RecvData(_IPC_MESSAGE*) override;
+		//virtual void RecvData(_IPC_MESSAGE*) override;
 
-		virtual void RecvData(unsigned char* recv_buf_, DWORD len) override;
+		//virtual void RecvData(unsigned char* recv_buf_, DWORD len) override;
 
-		virtual void NotifyRecvData(unsigned char*, DWORD len) override;
+		virtual void NotifyRecvData(unsigned char*, DWORD len) override{
+		}
+
 	private:		
 		bool succCreate_;
-		bool bPendingIO_;
+		bool bPendingIO_;		
 	};
 
 	class IPCPipeClient : public IPC
@@ -205,6 +212,8 @@ namespace cyjh{
 		}
 
 		//virtual bool Send(char* data, int len) override;
+
+		virtual bool Close() override;
 	protected:
 		//virtual BOOL ProcDataPack(std::shared_ptr<_SENDPACKET>) override;
 
@@ -250,10 +259,13 @@ namespace cyjh{
 			return cli_.getName();
 		}
 
+		void Close();
+
 	private:
 		IPCPipeSrv srv_;
 		IPCPipeClient cli_;
 		int id_;
+		bool close_;
 	};
 
 	class IPC_Manager

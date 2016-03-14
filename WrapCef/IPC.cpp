@@ -51,6 +51,7 @@ namespace cyjh{
 	{
 		srvpipe_ = remotepipe_ = NULL;
 		memset(&op_, 0, sizeof(op_));
+		hFin_ = CreateEvent(NULL, TRUE, TRUE, NULL);
 		hEvents_[0] = CreateEvent(NULL, TRUE, TRUE, NULL);   // OVERLPPED‘s event
 		hEvents_[1] = CreateEvent(NULL, TRUE, FALSE, NULL);  // exit event
 		op_.hEvent = hEvents_[0];
@@ -74,6 +75,9 @@ namespace cyjh{
 		{
 			CloseHandle(hEvents_[1]);
 		}
+
+		//WaitForSingleObject(hFin_, INFINITE);
+		CloseHandle(hFin_);
 	}
 
 	bool IPC::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
@@ -299,7 +303,7 @@ namespace cyjh{
 	{
 		bPendingIO_ = false;
 		succCreate_ = false;
-		wcscpy_s(name_, name);
+		wcscpy_s(name_, name);		
 		srvpipe_ = CreateNamedPipe(name, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
 			PIPE_WAIT | PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE,
 			1, BUF_SIZE, BUF_SIZE, 0, NULL);
@@ -338,6 +342,11 @@ namespace cyjh{
 	IPCPipeSrv::~IPCPipeSrv()
 	{
 		
+	}
+
+	bool IPCPipeSrv::Close(){
+		//DisconnectNamedPipe(srvpipe_);
+		return true;
 	}
 
 	unsigned int __stdcall IPCPipeSrv::WorkThread(void* parm)
@@ -400,7 +409,7 @@ namespace cyjh{
 				break;
 			}
 			else{
-				//结束工作线程
+				//结束工作线程				
 				break;
 			}
 		}
@@ -413,7 +422,7 @@ namespace cyjh{
 		return true;
 	}*/
 
-	void IPCPipeSrv::RecvData(_IPC_MESSAGE* pack)
+	/*void IPCPipeSrv::RecvData(_IPC_MESSAGE* pack)
 	{
 		IPC::RecvData(pack);
 	}
@@ -427,7 +436,7 @@ namespace cyjh{
 	void IPCPipeSrv::NotifyRecvData(unsigned char* byte, DWORD len)
 	{
 		//no_imple
-	}
+	}*/
 
 
 
@@ -438,6 +447,7 @@ namespace cyjh{
 	IPCPipeClient::IPCPipeClient(const WCHAR* name) :IPC(this)
 	{
 		wcscpy_s(name_, name);
+		//ResetEvent(hFin_);
 		unsigned int nTid = 0;
 		HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, WorkThread, this, 0, &nTid);
 		CloseHandle(hThread);
@@ -445,7 +455,14 @@ namespace cyjh{
 
 	IPCPipeClient::~IPCPipeClient()
 	{
+		//SetEvent(hEvents_[1]);
+		//WaitForSingleObject(hFin_, INFINITE);
+	}
 
+	bool IPCPipeClient::Close(){
+		//SetEvent(hEvents_[1]);
+		//WaitForSingleObject(hFin_, INFINITE);
+		return true;
 	}
 
 	unsigned int __stdcall IPCPipeClient::WorkThread(void* parm)
@@ -464,6 +481,7 @@ namespace cyjh{
 				}
 				else{
 					//OutputDebugString(L"IPCPipeClient::WorkThread 失败");
+					//SetEvent(inst->hEvents_[1]);
 					return 0;
 				}
 				
@@ -484,6 +502,7 @@ namespace cyjh{
 				break;
 			}
 			else{
+				//SetEvent(inst->hEvents_[1]);
 				return 0;
 			}
 
@@ -503,6 +522,7 @@ namespace cyjh{
 
 		if ( !bSuccess )
 		{
+			//SetEvent(inst->hEvents_[1]);
 			return 0;
 		}
 		//OutputDebugString(L"IPCPipeClient::ReadFile start");
@@ -516,11 +536,12 @@ namespace cyjh{
 			else{
 				break;
 			}
-		}
+		}		
 		if (inst->disconstCB_)
 		{
 			inst->disconstCB_();
 		}
+		//SetEvent(inst->hFin_);
 		return 0;
 	}
 
@@ -555,8 +576,12 @@ namespace cyjh{
 	}
 
 
+	//////////////////////////////////////////////////////////////////////////
+	//// 实现IPCUnit
+	/////////////
 	IPCUnit::IPCUnit(const WCHAR* srv_ame, const WCHAR* cli_name) :srv_(srv_ame), cli_(cli_name)
 	{
+		close_ = false;
 		id_ = InterlockedIncrement((long*)&ipc_unit_id);
 		cli_.BindDisconstCallback(&IPCUnit::NotifyDisconst, this);
 	}
@@ -566,8 +591,18 @@ namespace cyjh{
 
 	}
 
+	void IPCUnit::Close()
+	{
+		close_ = true;
+		//cli_.Close();
+	}
+
 	bool IPCUnit::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
 	{
+		if ( close_ )
+		{
+			return false;
+		}
 		return srv_.Send(data, len, nTimeout);
 	}
 

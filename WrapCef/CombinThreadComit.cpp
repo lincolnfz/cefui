@@ -373,6 +373,11 @@ namespace cyjh{
 				if ( it->id_ == id && it->atom_ == atom )
 				{
 					eventResponsStack_.erase(it);
+#ifdef _DEBUG1
+					char szTmp[256] = { 0 };
+					sprintf_s(szTmp, "---- error!!! pushRecvReq error samp id = %d, theadID=%d ; %s\n", id, GetCurrentThreadId(), threadType_ == THREAD_UI ? "ui" : "render");
+					OutputDebugStringA(szTmp);
+#endif
 					assert(false);
 					break;
 				}
@@ -672,7 +677,7 @@ namespace cyjh{
 		}
 
 		int atom = InterlockedIncrement((long*)&s_atom);
-		parm.setAtom(atom);
+		parm.setAtom(atom + generateID()); //这用来防止两个不同进程因为序列相同，生成的atom一样的问题
 		std::shared_ptr<RequestContext> sp(new RequestContext());
 		sp->id_ = reqeustid;
 		sp->atom_ = parm.getAtom();
@@ -697,10 +702,10 @@ namespace cyjh{
 #endif
 
 		//pick.data(), pick.size()
-		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		bool bSend = ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 		
 		/////ipc
-		while (true)
+		while (bSend)
 		{
 			//checkMaybelockQueue();
 			if (bLock){
@@ -732,6 +737,12 @@ namespace cyjh{
 			}
 		}
 
+		if ( !bSend )
+		{
+			std::shared_ptr<Instruct> tmpOut(new Instruct);
+			tmpOut->setSucc(false);
+			response_val = tmpOut;
+		}
 		assert(response_val.get());
 		//popRequestEvent(sp->id_); //放到数据接收线程中处理??????????????,避免接收线程太快，同时处理收到响应，与请求指令
 		
@@ -752,7 +763,7 @@ namespace cyjh{
 		}
 		//requestQueue_.SetEvent();		
 #ifdef _DEBUG1
-		if (response_val->getProcState() != PROC_STATE_FIN)
+		if (response_val.get() && response_val->getProcState() != PROC_STATE_FIN)
 		{
 			char szTmp[8192] = { 0 };
 			sprintf_s(szTmp, "---- !!!!reject name = %s ; id = %d ; new = %d ; theadID=%d ; procstate=%d ; %s\n", response_val->getName().c_str(),
@@ -1295,6 +1306,14 @@ namespace cyjh{
 			return;
 		}
 
+		/*if ( spInstruct->getInstructType() == INSTRUCT_CLOSE )
+		{
+			assert(threadType_ == THREAD_RENDER);
+			//CefPostTask(TID_UI, base::Bind(&CombinThreadComit::RegisertBrowserHelp, this, spInstruct));
+			this->CloseIpc(spInstruct);
+			return;
+		}*/
+
 #ifdef _SINGLE_INSTRUCT_PROC
 		bool match = isSameMyReqID(spInstruct->getID());
 		if (!match){
@@ -1420,6 +1439,34 @@ namespace cyjh{
 				pushMaybelockQueue(spInstruct);
 				procRecvRequest(spInstruct);
 			}
+		}
+	}
+
+	bool CombinThreadComit::haveRequest()
+	{
+		CEF_REQUIRE_RENDERER_THREAD();
+		return !eventRequestStack_.empty();
+	}
+
+	bool CombinThreadComit::haveResponse()
+	{
+		CEF_REQUIRE_RENDERER_THREAD();
+		return !eventResponsStack_.empty();
+	}
+
+	void CombinThreadComit::manTriggerReqEvent()
+	{
+		CEF_REQUIRE_RENDERER_THREAD();
+		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
+		std::deque<std::shared_ptr<RequestContext>>::iterator it = eventRequestStack_.begin();
+		while ( it != eventRequestStack_.end() )
+		{
+			std::shared_ptr<Instruct> tmp(new Instruct);
+			tmp->setSucc(false);
+			it->get()->outval_ = tmp;
+			SetEvent(it->get()->events_[0]);
+			eventRequestStack_.erase(it);
+			it = eventRequestStack_.begin();
 		}
 	}
 }

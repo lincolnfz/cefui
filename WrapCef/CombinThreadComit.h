@@ -191,6 +191,7 @@ namespace cyjh{
 		INSTRUCT_OUTQUEUE,
 		INSTRUCT_WAKEUP,
 		INSTRUCT_REGBROWSER,
+		INSTRUCT_CLOSE,
 		INSTRUCT_NULL,
 	};
 
@@ -503,7 +504,15 @@ namespace cyjh{
 
 		virtual void ProcTrunkReq(std::shared_ptr<Instruct> spInfo);
 
+		virtual void CloseIpc(std::shared_ptr<Instruct>){}
+
 		void ProcRecvDataHelp(std::shared_ptr<Instruct> spInfo);
+
+		bool haveRequest();
+
+		bool haveResponse();
+
+		void manTriggerReqEvent();
 
 	protected:
 		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);

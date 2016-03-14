@@ -53,11 +53,16 @@ namespace cyjh{
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
 		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
 
+		virtual void CloseIpc(std::shared_ptr<Instruct> spInfo) override;
+		void CloseIpcHelp(std::shared_ptr<Instruct> spInfo);
+
 		std::shared_ptr<IPCUnit> ipc_;
 
 	protected:
 		ResponseRender handle_;
 		RenderBlockThread block_;
+		bool bNeedClose_, bClosed_;
+		std::shared_ptr<Instruct> spCloseInstruct_;
 		IMPLEMENT_REFCOUNTING(RenderThreadCombin);
 	};
 

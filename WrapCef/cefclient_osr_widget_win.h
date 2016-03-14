@@ -44,7 +44,7 @@ class OSRWindow : public ClientHandler::RenderHandler
 
   // Create the underlying window.
   bool CreateWidget(HWND hWndParent, const RECT& rect,
-                    HINSTANCE hInst, LPCTSTR className);
+                    HINSTANCE hInst, LPCTSTR className, bool trans);
 
   // Destroy the underlying window.
   void DestroyWidget();
@@ -111,6 +111,8 @@ class OSRWindow : public ClientHandler::RenderHandler
   void SetAlpha( const unsigned int& );
 
   void ShowTip(const std::wstring& info);
+
+  static bool s_singleProcess; //是否是单进程
 
  private:
   OSRWindow(OSRBrowserProvider* browser_provider,

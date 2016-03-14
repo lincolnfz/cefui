@@ -58,7 +58,7 @@ public:
 	}
 
 	HWND GetWebView(const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
-		const int& height, const CefString& url, const int& alpha, const bool& taskbar);
+		const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans);
 
 	CefRefPtr<WebItem> FindItem(const HWND hWnd);
 
