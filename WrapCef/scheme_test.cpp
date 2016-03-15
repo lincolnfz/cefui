@@ -234,6 +234,12 @@ class ClientSchemeHandler : public CefResourceHandler {
 		//std::string win_standfile = replace_all_distinct(file, "/", "\\");
 		unsigned char* data = 0;
 		unsigned long data_len = 0;
+
+		//开始是两个\\,删除掉一个
+		if ( resource.find("\\\\") == 0 )
+		{
+			resource.erase(resource.begin());
+		}
 		if (exZipFile(char2wchar(file).c_str(), char2wchar(resource).c_str(), &data, &data_len)){
 			handled = true;
 			data_ = std::string(reinterpret_cast<char*>(data), data_len);
