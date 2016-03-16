@@ -19,13 +19,13 @@ namespace wrapQweb {
 	typedef long(__stdcall *call_setWindowPos)(HWND hWnd, long order, long x, long y, long cx, long cy , long flag);
 
 	typedef long(__stdcall *call_createWindow)(HWND hWnd, long x, long y, long width, long height, long min_cx, long min_cy, long max_cx, long max_cy,
-		std::wstring& skin, long alpha, unsigned long ulStyle, unsigned long extra);
+		std::wstring& skin, long alpha, unsigned long ulStyle, bool bTrans, unsigned long extra);
 
 	typedef long(__stdcall *call_createModalWindow)(HWND hWnd, long x, long y, long width, long height, long min_cx, long min_cy, long max_cx, long max_cy,
-		std::wstring& skin, long alpha, unsigned long ulStyle, unsigned long extra);
+		std::wstring& skin, long alpha, unsigned long ulStyle, bool bTrans, unsigned long extra);
 
 	typedef long(__stdcall *call_createModalWindow2)(HWND hWnd, long x, long y, long width, long height, long min_cx, long min_cy, long max_cx, long max_cy,
-		std::wstring& skin, long alpha, unsigned long ulStyle, unsigned long extra, unsigned long parentSign);
+		std::wstring& skin, long alpha, unsigned long ulStyle, bool bTrans, unsigned long extra, unsigned long parentSign);
 
 	typedef const WCHAR*(__stdcall *call_invokeMethod)(HWND hWnd, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
 
@@ -78,7 +78,7 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void CloseAllWebView();
 
-	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar);
+	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans);
 
 	SHARED_EXPORT_API bool QueryNodeAttrib(const HWND&, const int& x, const int& y, char* name, WCHAR* outVal, const int& len);
 

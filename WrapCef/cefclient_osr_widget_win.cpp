@@ -69,7 +69,7 @@ CefRefPtr<OSRWindow> OSRWindow::From(
 }
 
 bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
-                             HINSTANCE hInst, LPCTSTR className, bool trans) {
+                             HINSTANCE hInst, LPCTSTR className, const bool& trans) {
   DCHECK(hWnd_ == NULL && hDC_ == NULL && hRC_ == NULL);
 
   WNDCLASSEXW wndClass;
@@ -79,15 +79,20 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 
   bTrans_ = trans;
   DWORD dwExStyle = WS_EX_APPWINDOW;
+  DWORD dwStyle = WS_POPUP| WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
   if ( bTrans_ )
   {
-	  dwExStyle |= WS_EX_LAYERED;
+	  dwExStyle |= (WS_EX_LAYERED);
 	  //dwExStyle &= ~WS_EX_APPWINDOW;	  
   }
+  else{
+	  dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+  }
   hWnd_ = ::CreateWindowEx(dwExStyle/*WS_EX_LAYERED*/ /*|WS_EX_APPWINDOW*/, className, 0,
-	  WS_POPUP|WS_MINIMIZEBOX|WS_MAXIMIZEBOX,
+	  dwStyle /*WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX*/,
       rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
       hWndParent, 0, hInst, 0);
+
 
   if (!hWnd_)
     return false;

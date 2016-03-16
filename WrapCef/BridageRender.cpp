@@ -91,7 +91,7 @@ void myCreateWindow(HWND hWnd, std::string parm)
 
 	if (_parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
 	{
-		ResponseUI::getFunMap()->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, extra);
+		//ResponseUI::getFunMap()->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, true, extra);
 	}
 }
 
@@ -132,7 +132,7 @@ bool BridageRender::rsp_createModalWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBro
 			std::string parm = msg->GetArgumentList()->GetString(0).ToString();
 			if (_parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
 			{
-				ResponseUI::getFunMap()->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, extra);
+				//ResponseUI::getFunMap()->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, true, extra);
 				ret = true;
 			}
 		}
@@ -153,7 +153,7 @@ bool BridageRender::rsp_createModalWindow2(CefRefPtr<ClientApp>, CefRefPtr<CefBr
 			std::string parm = msg->GetArgumentList()->GetString(0).ToString();
 			if (_parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign))
 			{
-				ResponseUI::getFunMap()->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, extra, parentSign);
+				//ResponseUI::getFunMap()->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, _char2wchar(skin), alpha, ulStyle, true, extra, parentSign);
 				ret = true;
 			}
 		}

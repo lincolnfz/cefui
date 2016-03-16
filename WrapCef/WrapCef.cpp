@@ -541,9 +541,9 @@ namespace wrapQweb{
 		return exit_code;
 	}
 
-	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar)
+	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans)
 	{
-		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, true);
+		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
 	}
 
 	void InitQWeb(FunMap* map){

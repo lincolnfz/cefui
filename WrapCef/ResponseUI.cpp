@@ -526,7 +526,7 @@ bool ResponseUI::rsp_createWindow(const CefRefPtr<CefBrowser> browser, const std
 			std::string parm = req_parm->getList().GetStrVal(0);
 			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
-				s_fnMap->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
+				s_fnMap->createWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, trans, extra);
 				ret = true;
 			}			
 		}
@@ -547,7 +547,7 @@ bool ResponseUI::rsp_createModalWindow(const CefRefPtr<CefBrowser> browser, cons
 			std::string parm = req_parm->getList().GetStrVal(0);
 			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
-				s_fnMap->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra);
+				s_fnMap->createModalWindow(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, trans, extra);
 				ret = true;
 			}
 		}
@@ -568,7 +568,7 @@ bool ResponseUI::rsp_createModalWindow2(const CefRefPtr<CefBrowser> browser, con
 			std::string parm = req_parm->getList().GetStrVal(0);
 			if (parseCreateWindowParm(parm, x, y, width, height, min_cx, min_cy, max_cx, max_cy, skin, alpha, ulStyle, extra, parentSign, trans))
 			{
-				s_fnMap->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, extra, parentSign);
+				s_fnMap->createModalWindow2(hWnd, x, y, width, height, min_cx, min_cy, max_cx, max_cy, char2wchar(skin), alpha, ulStyle, trans, extra, parentSign);
 				ret = true;
 			}
 		}
