@@ -63,7 +63,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	rect.bottom = y + height;
 	item->m_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans);
 	info.SetAsWindowless(item->m_window->hwnd(), transparent);
-	info.transparent_painting_enabled = true;
+	info.transparent_painting_enabled = true; //ÊÇ·ñÐèÒª?
 	info.windowless_rendering_enabled = true;
 	item->m_provider->GetClientHandler()->SetOSRHandler(item->m_window.get());
 	if ( !taskbar )

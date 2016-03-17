@@ -61,12 +61,13 @@ void ClientApp::OnBeforeCommandLineProcessing(
 	const CefString& process_type,
 	CefRefPtr<CefCommandLine> command_line)
 {
-	if (process_type.empty()){
+	if (process_type.empty())
+	{
 	//if(CefCurrentlyOn(TID_UI)){
 		WCHAR szParm[512] = {0};
-		swprintf_s(szParm, L"%s\\plugins\\pepflashplayer.dll;application/x-shockwave-flash", g_szLocalPath);
-		command_line->AppendSwitch("ppapi-out-of-process");
-		command_line->AppendSwitchWithValue(CefString("register-pepper-plugins"), CefString(szParm));
+		swprintf_s(szParm, L"%s\\PepperFlash\\pepflashplayer.dll;application/x-shockwave-flash", g_szLocalPath);
+		//command_line->AppendSwitch("ppapi-out-of-process");
+		//command_line->AppendSwitchWithValue(CefString("register-pepper-plugins"), CefString(szParm));
 	}
 }
 
