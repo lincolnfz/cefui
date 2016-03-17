@@ -148,6 +148,10 @@ class ClientApp : public CefApp,
 	  return RenderThreadSync_;
   }
 
+  virtual void OnBeforeCommandLineProcessing(
+	  const CefString& process_type,
+	  CefRefPtr<CefCommandLine> command_line) OVERRIDE;
+
  private:
   // Creates all of the BrowserDelegate objects. Implemented in
   // client_app_delegates.
