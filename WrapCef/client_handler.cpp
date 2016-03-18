@@ -385,8 +385,8 @@ bool ClientHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
     // OnKeyEvent() method the space key would cause the window to scroll in
     // addition to showing the alert box.
     if (event.type == KEYEVENT_RAWKEYDOWN) {
-      browser->GetMainFrame()->ExecuteJavaScript(
-          "alert('You pressed the space bar!');", "", 0);
+      //browser->GetMainFrame()->ExecuteJavaScript(
+       //   "alert('You pressed the space bar!');", "", 0);
     }
     return true;
   }
