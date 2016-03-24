@@ -1,8 +1,28 @@
 #include "stdafx.h"
 #include "ShareHelper.h"
+#include <regex>
 
 namespace cyjh{
 
+	std::string x_funName(char* name){
+		std::string out;
+		std::string mathstr(name);
+		std::tr1::regex pattern("::\\S+");
+		std::smatch result;
+		bool match = std::regex_search(mathstr, result, pattern);
+		if (match){
+			std::ssub_match base_sub_match = result[0];
+			std::string temp = base_sub_match.str();
+			std::tr1::regex pattern2("[^:+]\\S+");
+			std::smatch result2;
+			match = std::regex_search(temp, result2, pattern2);
+			if (match){
+				std::ssub_match base_sub_match = result2[0];
+				out = base_sub_match.str();
+			}
+		}
+		return out;
+	}
 
 	static void DoEvents()
 	{

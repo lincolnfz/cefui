@@ -23,6 +23,7 @@
 #include <shlobj.h> 
 #include "json/json.h"
 #include "ResponseRender.h"
+#include "ShareHelper.h"
 
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
@@ -166,7 +167,7 @@ public:
 		int width = list[2]->GetIntValue();
 		int height = list[3]->GetIntValue();
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(x);
 		parm.getList().AppendVal(y);
 		parm.getList().AppendVal(width);
@@ -185,7 +186,7 @@ public:
 
 	void minWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -201,7 +202,7 @@ public:
 
 	void maxWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -217,7 +218,7 @@ public:
 
 	void restoreWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -233,7 +234,7 @@ public:
 
 	void closeWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -241,7 +242,7 @@ public:
 
 	void setWindowText(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(list[0]->GetStringValue().ToWString());
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
@@ -250,7 +251,7 @@ public:
 
 	void fullScreen(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		bool full = list[0]->GetBoolValue();
 		parm.getList().AppendVal(full);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -267,7 +268,7 @@ public:
 
 	void createWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::string strParm = list[0]->GetStringValue().ToString();
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -284,7 +285,7 @@ public:
 
 	void createModalWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::string strParm = list[0]->GetStringValue().ToString();
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -301,7 +302,7 @@ public:
 
 	void createModalWindow2(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::string strParm = list[0]->GetStringValue().ToString();
 		parm.getList().AppendVal(strParm);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -319,7 +320,7 @@ public:
 	/*void createWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::string strParm = list[0]->GetStringValue().ToString();
 		CefRefPtr<CefProcessMessage> message =
-			CefProcessMessage::Create( CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+			CefProcessMessage::Create( CefString(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__)));
 		message->GetArgumentList()->SetString(0, CefString(strParm));
 		CefRefPtr<CefListValue> response;
 		BridageHost::getInst().SendRequest(browser_, message, response, 0);
@@ -329,7 +330,7 @@ public:
 	void createModalWindow(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::string strParm = list[0]->GetStringValue().ToString();
 		CefRefPtr<CefProcessMessage> message =
-			CefProcessMessage::Create(CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+			CefProcessMessage::Create(CefString(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__)));
 		message->GetArgumentList()->SetString(0, CefString(strParm));
 		CefRefPtr<CefListValue> response;
 		BridageHost::getInst().SendRequest(browser_, message, response, 0);
@@ -339,7 +340,7 @@ public:
 	void createModalWindow2(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		std::string strParm = list[0]->GetStringValue().ToString();
 		CefRefPtr<CefProcessMessage> message =
-			CefProcessMessage::Create(CefString(PICK_MEMBER_FUN_NAME(__FUNCTION__)));
+			CefProcessMessage::Create(CefString(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__)));
 		message->GetArgumentList()->SetString(0, CefString(strParm));
 		CefRefPtr<CefListValue> response;
 		BridageHost::getInst().SendRequest(browser_, message, response, 0);
@@ -348,7 +349,7 @@ public:
 
 	void setAlpha(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		int alpah = list[0]->GetIntValue();
 		parm.getList().AppendVal(alpah);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -365,7 +366,7 @@ public:
 
 	void invokeMethod(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring modulename = list[0]->GetStringValue().ToWString();
 		std::wstring methodname = list[1]->GetStringValue().ToWString();
 		std::wstring strparm = list[2]->GetStringValue().ToWString();
@@ -388,7 +389,7 @@ public:
 
 	void writePrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring appName = list[0]->GetStringValue().ToWString();
 		std::wstring keyName = list[1]->GetStringValue().ToWString();
 		std::wstring strval = list[2]->GetStringValue().ToWString();
@@ -411,7 +412,7 @@ public:
 
 	void getPrivateProfileInt(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring appName = list[0]->GetStringValue().ToWString();
 		std::wstring keyName = list[1]->GetStringValue().ToWString();
 		int defVal = list[2]->GetIntValue();
@@ -458,7 +459,7 @@ public:
 	void getPrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val)
 	{
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring appName = list[0]->GetStringValue().ToWString();
 		std::wstring keyName = list[1]->GetStringValue().ToWString();
 		std::wstring defVal = list[2]->GetStringValue().ToWString();
@@ -488,7 +489,7 @@ public:
 		int height = list[4]->GetIntValue();
 		int flag = list[5]->GetIntValue();
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(order);
 		parm.getList().AppendVal(x);
 		parm.getList().AppendVal(y);
@@ -513,7 +514,7 @@ public:
 
 	void crossInvokeWebMethod(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		int sign = list[0]->GetIntValue();
 		std::wstring modulename = list[1]->GetStringValue().ToWString();
 		std::wstring methodname = list[2]->GetStringValue().ToWString();
@@ -538,7 +539,7 @@ public:
 
 	void crossInvokeWebMethod2(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		int sign = list[0]->GetIntValue();
 		std::wstring framename = list[1]->GetStringValue().ToWString();
 		std::wstring modulename = list[2]->GetStringValue().ToWString();
@@ -565,7 +566,7 @@ public:
 
 	void winProty(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -580,7 +581,7 @@ public:
 
 	void setProfile(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring keyName = list[0]->GetStringValue().ToWString();
 		std::wstring strval = list[1]->GetStringValue().ToWString();
 		parm.getList().AppendVal(keyName);
@@ -598,7 +599,7 @@ public:
 
 	void getProfile(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring keyName = list[0]->GetStringValue().ToWString();
 		parm.getList().AppendVal(keyName);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
@@ -616,7 +617,7 @@ public:
 	void getSoftwareAttribute(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
 		int attIdx = list[0]->GetIntValue();
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(attIdx);
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
@@ -696,7 +697,7 @@ public:
 
 	void appname(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -712,7 +713,7 @@ public:
 
 	void appDir(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -733,7 +734,7 @@ public:
 
 		//为兼容旧版本,不在后面加上程序目录
 		/*cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -771,7 +772,7 @@ public:
 
 	void window_x(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -787,7 +788,7 @@ public:
 
 	void window_y(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -802,7 +803,7 @@ public:
 
 	void window_w(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -817,7 +818,7 @@ public:
 
 	void window_h(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -832,7 +833,7 @@ public:
 
 	void is_zoomed(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -847,7 +848,7 @@ public:
 
 	void is_iconic(CefRefPtr<CefV8Value>& value){
 		cyjh::Instruct parm;
-		parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(this->browser_, parm, outVal);
@@ -974,7 +975,7 @@ public:
 	}
 
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
-		CefRefPtr<CefFrame> frame){
+		CefRefPtr<CefFrame> frame, int httpStatusCode){
 
 		if(frame->IsMain())
 			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
@@ -987,7 +988,7 @@ public:
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id)){
 				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), 200, false);
+				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 			}
 		}
 	}

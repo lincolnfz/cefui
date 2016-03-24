@@ -80,6 +80,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   bTrans_ = trans;
   //DWORD dwExStyle = WS_EX_LTRREADING|WS_EX_LEFT|WS_EX_RIGHTSCROLLBAR;
   DWORD dwExStyle = WS_EX_APPWINDOW;
+  //DWORD dwExStyle = 0;
   DWORD dwStyle = WS_POPUP| WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
   if ( bTrans_ )
   {
@@ -87,6 +88,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 	  //dwExStyle &= ~WS_EX_APPWINDOW;	  
   }
   else{
+	  //dwExStyle = WS_EX_APPWINDOW;
 	  dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
   }
   hWnd_ = ::CreateWindowEx(dwExStyle/*WS_EX_LAYERED*/ /*|WS_EX_APPWINDOW*/, className, 0,

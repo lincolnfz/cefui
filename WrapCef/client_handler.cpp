@@ -33,6 +33,7 @@
 #include "WebViewFactory.h"
 #include "ResponseUI.h"
 #include "WrapCef.h"
+#include "ShareHelper.h"
 
 namespace {
 
@@ -1078,7 +1079,7 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 {
 	bool ret = false;
 	cyjh::Instruct parm;
-	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 	parm.getList().AppendVal(std::string(utf8_module));
 	parm.getList().AppendVal(std::string(utf8_method));
 	parm.getList().AppendVal(std::string(utf8_parm));
@@ -1110,7 +1111,7 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 {
 	bool ret = false;
 	cyjh::Instruct parm;
-	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 	parm.getList().AppendVal(std::string(fun_name));
 	parm.getList().AppendVal(std::string(utf8_parm));
 	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
@@ -1139,7 +1140,7 @@ bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstr
 {
 	bool ret = false;
 	cyjh::Instruct parm;
-	parm.setName(PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 	parm.getList().AppendVal(x);
 	parm.getList().AppendVal(y);
 	parm.getList().AppendVal(g_x);

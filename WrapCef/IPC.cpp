@@ -4,26 +4,6 @@
 
 #define  CHECK_HANDLE(handle_) handle_ != NULL && handle_ != INVALID_HANDLE_VALUE
 
-std::string x_funName(char* name){
-	std::string out;
-	std::string mathstr(name);
-	std::tr1::regex pattern("::\\S+");
-	std::smatch result;
-	bool match = std::regex_search(mathstr, result, pattern);
-	if (match){
-		std::ssub_match base_sub_match = result[0];
-		std::string temp = base_sub_match.str();
-		std::tr1::regex pattern2("[^:+]\\S+");
-		std::smatch result2;
-		match = std::regex_search(temp, result2, pattern2);
-		if (match){
-			std::ssub_match base_sub_match = result2[0];
-			out = base_sub_match.str();
-		}
-	}
-	return out;
-}
-
 namespace cyjh{
 
 	static volatile int  ipc_unit_id = 0;

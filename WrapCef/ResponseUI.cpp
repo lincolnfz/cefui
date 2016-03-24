@@ -30,9 +30,9 @@ ResponseUI::ResponseUI()
 	WCHAR szPath[MAX_PATH];
 	GetModuleFileNameW(NULL, szPath, MAX_PATH);
 	wchar_t* lch = wcsrchr(szPath, '\\');
-	wcsncpy(m_szName, lch + 1, MAX_PATH);
+	wcsncpy_s(m_szName, lch + 1, MAX_PATH);
 	*lch = '\0';
-	wcsncpy(m_szPath, szPath, MAX_PATH);
+	wcsncpy_s(m_szPath, szPath, MAX_PATH);
 
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser); //注册浏览器放不放在框架中处理
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getPrivateProfileString);
@@ -339,7 +339,7 @@ bool ResponseUI::rsp_writePrivateProfileString(const CefRefPtr<CefBrowser> brows
 	wchar_t* pos = wcsrchr(path, '\\');
 	*pos = '\0';
 	mirage_CreateDirectory(path);
-	ret = WritePrivateProfileString(appName.c_str(), keyName.c_str(), val.c_str(), file.c_str());
+	ret = !!WritePrivateProfileString(appName.c_str(), keyName.c_str(), val.c_str(), file.c_str());
 	//assert(ret);
 	return ret;
 }
