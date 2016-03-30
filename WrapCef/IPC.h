@@ -230,7 +230,7 @@ namespace cyjh{
 	class IPCUnit{
 	public:
 		IPCUnit(const WCHAR* srv_ame, const WCHAR* cli_name);
-		~IPCUnit();
+		virtual ~IPCUnit();
 
 		bool Send(const unsigned char* data, DWORD len, DWORD nTimeout);
 
