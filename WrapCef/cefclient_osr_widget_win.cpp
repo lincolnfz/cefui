@@ -881,6 +881,15 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
                                      gLastClickCount);
 		//test by lincoln
 		/*{
+			static int i = 0;
+			if ( i == 0 )
+			{
+				WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
+				browser->GetBrowser()->RegPlugin(szBuf, true);
+				++i;
+			}			
+		}*/
+		/*{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if (item)
 		{

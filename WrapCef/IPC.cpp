@@ -284,34 +284,9 @@ namespace cyjh{
 		bPendingIO_ = false;
 		succCreate_ = false;
 		wcscpy_s(name_, name);		
-		srvpipe_ = CreateNamedPipe(name, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-			PIPE_WAIT | PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE,
-			1, BUF_SIZE, BUF_SIZE, 0, NULL);
 
-		if (CHECK_HANDLE(srvpipe_))
-		{
-			ConnectNamedPipe(srvpipe_, &op_);
-			DWORD dwErr = GetLastError();
-			switch (dwErr)
-			{
-			case ERROR_IO_PENDING:
-			{
-				bPendingIO_ = true;
-				succCreate_ = true;
-			}
-			break;
-			case ERROR_PIPE_CONNECTED:
-			{
-				SetEvent(hEvents_[0]);
-				succCreate_ = true;
-			}
-			break;
-			default:
-				break;
-			}
-		}
-		assert(succCreate_);
-		if ( succCreate_ )
+		//assert(succCreate_);
+		//if ( succCreate_ )
 		{
 			unsigned int nTid = 0;
 			HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, WorkThread, this, 0, &nTid);
@@ -331,10 +306,38 @@ namespace cyjh{
 
 	unsigned int __stdcall IPCPipeSrv::WorkThread(void* parm)
 	{
+		IPCPipeSrv* inst = reinterpret_cast<IPCPipeSrv*>(parm);
+		inst->srvpipe_ = CreateNamedPipe(inst->name_, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+			PIPE_WAIT | PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE,
+			1, BUF_SIZE, BUF_SIZE, 0, NULL);
+
+		if (inst->srvpipe_ != INVALID_HANDLE_VALUE)
+		{
+			ConnectNamedPipe(inst->srvpipe_, &inst->op_);
+			DWORD dwErr = GetLastError();
+			switch (dwErr)
+			{
+			case ERROR_IO_PENDING:
+			{
+				inst->bPendingIO_ = true;
+				inst->succCreate_ = true;
+			}
+			break;
+			case ERROR_PIPE_CONNECTED:
+			{
+				SetEvent(inst->hEvents_[0]);
+				inst->succCreate_ = true;
+			}
+			break;
+			default:
+				break;
+			}
+		}
+
 		DWORD dwTrans = 0;
 		BOOL bSuccess = false;
 		_state state = CONNECTING_STATE;
-		IPCPipeSrv* inst = reinterpret_cast<IPCPipeSrv*>(parm);
+		
 		while (true)
 		{
 			DWORD dwRet = WaitForMultipleObjects(2, inst->hEvents_, FALSE, INFINITE);

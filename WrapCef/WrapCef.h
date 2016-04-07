@@ -94,7 +94,11 @@ namespace wrapQweb {
 		const char* utf8_parm, CStringW* outstr,
 		const char* utf8_frame_name = 0, bool bNoticeJSTrans2JSON = true);	
 
+	//Õâ¸öº¯Êý·ÏÆú
 	SHARED_EXPORT_API bool freeMem(HGLOBAL hMem);
+
+	//×¢²áä¯ÀÀÆ÷²å¼þ
+	SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
 
 }
 

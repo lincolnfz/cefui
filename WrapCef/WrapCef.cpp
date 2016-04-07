@@ -643,6 +643,27 @@ namespace wrapQweb{
 		}
 	}
 
+	bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox)
+	{
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item)
+		{
+			bool snadbox = false;
+			if (bPPapi){
+				snadbox = bSandBox;
+			}
+#ifdef _DEBUG1
+			WCHAR szBuf[512] = { L"" };
+			swprintf_s(szBuf, L"--------------------val = %s, ppapi = %d", szVal, bPPapi);
+			OutputDebugStringW(szBuf);
+#endif
+			//WCHAR plugin[] = { L"d:\\plugins\\NPSWF32_21_0_0_182.dll" };
+
+			item->m_provider->GetBrowser()->RegPlugin(std::wstring(szVal), bPPapi);
+		}
+		return true;
+	}
+
 	void CloseAllWebView()
 	{
 		/*CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);

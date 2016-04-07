@@ -63,7 +63,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	rect.bottom = y + height;
 	item->m_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans);
 	info.SetAsWindowless(item->m_window->hwnd(), transparent);
-	info.transparent_painting_enabled = true; //是否需要?
+	info.transparent_painting_enabled = trans; //是否需要?
 	info.windowless_rendering_enabled = true;
 	item->m_provider->GetClientHandler()->SetOSRHandler(item->m_window.get());
 	if ( !taskbar )
@@ -89,6 +89,8 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	CefBrowserHost::CreateBrowser(info, item->m_provider->GetClientHandler().get(),
 		url, browser_settings, NULL);
 	m_viewMap.insert(std::make_pair(item->m_window->hwnd(), item));
+	//WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
+	//item->m_provider->GetBrowser()->RegPlugin(szBuf, true);
 	return item->m_window->hwnd();
 }
 
