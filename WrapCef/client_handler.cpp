@@ -117,7 +117,7 @@ ClientHandler::ClientHandler()
   if (command_line->HasSwitch(cefclient::kUrl))
     startup_url_ = command_line->GetSwitchValue(cefclient::kUrl);
   if (startup_url_.empty())
-	  startup_url_ = "http://local.zhushou.sina.com.cn"; //"http://www.baidu.com/";
+	  startup_url_ = "about:blank"; //"http://www.baidu.com/";
 
   mouse_cursor_change_disabled_ =
       command_line->HasSwitch(cefclient::kMouseCursorChangeDisabled);
