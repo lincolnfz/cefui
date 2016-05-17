@@ -176,7 +176,7 @@ HWND WebViewFactory::GetBrowserHwnd(int browserID)
 
 void WebViewFactory::CloseAll()
 {
-	//NormalWebFactory::getInstance().CloseAll();
+	NormalWebFactory::getInstance().CloseAll();
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	std::vector<CefRefPtr<WebItem>> weblist;
 	WebViewMap::iterator it = m_viewMap.begin();

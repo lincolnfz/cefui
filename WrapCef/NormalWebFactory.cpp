@@ -25,7 +25,7 @@ void NormalWebFactory::CloseWebControl(const HWND& hwnd)
 	NormalWebMap::iterator it = m_map.find(hwnd);
 	if ( it != m_map.end() )
 	{
-		if (it->second->getBrowser())
+		if (it->second->getBrowser() && !it->second->getBrowser()->getClientHandler()->IsClosing())
 		{
 			it->second->getBrowser()->getClientHandler()->GetBrowser()->GetHost()->CloseBrowser(true);
 		}
@@ -69,7 +69,7 @@ void NormalWebFactory::CloseAll()
 	NormalWebMap::iterator it = m_map.begin();
 	for (; it != m_map.end(); ++it)
 	{
-		if (it->second->getBrowser())
+		if (it->second->getBrowser() && !it->second->getBrowser()->getClientHandler()->IsClosing())
 		{
 			it->second->getBrowser()->getClientHandler()->GetBrowser()->GetHost()->CloseBrowser(true);
 		}
