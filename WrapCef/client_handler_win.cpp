@@ -12,6 +12,7 @@
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "WebViewFactory.h"
+#include "WebkitEcho.h"
 //#include "cefclient/resource.h"
 
 void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
@@ -19,9 +20,15 @@ void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
                                     const CefString& url) {
   CEF_REQUIRE_UI_THREAD();
 
+  std::wstring strUrl(url);
   if (GetBrowserId() == browser->GetIdentifier() && frame->IsMain()) {
     // Set the edit window text
     //SetWindowText(edit_handle_, std::wstring(url).c_str());
+	  if (WebkitEcho::getFunMap())
+	  {
+		  int id = browser->GetIdentifier();
+		  WebkitEcho::getFunMap()->webkitChangeUrl(id, strUrl.c_str());
+	  }
   }
 }
 
@@ -35,13 +42,19 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     // The frame window will be the parent of the browser window
     hwnd = GetParent(hwnd);
   }*/
+
+  std::wstring strTitle(title);
   CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
   if (item.get() && IsWindow(item->m_window->hwnd()))
   {
 	  HWND hWnd = item->m_window->hwnd();
-	  SetWindowText(hWnd, std::wstring(title).c_str());
+	  SetWindowText(hWnd, strTitle.c_str());
   }
-  
+  if ( WebkitEcho::getFunMap() )
+  {
+	  int id = browser->GetIdentifier();
+	  WebkitEcho::getFunMap()->webkitChangeTitle(id, strTitle.c_str());
+  }
 }
 
 bool ClientHandler::OnTooltip(CefRefPtr<CefBrowser> browser,

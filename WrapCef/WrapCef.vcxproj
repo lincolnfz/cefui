@@ -102,6 +102,7 @@
     <ClInclude Include="client_switches.h" />
     <ClInclude Include="detectProcess.h" />
     <ClInclude Include="MainProcQueue.h" />
+    <ClInclude Include="NormalWebFactory.h" />
     <ClInclude Include="osrenderer.h" />
     <ClInclude Include="ResponseHandle.h" />
     <ClInclude Include="ResponseRender.h" />
@@ -113,6 +114,8 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThreadCombin.h" />
     <ClInclude Include="TipWin.h" />
+    <ClInclude Include="WebkitControl.h" />
+    <ClInclude Include="WebkitEcho.h" />
     <ClInclude Include="WebViewFactory.h" />
     <ClInclude Include="WrapCef.h" />
   </ItemGroup>
@@ -164,6 +167,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="MainProcQueue.cpp" />
+    <ClCompile Include="NormalWebFactory.cpp" />
     <ClCompile Include="osrenderer.cpp" />
     <ClCompile Include="ResponseHandle.cpp" />
     <ClCompile Include="ResponseRender.cpp" />
@@ -177,6 +181,8 @@
     <ClCompile Include="string_util.cpp" />
     <ClCompile Include="ThreadCombin.cpp" />
     <ClCompile Include="TipWin.cpp" />
+    <ClCompile Include="WebkitControl.cpp" />
+    <ClCompile Include="WebkitEcho.cpp" />
     <ClCompile Include="WebViewFactory.cpp" />
     <ClCompile Include="WrapCef.cpp" />
   </ItemGroup>

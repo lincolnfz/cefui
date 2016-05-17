@@ -6,6 +6,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "WebViewFactory.h"
 #include "MainProcQueue.h"
+#include "NormalWebFactory.h"
 
 namespace cyjh{
 
@@ -68,6 +69,28 @@ namespace cyjh{
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spReq->getName().c_str());
 		spOut->setBrowserID(spReq->getBrowserID());
+		if ( browser.get() == NULL )
+		{
+			browser = NormalWebFactory::getInstance().GetBrowser(spReq->getBrowserID());
+			/*spOut->setSucc(false);
+			if ( spReq->getName().compare("RegisterBrowser") == 0 )
+			{
+				std::wstring szSrvPipe = spReq->getList().GetWStrVal(0);
+				std::wstring szCliPipe = spReq->getList().GetWStrVal(1);
+				int ipcID = cyjh::IPC_Manager::getInstance().MatchIpc(szSrvPipe.c_str(), szCliPipe.c_str());
+				std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
+				if (ipc.get())
+				{
+					Response(ipc.get(), spOut, spReq->getID(), spReq->getAtom());
+				}
+			}
+			return;*/
+			if ( browser.get() == NULL )
+			{
+				assert(false);
+				return;
+			}
+		}
 		bool bOut = handle_.handleQuest(browser, spReq, spOut);
 		spOut->setSucc(bOut);
 		int ipcID = 0;
@@ -77,6 +100,13 @@ namespace cyjh{
 			if ( item.get() )
 			{
 				ipcID = item->m_ipcID;
+			}
+			else{
+				CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+				if ( control.get() )
+				{
+					ipcID = control->getIpcID();
+				}
 			}
 		}
 		std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);

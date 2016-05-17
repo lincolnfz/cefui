@@ -96,6 +96,15 @@
     <ClInclude Include="detectProcess.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WebkitEcho.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NormalWebFactory.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WebkitControl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -198,6 +207,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="detectProcess.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WebkitEcho.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NormalWebFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WebkitControl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

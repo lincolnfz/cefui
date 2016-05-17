@@ -437,6 +437,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 		DeleteDC(hSrcDC);
 		ReleaseDC(hWnd_, hdc);
 	}
+	//OutputDebugStringW(L"--------------------------------OSRWindow::OnPaint");
 }
 
 void OSRWindow::OnCursorChange(CefRefPtr<CefBrowser> browser,

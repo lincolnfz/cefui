@@ -34,6 +34,7 @@
 #include "ResponseUI.h"
 #include "WrapCef.h"
 #include "ShareHelper.h"
+#include "WebkitEcho.h"
 
 namespace {
 
@@ -419,15 +420,21 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
   std::shared_ptr<std::wstring> frameName(new std::wstring(frame->GetName().ToWString()));
   std::shared_ptr<std::wstring> url(new std::wstring(target_url.ToWString()));
 
-  if (!CefCurrentlyOn(TID_UI)){
-	  CefPostTask(TID_UI, base::Bind(&helpNewUrl, browser, frameName, url));
-  }
-  
 
   if (browser->GetHost()->IsWindowRenderingDisabled()) {
-    // Cancel popups in off-screen rendering mode.
-	  
+	  if (!CefCurrentlyOn(TID_UI)){
+		  CefPostTask(TID_UI, base::Bind(&helpNewUrl, browser, frameName, url));
+	  }
+	  // Cancel popups in off-screen rendering mode.
     return true;
+  }
+  else{
+	  //HWND hHost = browser->GetHost()->GetWindowHandle();
+	  int id = browser->GetIdentifier();
+	  if (WebkitEcho::getFunMap()){
+		  WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str());
+	  }
+	  return true;
   }
   return false;
 }
@@ -464,6 +471,14 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
     // parent window may attempt to keep focus after launching the popup.
     CefPostTask(TID_UI,
         base::Bind(&CefBrowserHost::SetFocus, browser->GetHost().get(), true));
+  }
+
+  if (browser->GetHost() ){
+	  HWND hWnd = browser->GetHost()->GetWindowHandle();
+	  HWND hParent = GetParent(hWnd);
+	  int browserID = browser->GetIdentifier();
+	  if(WebkitEcho::getFunMap())
+		 WebkitEcho::getFunMap()->webkitAfterCreate(hParent, hWnd, browserID);
   }
 
   browser_count_++;
@@ -537,6 +552,9 @@ void ClientHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
 
   SetLoading(isLoading);
   SetNavState(canGoBack, canGoForward);
+  if (WebkitEcho::getFunMap()){
+	  WebkitEcho::getFunMap()->webkitLoadingStateChange(browser_id_, isLoading, canGoBack, canGoForward);
+  }
 }
 
 void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
@@ -613,6 +631,10 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 		//std::shared_ptr<cyjh::Instruct> outVal;
 		//ipc->Request(this->browser_, parm, outVal);
+		if (WebkitEcho::getFunMap())
+		{
+			WebkitEcho::getFunMap()->webkitEndLoad(browser->GetIdentifier());
+		}
 	}
 	//CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
 	//int i = 0;
@@ -635,6 +657,14 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
 	  hWnd = item->m_window->hwnd();
 	  fun->nativeFrameBegin(hWnd, url.c_str(), name.c_str());
   }*/
+
+  if (frame->IsMain())
+  {
+	  if (WebkitEcho::getFunMap())
+	  {
+		  WebkitEcho::getFunMap()->webkitBeginLoad(browser->GetIdentifier());
+	  }	  
+  }
 
   message_router_->OnBeforeBrowse(browser, frame);
   return false;

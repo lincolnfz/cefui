@@ -5,6 +5,7 @@
 #include <boost/functional/hash.hpp>
 #include <shlobj.h> 
 #include "json/json.h"
+#include "NormalWebFactory.h"
 
 /*enum UI_CONTROL_MSG
 {
@@ -90,8 +91,16 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 		item->m_ipcID = ipcID;
 	}
 	else{
-		assert(false);
+		//assert(false);
 		//OutputDebugString(L"----------rsp_RegisterBrowser fail");
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+		if ( control.get() )
+		{
+			control->setIpcID(ipcID);
+		}
+		else{
+			assert(false);
+		}
 	}
 	return true;
 }

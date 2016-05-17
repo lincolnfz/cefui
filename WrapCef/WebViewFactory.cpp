@@ -9,6 +9,7 @@
 
 #include "client_app.h"
 #include "cefclient.h"
+#include "NormalWebFactory.h"
 
 
 WebViewFactory WebViewFactory::s_inst;
@@ -119,17 +120,24 @@ CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd)
 CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
-	CefRefPtr<CefBrowser> ptr;
+	CefRefPtr<CefBrowser> ptr_ret;
 	WebViewMap::iterator it = m_viewMap.begin();
+	bool bFind = false;
 	for (; it != m_viewMap.end(); ++it)
 	{
-		ptr = it->second->m_provider->GetBrowser();
+		CefRefPtr<CefBrowser> ptr = it->second->m_provider->GetBrowser();
 		if (ptr.get() && ptr.get()->GetIdentifier() == browserID)
 		{
+			ptr_ret = ptr;
+			bFind = true;
 			break;
 		}
 	}
-	return ptr;
+	if ( !bFind )
+	{
+		//ц╩спур╣╫
+	}
+	return ptr_ret;
 }
 
 CefRefPtr<WebItem> WebViewFactory::GetBrowserItem(int browserID)
@@ -168,6 +176,7 @@ HWND WebViewFactory::GetBrowserHwnd(int browserID)
 
 void WebViewFactory::CloseAll()
 {
+	//NormalWebFactory::getInstance().CloseAll();
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	std::vector<CefRefPtr<WebItem>> weblist;
 	WebViewMap::iterator it = m_viewMap.begin();

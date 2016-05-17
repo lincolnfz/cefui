@@ -26,8 +26,11 @@
 #include "cefclient_osr_widget_win.h"
 #include "WebViewFactory.h"
 #include "ResponseUI.h"
+#include "NormalWebFactory.h"
 
 #pragma comment(lib , "Shlwapi.lib")
+
+#define  CEF_USE_SANDBOX 1
 
 #ifdef _WINDLL
 #if defined(CEF_USE_SANDBOX)
@@ -369,94 +372,8 @@ static void SetFocusToBrowser(CefRefPtr<CefBrowser> browser) {
 	browser->GetHost()->SetFocus(true);
 }
 
+namespace cefControl{
 
-class CChromeiumBrowserControl
-{
-public:
-	CChromeiumBrowserControl(){}
-	virtual ~CChromeiumBrowserControl(){}
-	void AttachHwnd(HWND, const WCHAR*);
-	void handle_size(HWND);
-	void handle_SetForce();
-
-private:
-	CefRefPtr<ClientHandler> m_handler;
-	
-};
-
-void CChromeiumBrowserControl::AttachHwnd(HWND hWnd, const WCHAR* url)
-{
-	if (!IsWindow(hWnd))
-	{
-		return;
-	}
-	m_handler = new ClientHandler();
-	CefWindowInfo info;
-	CefBrowserSettings settings;
-
-	// Populate the browser settings based on command line arguments.
-	AppGetBrowserSettings(settings);
-
-	RECT rect;
-
-	GetClientRect(hWnd, &rect);
-	info.SetAsChild(hWnd, rect);
-
-	CefBrowserHost::CreateBrowser(info, m_handler.get(),
-		url, settings, NULL);
-}
-
-void CChromeiumBrowserControl::handle_size(HWND hWnd)
-{
-	RECT rect;
-	GetClientRect(hWnd, &rect);
-	if (m_handler.get())
-	{
-		CefWindowHandle hBrowser = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
-		HDWP hdwp = BeginDeferWindowPos(1);
-		hdwp = DeferWindowPos(hdwp, hBrowser, NULL,
-			rect.left, rect.top, rect.right - rect.left,
-			rect.bottom - rect.top, SWP_NOZORDER);
-		EndDeferWindowPos(hdwp);
-	}
-}
-
-void CChromeiumBrowserControl::handle_SetForce()
-{
-	if (m_handler.get())
-	{
-		CefRefPtr<CefBrowser> browser = m_handler->GetBrowser();
-		if ( browser )
-		{
-			SetFocusToBrowser(browser);
-		}
-	}
-
-}
-
-CBrowserControl::CBrowserControl()
-{
-	m_browser = new CChromeiumBrowserControl;
-}
-
-CBrowserControl::~CBrowserControl()
-{
-	delete m_browser;
-}
-
-void CBrowserControl::AttachHwnd(HWND hWnd, const WCHAR* url)
-{
-	m_browser->AttachHwnd(hWnd, url);
-}
-
-void CBrowserControl::handle_size(HWND hWnd)
-{
-	m_browser->handle_size(hWnd);
-}
-
-void CBrowserControl::handle_SetForce()
-{
-	m_browser->handle_SetForce();
 }
 
 WCHAR g_szLocalPath[MAX_PATH];
@@ -671,6 +588,7 @@ namespace wrapQweb{
 		{
 			item->m_handle->CloseAllBrowsers(true);
 		}*/
+
 		WebViewFactory::getInstance().CloseAll();
 	}
 
@@ -686,5 +604,118 @@ namespace wrapQweb{
 		{
 			item->m_provider->GetBrowser()->GetHost()->SendFocusEvent(fouce);
 		}
+	}
+
+
+	void InitEchoFn(EchoMap* map)
+	{
+
+	}
+
+	void CreateWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie/* = NULL*/)
+	{
+		NormalWebFactory::getInstance().CreateNewWebControl(hwnd, url, cookie);
+	}
+
+	void CloseWebControl(const HWND& hwnd)
+	{
+		NormalWebFactory::getInstance().CloseWebControl(hwnd);
+	}
+
+	////
+	class CChromeiumBrowserControl
+	{
+	public:
+		CChromeiumBrowserControl(){}
+		virtual ~CChromeiumBrowserControl(){}
+		HWND AttachHwnd(HWND, const WCHAR*);
+		void handle_size(HWND);
+		void handle_SetForce();
+
+	private:
+		CefRefPtr<ClientHandler> m_handler;
+
+	};
+
+	HWND CChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url)
+	{
+		if (!IsWindow(hParent))
+		{
+			return NULL;
+		}
+		m_handler = new ClientHandler();
+		CefWindowInfo info;
+		CefBrowserSettings browser_settings;
+
+		// Populate the browser settings based on command line arguments.
+		//AppGetBrowserSettings(browser_settings);
+		browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
+
+		RECT rect;
+
+		GetClientRect(hParent, &rect);
+		info.SetAsChild(hParent, rect);
+
+		CefBrowserHost::CreateBrowser(info, m_handler.get(),
+			url, browser_settings, NULL);
+		
+		HWND hWnd = NULL;
+		if (m_handler->GetBrowser() && m_handler->GetBrowser()->GetHost()){
+			hWnd = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+		}
+		return hWnd;
+	}
+
+	void CChromeiumBrowserControl::handle_size(HWND hWnd)
+	{
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		if (m_handler.get())
+		{
+			CefWindowHandle hBrowser = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+			HDWP hdwp = BeginDeferWindowPos(1);
+			hdwp = DeferWindowPos(hdwp, hBrowser, NULL,
+				rect.left, rect.top, rect.right - rect.left,
+				rect.bottom - rect.top, SWP_NOZORDER);
+			EndDeferWindowPos(hdwp);
+		}
+	}
+
+	void CChromeiumBrowserControl::handle_SetForce()
+	{
+		if (m_handler.get())
+		{
+			CefRefPtr<CefBrowser> browser = m_handler->GetBrowser();
+			if (browser)
+			{
+				SetFocusToBrowser(browser);
+			}
+		}
+
+	}
+
+	CWebkitControl::CWebkitControl()
+	{
+		m_browser = new CChromeiumBrowserControl;
+	}
+
+	CWebkitControl::~CWebkitControl()
+	{
+		delete m_browser;
+	}
+
+	HWND CWebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
+	{
+		return m_browser->AttachHwnd(hParentWnd, url);
+	}
+
+	void CWebkitControl::handle_size(HWND hWnd)
+	{
+		m_browser->handle_size(hWnd);
+	}
+
+	void CWebkitControl::handle_SetForce()
+	{
+		m_browser->handle_SetForce();
 	}
 }

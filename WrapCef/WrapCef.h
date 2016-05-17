@@ -100,23 +100,60 @@ namespace wrapQweb {
 	//注册浏览器插件
 	SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
 
+//---------------------------------------------------------------------------------------------------------------------
+//类分割线
+
+	typedef void(__stdcall *call_WebkitAfterCreate)(const HWND&, const HWND&, const int& id);
+
+	typedef void(__stdcall *call_WebkitOpenNewUrl)(const int& id, const WCHAR* url);
+
+	typedef void(__stdcall *call_WebkitLoadingStateChange)(const int& id, const bool& loading, const bool& canBack, const bool& canForward);
+
+	typedef void(__stdcall *call_WebkitChangeUrl)(const int& id, const WCHAR* url);
+
+	typedef void(__stdcall *call_WebkitChangeTitle)(const int& id, const WCHAR* title);
+
+	typedef void(__stdcall *call_WebkitBeginLoad)(const int& id);
+
+	typedef void(__stdcall *call_WebkitEndLoad)(const int& id);
+
+	typedef struct _EchoMap{
+		call_WebkitAfterCreate webkitAfterCreate;
+		call_WebkitOpenNewUrl webkitOpenNewUrl;
+		call_WebkitLoadingStateChange webkitLoadingStateChange;
+		call_WebkitChangeUrl webkitChangeUrl;
+		call_WebkitChangeTitle webkitChangeTitle;
+		call_WebkitBeginLoad webkitBeginLoad;
+		call_WebkitEndLoad webkitEndLoad;
+	}EchoMap;
+
+	//初始化浏览器控件响应函数
+	SHARED_EXPORT_API void InitEchoFn(EchoMap* map);
+
+	SHARED_EXPORT_API void CreateWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie = NULL);
+
+	SHARED_EXPORT_API void CloseWebControl(const HWND& hwnd);
+
+	class CChromeiumBrowserControl;
+
+	class SHARED_EXPORT_CLASS CWebkitControl
+	{
+	public:
+		CWebkitControl();
+		virtual ~CWebkitControl();
+		HWND AttachHwnd(HWND, const WCHAR*);
+		void handle_size(HWND);
+		void handle_SetForce();
+
+	private:
+		CChromeiumBrowserControl* m_browser;
+	};
+
 }
 
+namespace cefControl{
 
-class CChromeiumBrowserControl;
 
-class SHARED_EXPORT_CLASS CBrowserControl
-{
-public:
-	CBrowserControl();
-	virtual ~CBrowserControl();
-	void AttachHwnd(HWND, const WCHAR*);
-	void handle_size(HWND);
-	void handle_SetForce();
-
-private:
-	 CChromeiumBrowserControl* m_browser;
-};
-
+}
 
 #endif
