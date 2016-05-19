@@ -100,8 +100,8 @@ HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
 #else
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLong(hParentWnd, GWL_WNDPROC));
 	//设置自定义窗口过程
-	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
-	::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG>(HostWndProc));
+	::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
 #endif
 	return m_browser->AttachHwnd(hParentWnd, url);
 }
