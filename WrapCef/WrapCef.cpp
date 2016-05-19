@@ -27,6 +27,7 @@
 #include "WebViewFactory.h"
 #include "ResponseUI.h"
 #include "NormalWebFactory.h"
+#include "WebkitEcho.h"
 
 #pragma comment(lib , "Shlwapi.lib")
 
@@ -609,7 +610,7 @@ namespace wrapQweb{
 
 	void InitEchoFn(EchoMap* map)
 	{
-
+		WebkitEcho::SetFunMap(map);
 	}
 
 	void CreateWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie/* = NULL*/)

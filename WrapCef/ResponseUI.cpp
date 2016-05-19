@@ -6,6 +6,7 @@
 #include <shlobj.h> 
 #include "json/json.h"
 #include "NormalWebFactory.h"
+#include "WebkitEcho.h"
 
 /*enum UI_CONTROL_MSG
 {
@@ -599,6 +600,16 @@ bool ResponseUI::rsp_invokeMethod(const CefRefPtr<CefBrowser> browser, const std
 		if (s_fnMap){
 			out->getList().AppendVal( std::wstring(s_fnMap->invokeMethod(hWnd, module, method, parm, extra)));
 			ret = true;
+		}
+	}
+	else{
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+		if ( control.get() )
+		{
+			if (WebkitEcho::getFunMap()){
+				out->getList().AppendVal( WebkitEcho::getFunMap()->webkitInvokeMethod(browser->GetIdentifier(), module, method, parm, extra) );
+				ret = true;
+			}
 		}
 	}
 	return ret;

@@ -53,7 +53,7 @@ protected:
 	bool rsp_appDataPath(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct>, std::shared_ptr<cyjh::Instruct>);
 protected:
 	std::map<unsigned int, std::wstring> m_profile;
-	static wrapQweb::FunMap* s_fnMap;	
+	static wrapQweb::FunMap* s_fnMap;
 };
 
 #endif

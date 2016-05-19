@@ -93,16 +93,16 @@ WebkitControl::~WebkitControl()
 
 HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
 {
-//#if defined _M_AMD64 || defined _WIN64
-	//m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
-	//::SetWindowLongPtr(m_MainHwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
-	//::SetWindowLongPtr(hParentWnd, GWLP_USERDATA, reinterpret_cast<LONG>(this));
-//#else
-	//m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLong(hParentWnd, GWL_WNDPROC));
+#if defined _M_AMD64 || defined _WIN64
+	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
+	::SetWindowLongPtr(m_MainHwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
+	::SetWindowLongPtr(hParentWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+#else
+	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLong(hParentWnd, GWL_WNDPROC));
 	//设置自定义窗口过程
-	//::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
-	//::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
-//#endif	
+	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
+	::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG_PTR>(this));
+#endif
 	return m_browser->AttachHwnd(hParentWnd, url);
 }
 
@@ -122,7 +122,7 @@ LRESULT WebkitControl::HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 #if defined _M_AMD64 || defined _WIN64
 	control = reinterpret_cast<WebkitControl*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
 #else
-	control = reinterpret_cast<WebkitControl*>(::GetWindowLong(hWnd, GWL_WNDPROC));
+	control = reinterpret_cast<WebkitControl*>(::GetWindowLong(hWnd, GWL_USERDATA));
 #endif
 
 	if ( !control )
