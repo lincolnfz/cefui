@@ -2,7 +2,7 @@
 #define _cefexport_h
 
 
-#ifndef _USE_MIRAGE_LIB
+#ifndef _USE_WRAPCEF_LIB
 #if defined(WRAPCEF_EXPORTS)
 #  define SHARED_EXPORT_API extern "C" __declspec(dllexport)
 #  define SHARED_EXPORT_CLASS __declspec(dllexport)
