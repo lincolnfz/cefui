@@ -80,6 +80,49 @@ void ChromeiumBrowserControl::handle_SetForce()
 
 }
 
+bool ChromeiumBrowserControl::loadUrl(const WCHAR* url)
+{
+	bool ret = false;
+	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetMainFrame().get() )
+	{
+		m_handler->GetBrowser()->GetMainFrame()->LoadURL(CefString(url));
+		ret = true;
+	}
+	return ret;
+}
+
+void ChromeiumBrowserControl::back()
+{
+	if (m_handler->GetBrowser().get())
+	{
+		m_handler->GetBrowser()->GoBack();
+	}
+}
+
+void ChromeiumBrowserControl::forward()
+{
+	if (m_handler->GetBrowser().get())
+	{
+		m_handler->GetBrowser()->GoForward();
+	}
+}
+
+bool ChromeiumBrowserControl::close()
+{
+	if ( m_bClose )
+	{
+		return true;
+	}
+	if (!m_handler->IsClosing() && m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get() )
+	{
+		m_handler->GetBrowser()->GetHost()->CloseBrowser(true);
+		m_bClose = true;
+	}
+	return m_bClose;
+}
+
+////////////////////////////////////////////////////
+
 WebkitControl::WebkitControl()
 {
 	m_ipc_id = 0;

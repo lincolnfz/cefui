@@ -135,7 +135,13 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void CreateWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie = NULL);
 
-	SHARED_EXPORT_API void CloseWebControl(const HWND& hwnd);
+	SHARED_EXPORT_API bool CloseWebControl(const HWND& hwnd);
+
+	SHARED_EXPORT_API bool LoadUrl(const HWND& hwnd, const WCHAR* url);
+
+	SHARED_EXPORT_API bool GoBack(const HWND& hwnd);
+
+	SHARED_EXPORT_API bool GoForward(const HWND& hwnd);
 
 	class CChromeiumBrowserControl;
 

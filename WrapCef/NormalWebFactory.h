@@ -20,13 +20,19 @@ public:
 
 	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie);
 
-	void CloseWebControl(const HWND& hwnd);
+	bool CloseWebControl(const HWND& hwnd);
 
 	CefRefPtr<CefBrowser> GetBrowser(int browserID);
 
 	CefRefPtr<WebkitControl> GetWebkitControl(int browserID);
 
+	bool Loadurl(const HWND& hwnd, const WCHAR* url);
+
 	void CloseAll();
+
+	bool GoBack(const HWND& hwnd);
+
+	bool GoForward(const HWND& hwnd);
 
 protected:
 	NormalWebFactory();

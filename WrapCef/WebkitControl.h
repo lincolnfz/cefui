@@ -6,7 +6,9 @@
 class ChromeiumBrowserControl : public CefBase
 {
 public:
-	ChromeiumBrowserControl(){}
+	ChromeiumBrowserControl(){
+		m_bClose = false;
+	}
 	virtual ~ChromeiumBrowserControl(){}
 	HWND AttachHwnd(HWND, const WCHAR*);
 	void handle_size(HWND);
@@ -14,9 +16,15 @@ public:
 	CefRefPtr<ClientHandler> getClientHandler(){
 		return m_handler;
 	}
+
+	bool close();
+	bool loadUrl(const WCHAR* url);
+	void back();
+	void forward();
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;
+	bool m_bClose;
 
 };
 

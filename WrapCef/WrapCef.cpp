@@ -618,9 +618,24 @@ namespace wrapQweb{
 		NormalWebFactory::getInstance().CreateNewWebControl(hwnd, url, cookie);
 	}
 
-	void CloseWebControl(const HWND& hwnd)
+	bool CloseWebControl(const HWND& hwnd)
 	{
-		NormalWebFactory::getInstance().CloseWebControl(hwnd);
+		return NormalWebFactory::getInstance().CloseWebControl(hwnd);
+	}
+
+	bool LoadUrl(const HWND& hwnd, const WCHAR* url)
+	{
+		return NormalWebFactory::getInstance().Loadurl(hwnd, url);
+	}
+
+	bool GoBack(const HWND& hwnd)
+	{
+		return NormalWebFactory::getInstance().GoBack(hwnd);
+	}
+
+	bool GoForward(const HWND& hwnd)
+	{
+		return NormalWebFactory::getInstance().GoForward(hwnd);
 	}
 
 	////

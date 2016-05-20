@@ -20,16 +20,22 @@ void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, c
 	m_map.insert(std::make_pair(hwnd, item));
 }
 
-void NormalWebFactory::CloseWebControl(const HWND& hwnd)
+bool NormalWebFactory::CloseWebControl(const HWND& hwnd)
 {
+	bool ret = false;
 	NormalWebMap::iterator it = m_map.find(hwnd);
 	if ( it != m_map.end() )
 	{
-		if (it->second->getBrowser() && !it->second->getBrowser()->getClientHandler()->IsClosing())
+		if (it->second->getBrowser().get() )
 		{
-			it->second->getBrowser()->getClientHandler()->GetBrowser()->GetHost()->CloseBrowser(true);
-		}
+			if (it->second->getBrowser()->close())
+			{
+				m_map.erase(it);
+				ret = true;
+			}
+		}		
 	}
+	return ret;
 }
 
 CefRefPtr<CefBrowser> NormalWebFactory::GetBrowser(int browserID)
@@ -69,9 +75,54 @@ void NormalWebFactory::CloseAll()
 	NormalWebMap::iterator it = m_map.begin();
 	for (; it != m_map.end(); ++it)
 	{
-		if (it->second->getBrowser() && !it->second->getBrowser()->getClientHandler()->IsClosing())
+		if (it->second->getBrowser().get())
 		{
-			it->second->getBrowser()->getClientHandler()->GetBrowser()->GetHost()->CloseBrowser(true);
+			it->second->getBrowser()->close();
 		}
 	}
+}
+
+bool NormalWebFactory::Loadurl(const HWND& hwnd, const WCHAR* url)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if ( it->second->getBrowser().get() )
+		{
+			it->second->getBrowser()->loadUrl(url);
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+bool NormalWebFactory::GoBack(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->back();
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+bool NormalWebFactory::GoForward(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->forward();
+			bret = true;
+		}
+	}
+	return bret;
 }
