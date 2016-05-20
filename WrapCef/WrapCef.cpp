@@ -638,6 +638,16 @@ namespace wrapQweb{
 		return NormalWebFactory::getInstance().GoForward(hwnd);
 	}
 
+	bool Reload(const HWND& hwnd)
+	{
+		return NormalWebFactory::getInstance().Reload(hwnd);
+	}
+
+	bool ReloadIgnoreCache(const HWND& hwnd)
+	{
+		return NormalWebFactory::getInstance().ReloadIgnoreCache(hwnd);
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

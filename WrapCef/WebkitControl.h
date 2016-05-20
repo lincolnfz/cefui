@@ -21,6 +21,8 @@ public:
 	bool loadUrl(const WCHAR* url);
 	void back();
 	void forward();
+	void reload();
+	void reloadIgnoreCache();
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;

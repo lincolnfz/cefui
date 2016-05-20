@@ -143,6 +143,10 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API bool GoForward(const HWND& hwnd);
 
+	SHARED_EXPORT_API bool Reload(const HWND& hwnd);
+
+	SHARED_EXPORT_API bool ReloadIgnoreCache(const HWND& hwnd);
+
 	class CChromeiumBrowserControl;
 
 	class SHARED_EXPORT_CLASS CWebkitControl

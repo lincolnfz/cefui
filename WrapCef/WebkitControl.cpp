@@ -121,6 +121,22 @@ bool ChromeiumBrowserControl::close()
 	return m_bClose;
 }
 
+void ChromeiumBrowserControl::reload()
+{
+	if ( m_handler->GetBrowser() )
+	{
+		m_handler->GetBrowser()->Reload();
+	}
+}
+
+void ChromeiumBrowserControl::reloadIgnoreCache()
+{
+	if (m_handler->GetBrowser())
+	{
+		m_handler->GetBrowser()->ReloadIgnoreCache();
+	}
+}
+
 ////////////////////////////////////////////////////
 
 WebkitControl::WebkitControl()

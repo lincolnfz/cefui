@@ -126,3 +126,33 @@ bool NormalWebFactory::GoForward(const HWND& hwnd)
 	}
 	return bret;
 }
+
+bool NormalWebFactory::Reload(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->reload();
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+bool NormalWebFactory::ReloadIgnoreCache(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->reloadIgnoreCache();
+			bret = true;
+		}
+	}
+	return bret;
+}

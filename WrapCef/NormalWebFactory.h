@@ -34,6 +34,10 @@ public:
 
 	bool GoForward(const HWND& hwnd);
 
+	bool Reload(const HWND& hwnd);
+
+	bool ReloadIgnoreCache(const HWND& hwnd);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;
