@@ -70,6 +70,17 @@ CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControl(int browserID)
 	return control;
 }
 
+CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControl(HWND hWnd)
+{
+	CefRefPtr<WebkitControl> control;
+	NormalWebMap::iterator it = m_map.begin();
+	if ( it != m_map.end() )
+	{
+		control = it->second;
+	}
+	return control;
+}
+
 void NormalWebFactory::CloseAll()
 {
 	NormalWebMap::iterator it = m_map.begin();

@@ -8,6 +8,7 @@
 #include "include/cef_frame.h"
 #include "include/cef_sandbox_win.h"
 #include "include/wrapper/cef_closure_task.h"
+#include "NormalWebFactory.h"
 
 // Set focus to |browser| on the UI thread.
 static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
@@ -155,12 +156,12 @@ HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
 #if defined _M_AMD64 || defined _WIN64
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
 	::SetWindowLongPtr(m_MainHwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HostWndProc));
-	::SetWindowLongPtr(hParentWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	//::SetWindowLongPtr(hParentWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 #else
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLong(hParentWnd, GWL_WNDPROC));
 	//设置自定义窗口过程
 	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG>(HostWndProc));
-	::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
+	//::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
 #endif
 	return m_browser->AttachHwnd(hParentWnd, url);
 }
@@ -177,14 +178,20 @@ void WebkitControl::handle_SetForce()
 
 LRESULT WebkitControl::HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	WebkitControl* control = NULL;
-#if defined _M_AMD64 || defined _WIN64
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(hWnd);
+	if ( !IsWindow(hWnd) )
+	{
+		return 0;
+	}
+
+/*#if defined _M_AMD64 || defined _WIN64
 	control = reinterpret_cast<WebkitControl*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
 #else
 	control = reinterpret_cast<WebkitControl*>(::GetWindowLong(hWnd, GWL_USERDATA));
-#endif
+#endif*/
 
-	if ( !control )
+
+	if ( !control.get() )
 	{
 		return CallWindowProc(DefWindowProc, hWnd, message, wParam, lParam);
 	}

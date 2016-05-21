@@ -136,6 +136,7 @@ CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
 	if ( !bFind )
 	{
 		//ц╩спур╣╫
+		int i = 0;
 	}
 	return ptr_ret;
 }
