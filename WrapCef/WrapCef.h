@@ -105,7 +105,7 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_WebkitAfterCreate)(const HWND&, const HWND&, const int& id);
 
-	typedef void(__stdcall *call_WebkitOpenNewUrl)(const int& id, const WCHAR* url);
+	typedef void(__stdcall *call_WebkitOpenNewUrl)(const int& id, const WCHAR* url, const WCHAR* cookie_ctx);
 
 	typedef void(__stdcall *call_WebkitLoadingStateChange)(const int& id, const bool& loading, const bool& canBack, const bool& canForward);
 
@@ -146,6 +146,10 @@ namespace wrapQweb {
 	SHARED_EXPORT_API bool Reload(const HWND& hwnd);
 
 	SHARED_EXPORT_API bool ReloadIgnoreCache(const HWND& hwnd);
+
+	SHARED_EXPORT_API bool IsAudioMuted(const HWND& hwnd);
+
+	SHARED_EXPORT_API void SetAudioMuted(const HWND& hwnd, const bool& bEnable);
 
 	class CChromeiumBrowserControl;
 

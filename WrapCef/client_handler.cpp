@@ -97,7 +97,7 @@ bool ParseTestUrl(const std::string& url,
 
 int ClientHandler::browser_count_ = 0;
 
-ClientHandler::ClientHandler()
+ClientHandler::ClientHandler(const WCHAR* cookie_ctx/* = NULL*/)
   : browser_id_(0),
     is_closing_(false),
     main_handle_(NULL),
@@ -110,6 +110,11 @@ ClientHandler::ClientHandler()
 #if defined(OS_LINUX)
   gtk_dialog_ = NULL;
 #endif
+
+  if (cookie_ctx)
+  {
+	  cookie_context_ = cookie_ctx;
+  }
 
   // Read command line settings.
   CefRefPtr<CefCommandLine> command_line =
@@ -432,7 +437,8 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 	  //HWND hHost = browser->GetHost()->GetWindowHandle();
 	  int id = browser->GetIdentifier();
 	  if (WebkitEcho::getFunMap()){
-		  WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str());
+		  WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str(),
+			  cookie_context_.empty() ? NULL : cookie_context_.c_str());
 	  }
 	  return true;
   }

@@ -10,7 +10,7 @@ public:
 		m_bClose = false;
 	}
 	virtual ~ChromeiumBrowserControl(){}
-	HWND AttachHwnd(HWND, const WCHAR*);
+	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context);
 	void handle_size(HWND);
 	void handle_SetForce();
 	CefRefPtr<ClientHandler> getClientHandler(){
@@ -23,6 +23,8 @@ public:
 	void forward();
 	void reload();
 	void reloadIgnoreCache();
+	bool IsAudioMuted();
+	void SetAudioMuted(const bool& bEnable);
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;
@@ -36,7 +38,7 @@ public:
 	WebkitControl();
 	virtual ~WebkitControl();
 
-	HWND AttachHwnd(HWND, const WCHAR*);
+	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context);
 	void handle_size(HWND);
 	void handle_SetForce();
 	CefRefPtr<ChromeiumBrowserControl> getBrowser(){

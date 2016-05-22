@@ -18,7 +18,7 @@ public:
 		return s_inst;
 	}
 
-	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie);
+	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx);
 
 	bool CloseWebControl(const HWND& hwnd);
 
@@ -39,6 +39,10 @@ public:
 	bool Reload(const HWND& hwnd);
 
 	bool ReloadIgnoreCache(const HWND& hwnd);
+
+	bool IsAudioMuted(const HWND& hwnd);
+
+	void SetAudioMuted(const HWND& hwnd, const bool& bEnable);
 
 protected:
 	NormalWebFactory();

@@ -24,7 +24,7 @@ static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
 ////
 
 
-HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url)
+HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const WCHAR* cookie_context)
 {
 	if (!IsWindow(hParent))
 	{
@@ -124,7 +124,7 @@ bool ChromeiumBrowserControl::close()
 
 void ChromeiumBrowserControl::reload()
 {
-	if ( m_handler->GetBrowser() )
+	if ( m_handler->GetBrowser().get() )
 	{
 		m_handler->GetBrowser()->Reload();
 	}
@@ -132,9 +132,24 @@ void ChromeiumBrowserControl::reload()
 
 void ChromeiumBrowserControl::reloadIgnoreCache()
 {
-	if (m_handler->GetBrowser())
+	if (m_handler->GetBrowser().get())
 	{
 		m_handler->GetBrowser()->ReloadIgnoreCache();
+	}
+}
+
+bool ChromeiumBrowserControl::IsAudioMuted()
+{
+	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get()){
+		return m_handler->GetBrowser()->GetHost()->IsAudioMuted();
+	}
+	return false;
+}
+
+void ChromeiumBrowserControl::SetAudioMuted(const bool& bEnable)
+{
+	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get()){
+		m_handler->GetBrowser()->GetHost()->SetAudioMuted(bEnable);
 	}
 }
 
@@ -151,7 +166,7 @@ WebkitControl::~WebkitControl()
 {
 }
 
-HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
+HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* cookie_context)
 {
 #if defined _M_AMD64 || defined _WIN64
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
@@ -163,7 +178,7 @@ HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url)
 	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG>(HostWndProc));
 	//::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
 #endif
-	return m_browser->AttachHwnd(hParentWnd, url);
+	return m_browser->AttachHwnd(hParentWnd, url, cookie_context);
 }
 
 void WebkitControl::handle_size(HWND hWnd)
@@ -183,13 +198,6 @@ LRESULT WebkitControl::HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 		return 0;
 	}
-
-/*#if defined _M_AMD64 || defined _WIN64
-	control = reinterpret_cast<WebkitControl*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-#else
-	control = reinterpret_cast<WebkitControl*>(::GetWindowLong(hWnd, GWL_USERDATA));
-#endif*/
-
 
 	if ( !control.get() )
 	{

@@ -51,7 +51,7 @@ class ClientHandler : public CefClient,
 
   typedef std::set<CefMessageRouterBrowserSide::Handler*> MessageHandlerSet;
 
-  ClientHandler();
+  ClientHandler(const WCHAR* cookie_ctx = NULL );
   virtual ~ClientHandler();
 
   // CefClient methods
@@ -414,6 +414,9 @@ class ClientHandler : public CefClient,
   // Number of currently existing browser windows. The application will exit
   // when the number of windows reaches 0.
   static int browser_count_;
+
+  //存放cookie的路径,如果是空使用全局的cookie,否则使用指定路径的cookie
+  std::wstring cookie_context_;
 
 #if defined(OS_LINUX)
   // Linux-only implementation of GTK-based dialog boxes.

@@ -42,6 +42,18 @@ struct DectetFrameID
 	unsigned int browserID_;
 	std::string frameID_;
 	unsigned int dectID_;
+	int64 identifier_;
+	int lastHttpCode_;
+};
+
+struct HttpCode
+{
+	int64 frameID_;
+	int lastHttpCode_;
+	HttpCode(int64 frameID, int lastHttpCode){
+		frameID_ = frameID;
+		lastHttpCode_ = lastHttpCode;
+	}
 };
 
 class DectetFrameLoad
@@ -52,13 +64,15 @@ public:
 	}
 	virtual ~DectetFrameLoad(){}
 
-	bool Add(unsigned int browser, std::string& frame, unsigned int id){
+	bool Add(unsigned int browser, std::string& frame, unsigned int id, int64 identifier){
 		bool ret = false;
-		if (hit(browser, frame, id) == false){
+		if (hit(browser, frame, id, 200) == false){
 			DectetFrameID dectItem;
 			dectItem.browserID_ = browser;
 			dectItem.frameID_ = frame;
 			dectItem.dectID_ = id;
+			dectItem.identifier_ = identifier;
+			dectItem.lastHttpCode_ = 200; //默认是200,如果事件没有被触发,页面加载停止发200
 			m_dectList.push_back(dectItem);
 			ret = true;
 		}
@@ -78,17 +92,30 @@ public:
 		return ret;
 	}
 
-	bool hit(unsigned int browser, std::string& frame, unsigned int id){
+	bool hit(unsigned int browser, std::string& frame, unsigned int id, int httpCode){
 		bool ret = false;
 		std::list<DectetFrameID>::iterator it = m_dectList.begin();
 		for (; it != m_dectList.end(); ++it)
 		{
 			if (it->browserID_ == browser && it->frameID_.compare(frame) == 0 && it->dectID_ == id){
+				it->lastHttpCode_ = httpCode;
 				ret = true;
 				break;
 			}
 		}
 		return ret;
+	}
+
+	void getNotifyLoadStop(unsigned int browser, std::vector<HttpCode>& frameIDs){
+		std::list<DectetFrameID>::iterator it = m_dectList.begin();
+		for (; it != m_dectList.end(); ++it)
+		{
+			if ( it->browserID_ == browser )
+			{
+				HttpCode item(it->identifier_, it->lastHttpCode_);
+				frameIDs.push_back(item);
+			}
+		}
 	}
 protected:
 	DectetFrameLoad(){}
@@ -635,7 +662,7 @@ public:
 		std::string id = list[0]->GetStringValue().ToString();
 		boost::hash<std::string> string_hash;
 		unsigned int uid = string_hash(id);
-		bool bAdd = DectetFrameLoad::getInst().Add(browser_->GetIdentifier(), getFramePath(frame_), uid);
+		bool bAdd = DectetFrameLoad::getInst().Add(browser_->GetIdentifier(), getFramePath(frame_), uid, frame_->GetIdentifier());
 		val = CefV8Value::CreateInt ( bAdd ? 1 : 0 );
 	}
 
@@ -901,9 +928,12 @@ bool call_FrameStateChanged(CefRefPtr<CefFrame>& frame, const char* frameName, c
 	CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
 	CefRefPtr<CefV8Value> retVal;
 	CefRefPtr<CefV8Exception> excp;
-	if (v8->Eval(CefString(strJs), retVal, excp)){
-		ret = true;
-	}
+	if ( v8.get() )
+	{
+		if (v8->Eval(CefString(strJs), retVal, excp)){
+			ret = true;
+		}
+	}	
 	return ret;
 }
 
@@ -916,7 +946,23 @@ public:
 		bool canGoForward) {
 			if(!isLoading){
 				CefRefPtr<CefFrame>frame = browser->GetMainFrame();
-				
+				std::vector<HttpCode> ids;
+				DectetFrameLoad::getInst().getNotifyLoadStop(browser->GetIdentifier(), ids);
+				std::vector<HttpCode>::iterator it = ids.begin();
+				for (; it != ids.end(); ++it)
+				{
+					CefRefPtr<CefFrame>notify_frame = browser->GetFrame(it->frameID_);
+					if ( notify_frame.get() )
+					{
+						CefRefPtr<CefFrame>parent = notify_frame->GetParent();
+						if ( parent.get() )
+						{
+							std::string frameNam = notify_frame->GetName().ToString();
+							std::string url = notify_frame->GetURL().ToString();
+							//call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), it->lastHttpCode_, true);
+						}
+					}					
+				}
 			}
 	}
 
@@ -932,7 +978,7 @@ public:
 			boost::hash<std::string> string_hash;
 			std::string frameNam = frame->GetName().ToString();
 			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id)){
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, -10086)){
 				std::string url = frame->GetURL().ToString();
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, false);
 			}
@@ -948,7 +994,7 @@ public:
 			boost::hash<std::string> string_hash;
 			std::string frameNam = frame->GetName().ToString();
 			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id)){
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
 				std::string url = frame->GetURL().ToString();
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, true);
 			}
@@ -966,7 +1012,7 @@ public:
 			boost::hash<std::string> string_hash;
 			std::string frameNam = frame->GetName().ToString();
 			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id)){
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, errorCode)){
 				std::string url = frame->GetURL().ToString();
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, false);
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, true);
@@ -986,7 +1032,7 @@ public:
 			boost::hash<std::string> string_hash;
 			std::string frameNam = frame->GetName().ToString();
 			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id)){
+			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
 				std::string url = frame->GetURL().ToString();
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 			}

@@ -13,10 +13,10 @@ NormalWebFactory::~NormalWebFactory()
 {
 }
 
-void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie)
+void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx)
 {
 	CefRefPtr<WebkitControl> item = new  WebkitControl;
-	item->AttachHwnd(hwnd, url);
+	item->AttachHwnd(hwnd, url, cookie_ctx);
 	m_map.insert(std::make_pair(hwnd, item));
 }
 
@@ -166,4 +166,31 @@ bool NormalWebFactory::ReloadIgnoreCache(const HWND& hwnd)
 		}
 	}
 	return bret;
+}
+
+bool NormalWebFactory::IsAudioMuted(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->IsAudioMuted();
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+void NormalWebFactory::SetAudioMuted(const HWND& hwnd, const bool& bEnable)
+{
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->SetAudioMuted(bEnable);
+		}
+	}
 }
