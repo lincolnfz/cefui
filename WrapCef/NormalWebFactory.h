@@ -24,9 +24,9 @@ public:
 
 	CefRefPtr<CefBrowser> GetBrowser(int browserID);
 
-	CefRefPtr<WebkitControl> GetWebkitControl(int browserID);
+	CefRefPtr<WebkitControl> GetWebkitControlByID(int browserID);
 
-	CefRefPtr<WebkitControl> GetWebkitControl(HWND hWnd);
+	CefRefPtr<WebkitControl> GetWebkitControlByHostHwnd(HWND hWnd);
 
 	bool Loadurl(const HWND& hwnd, const WCHAR* url);
 

@@ -54,7 +54,7 @@ CefRefPtr<CefBrowser> NormalWebFactory::GetBrowser(int browserID)
 	return browser;
 }
 
-CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControl(int browserID)
+CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControlByID(int browserID)
 {
 	CefRefPtr<WebkitControl> control;
 	NormalWebMap::iterator it = m_map.begin();
@@ -70,10 +70,10 @@ CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControl(int browserID)
 	return control;
 }
 
-CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControl(HWND hWnd)
+CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControlByHostHwnd(HWND hWnd)
 {
 	CefRefPtr<WebkitControl> control;
-	NormalWebMap::iterator it = m_map.begin();
+	NormalWebMap::iterator it = m_map.find(hWnd);
 	if ( it != m_map.end() )
 	{
 		control = it->second;

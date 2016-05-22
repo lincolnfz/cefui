@@ -193,7 +193,7 @@ void WebkitControl::handle_SetForce()
 
 LRESULT WebkitControl::HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(hWnd);
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByHostHwnd(hWnd);
 	if ( !IsWindow(hWnd) )
 	{
 		return 0;

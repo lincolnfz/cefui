@@ -102,7 +102,7 @@ namespace cyjh{
 				ipcID = item->m_ipcID;
 			}
 			else{
-				CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+				CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 				if ( control.get() )
 				{
 					ipcID = control->getIpcID();

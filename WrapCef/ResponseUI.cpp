@@ -94,7 +94,7 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 	else{
 		//assert(false);
 		//OutputDebugString(L"----------rsp_RegisterBrowser fail");
-		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 		if ( control.get() )
 		{
 			control->setIpcID(ipcID);
@@ -603,7 +603,7 @@ bool ResponseUI::rsp_invokeMethod(const CefRefPtr<CefBrowser> browser, const std
 		}
 	}
 	else{
-		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControl(browser->GetIdentifier());
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 		if ( control.get() )
 		{
 			if (WebkitEcho::getFunMap()){
