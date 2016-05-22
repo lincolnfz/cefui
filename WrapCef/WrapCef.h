@@ -119,6 +119,8 @@ namespace wrapQweb {
 
 	typedef const WCHAR*(__stdcall *call_WebkitInvokeMethod)(const int& id, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
 
+	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -128,6 +130,7 @@ namespace wrapQweb {
 		call_WebkitBeginLoad webkitBeginLoad;
 		call_WebkitEndLoad webkitEndLoad;
 		call_WebkitInvokeMethod webkitInvokeMethod;
+		call_WebkitInjectJS webkitInjectJS;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

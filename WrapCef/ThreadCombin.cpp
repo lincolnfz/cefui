@@ -22,6 +22,30 @@ namespace cyjh{
 
 	}
 
+	void UIThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
+	{
+		CEF_REQUIRE_UI_THREAD();
+		parm.setBrowserID(browser->GetIdentifier());
+		std::shared_ptr<IPCUnit> unit;
+		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+		if (item.get())
+		{
+			unit = IPC_Manager::getInstance().GetIpc(item->m_ipcID);		
+		}
+		else{
+			CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+			if ( control.get() )
+			{
+				unit = IPC_Manager::getInstance().GetIpc(control->getIpcID());
+			}
+		}
+
+		if (unit.get())
+		{
+			SendAsyncRequest(unit.get(), parm);
+		}
+	}
+
 	void UIThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		CEF_REQUIRE_UI_THREAD();
@@ -44,6 +68,28 @@ namespace cyjh{
 
 	void UIThreadCombin::postInstruct(std::shared_ptr<Instruct> spInfo){
 		CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvRequest, this, spInfo));
+	}
+
+	void UIThreadCombin::procRecvData(const std::shared_ptr<Instruct> spData)
+	{
+		if (!CefCurrentlyOn(TID_UI)){
+			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvData, this, spData));
+			return;
+		}
+		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowser(spData->getBrowserID());
+		std::shared_ptr<Instruct> spOut(new Instruct);
+		spOut->setName(spData->getName().c_str());
+		spOut->setBrowserID(spData->getBrowserID());
+		if (browser.get() == NULL)
+		{
+			browser = NormalWebFactory::getInstance().GetBrowser(spData->getBrowserID());
+			if (browser.get() == NULL)
+			{
+				assert(false);
+				return;
+			}
+		}
+		bool bOut = handle_.handleQuest(browser, spData, spOut);
 	}
 
 	void UIThreadCombin::procRecvRequest(const std::shared_ptr<Instruct> spReq)
@@ -172,6 +218,11 @@ namespace cyjh{
 
 	}
 
+	void RenderThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
+	{
+		CEF_REQUIRE_RENDERER_THREAD();
+	}
+
 	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		CEF_REQUIRE_RENDERER_THREAD();
@@ -207,6 +258,19 @@ namespace cyjh{
 
 	void RenderThreadCombin::postInstruct(std::shared_ptr<Instruct> spInfo){
 		CefPostTask(TID_UI, base::Bind(&RenderThreadCombin::procRecvRequest, this, spInfo));
+	}
+
+	void RenderThreadCombin::procRecvData(const std::shared_ptr<Instruct> spData)
+	{
+		if (!CefCurrentlyOn(TID_RENDERER)){
+			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::procRecvData, this, spData));
+			return;
+		}
+		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(spData->getBrowserID());
+		std::shared_ptr<Instruct> spOut(new Instruct);
+		spOut->setName(spData->getName().c_str());
+		spOut->setBrowserID(spData->getBrowserID());
+		bool bOut = handle_.handleQuest(browser, spData, spOut);
 	}
 
 	void RenderThreadCombin::procRecvRequest(const std::shared_ptr<Instruct> spReq)
@@ -312,4 +376,11 @@ namespace cyjh{
 		ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 		ipc_->Close();
 	}
+
+	void RenderThreadCombin::AttachNewBrowserIpc()
+	{
+		ipc_->Attach();
+	}
+
 }
+

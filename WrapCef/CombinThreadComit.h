@@ -29,6 +29,7 @@ namespace cyjh{
 			TYPE_DOUBLE,
 			TYPE_STRING,
 			TYPE_WSTRING,
+			TYPE_INT64,
 			TYPE_BINARY,
 			TYPE_DICTIONARY,
 			TYPE_LIST
@@ -38,6 +39,7 @@ namespace cyjh{
 			boolVal_ = false;
 			intVal_ = 0;
 			doubleVal_ = 0.0;
+			int64Val_ = 0;
 		}
 		virtual ~cyjh_value(){}
 
@@ -89,6 +91,15 @@ namespace cyjh{
 		const std::wstring& GetWStrVal() const{
 			return strwVal_;
 		}
+
+		void SetInt64Val(const int64& val){
+			type_ = TYPE_INT64;
+			int64Val_ = val;
+		}
+
+		const int64& GetInt64Val() const{
+			return int64Val_;
+		}
 	protected:
 		Type type_;
 		bool boolVal_;
@@ -96,6 +107,7 @@ namespace cyjh{
 		double doubleVal_;
 		std::wstring strwVal_;
 		std::string strVal_;
+		int64 int64Val_;
 	private:
 
 	};
@@ -142,6 +154,12 @@ namespace cyjh{
 			list_.push_back(item);
 		}
 
+		void AppendVal(const int64& val){
+			cyjh_value item;
+			item.SetInt64Val(val);
+			list_.push_back(item);
+		}
+
 		const cyjh_value::Type& GetType(const unsigned int& idx) const{
 			return list_[idx].GetType();
 		}
@@ -164,6 +182,10 @@ namespace cyjh{
 
 		const std::wstring& GetWStrVal(const unsigned int& idx) const{
 			return list_[idx].GetWStrVal();
+		}
+
+		const int64& GetInt64Val(const unsigned int& idx) const{
+			return list_[idx].GetInt64Val();
 		}
 
 		// Iteration.
@@ -192,6 +214,7 @@ namespace cyjh{
 		INSTRUCT_WAKEUP,
 		INSTRUCT_REGBROWSER,
 		INSTRUCT_CLOSE,
+		INSTRUCT_DATA, //异步传送的数据
 		INSTRUCT_NULL,
 	};
 
@@ -258,6 +281,14 @@ namespace cyjh{
 			type_ = type;
 		}
 
+		void setAsync(const bool& async){
+			async_ = async;
+		}
+
+		const bool& getAsync() const{
+			return async_;
+		}
+
 	protected:		
 
 		const InstructType& getInstructType() const{
@@ -302,6 +333,7 @@ namespace cyjh{
 		bool succ_;
 		bool newSession_;
 		bool procTimeout_;
+		bool async_;
 		cyjh_value_list list_;
 	};
 
@@ -432,14 +464,17 @@ namespace cyjh{
 		virtual ~CombinThreadComit();
 
 		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) = 0;
+		virtual void AsyncRequest(CefRefPtr<CefBrowser>, Instruct& parm) = 0;
 		virtual void RecvData(const unsigned char*, DWORD);
 		void WakeUp();
 		void SendRenderWakeUpHelp(int browserID/*, int reqid, int atom*/);
 
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
+		void SendAsyncRequest(IPCUnit*, Instruct& parm);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) = 0;
+		virtual void procRecvData(const std::shared_ptr<Instruct>) = 0;
 		virtual bool prepareResponse(const std::shared_ptr<Instruct> parm);
 		bool RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
 		void UnRegisterReqID(IPCUnit* ipc, int req_id);
@@ -503,6 +538,8 @@ namespace cyjh{
 		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) = 0;
 
 		virtual void ProcTrunkReq(std::shared_ptr<Instruct> spInfo);
+
+		virtual void ProcAsyncData(std::shared_ptr<Instruct> spInfo);
 
 		virtual void CloseIpc(std::shared_ptr<Instruct>){}
 

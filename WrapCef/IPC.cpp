@@ -567,11 +567,17 @@ namespace cyjh{
 		close_ = false;
 		id_ = InterlockedIncrement((long*)&ipc_unit_id);
 		cli_.BindDisconstCallback(&IPCUnit::NotifyDisconst, this);
+		attach_num_ = 0;
 	}
 
 	IPCUnit::~IPCUnit()
 	{
 
+	}
+
+	void IPCUnit::Attach()
+	{
+		++attach_num_;
 	}
 
 	void IPCUnit::Close()

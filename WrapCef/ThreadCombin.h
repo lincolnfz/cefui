@@ -15,10 +15,12 @@ namespace cyjh{
 		UIThreadCombin();
 		virtual ~UIThreadCombin();
 		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) override;
+		virtual void AsyncRequest(CefRefPtr<CefBrowser>, Instruct& parm) override;
 		virtual void RecvData(const unsigned char*, DWORD) override;
 		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) override;
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
+		virtual void procRecvData(const std::shared_ptr<Instruct>) override;
 
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
 
@@ -36,6 +38,7 @@ namespace cyjh{
 	public:
 		RenderThreadCombin();
 		virtual ~RenderThreadCombin();
+		virtual void AsyncRequest(CefRefPtr<CefBrowser>, Instruct& parm) override;
 		virtual void Request(CefRefPtr<CefBrowser>, Instruct& parm, std::shared_ptr<Instruct>& val) override;
 		void SetIpc(std::shared_ptr<IPCUnit> ipc)
 		{
@@ -48,8 +51,11 @@ namespace cyjh{
 
 		virtual void RecvData(const unsigned char*, DWORD) override;
 		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) override;
+
+		void AttachNewBrowserIpc();
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
+		virtual void procRecvData(const std::shared_ptr<Instruct>) override;
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
 		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
 

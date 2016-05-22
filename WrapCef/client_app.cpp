@@ -173,6 +173,7 @@ void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
 	parm.getList().AppendVal(std::wstring(RenderThreadSync_->getIpc().get()->getSrvName()));
 	std::shared_ptr<cyjh::Instruct> outval;
 	RenderThreadSync_->Request(browser, parm, outval);
+	RenderThreadSync_->AttachNewBrowserIpc();
 	//OutputDebugString(L"OnBrowserCreated2222222");
   RenderDelegateSet::iterator it = render_delegates_.begin();  
   for (; it != render_delegates_.end(); ++it)

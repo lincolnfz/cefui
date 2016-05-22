@@ -35,6 +35,7 @@
 #include "WrapCef.h"
 #include "ShareHelper.h"
 #include "WebkitEcho.h"
+#include "NormalWebFactory.h"
 
 namespace {
 
@@ -633,6 +634,26 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 	//std::shared_ptr<cyjh::Instruct> outVal;
 	//ipc->Request(this->browser_, parm, outVal);
+
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+	if ( control.get() )
+	{
+		if (WebkitEcho::getFunMap())
+		{
+			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier());
+			if ( js && wcslen(js) > 0 )
+			{
+				cyjh::Instruct parm;
+				parm.setName("injectJS");
+				parm.getList().AppendVal(frame->GetIdentifier());
+				parm.getList().AppendVal( std::wstring(js) );
+
+				CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+				ipc->AsyncRequest(browser, parm);
+			}
+		}		
+	}
+
 	if (frame->IsMain()){
 		if (fun && item.get())
 		{

@@ -90,6 +90,11 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 	if ( item.get() )
 	{
 		item->m_ipcID = ipcID;
+		std::shared_ptr<cyjh::IPCUnit> unit = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
+		if ( unit.get() )
+		{
+			unit->Attach();
+		}
 	}
 	else{
 		//assert(false);
@@ -98,6 +103,11 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 		if ( control.get() )
 		{
 			control->setIpcID(ipcID);
+			std::shared_ptr<cyjh::IPCUnit> unit = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
+			if (unit.get())
+			{
+				unit->Attach();
+			}
 		}
 		else{
 			assert(false);

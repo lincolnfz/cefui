@@ -33,6 +33,7 @@ namespace cyjh{
 		pick.WriteBool(inst->succ_);
 		pick.WriteBool(inst->newSession_);
 		pick.WriteBool(inst->procTimeout_);
+		pick.WriteBool(inst->async_);
 		pick.WriteString(inst->name_);
 		int len = inst->list_.GetSize();
 		pick.WriteInt(len);
@@ -70,6 +71,12 @@ namespace cyjh{
 			{
 				const std::wstring val = inst->list_.GetWStrVal(idx);
 				pick.WriteWString(val);
+			}
+			break;
+			case cyjh_value::TYPE_INT64:
+			{
+				const int64 val = inst->list_.GetInt64Val(idx);
+				pick.WriteInt64(val);
 			}
 			break;
 			default:
@@ -139,6 +146,13 @@ namespace cyjh{
 			}
 			inst->setProcTimeout(timeout);
 
+			bool async = false;
+			if (!pick.ReadBool(&itor, &async)){
+				bret = false;
+				break;
+			}
+			inst->setAsync(async);
+
 			std::string name;
 			if ( !pick.ReadString(&itor, &name) ){
 				bret = false;
@@ -202,6 +216,15 @@ namespace cyjh{
 					inst->getList().AppendVal(val);
 				}
 					break;
+				case cyjh::cyjh_value::TYPE_INT64:
+				{
+					int64 val = 0;
+					if ( !pick.ReadInt64(&itor, &val) ){
+						bret = false;
+					}
+					inst->getList().AppendVal(val);
+				}
+				break;
 				case cyjh::cyjh_value::TYPE_BINARY:
 					break;
 				case cyjh::cyjh_value::TYPE_DICTIONARY:
@@ -231,6 +254,7 @@ namespace cyjh{
 		newSession_ = true;
 		procState_ = PROC_STATE_NIL;
 		procTimeout_ = false;
+		async_ = false;
 	}
 
 	Instruct::~Instruct()
@@ -572,6 +596,18 @@ namespace cyjh{
 		removeMaybelockQueue(parm);
 		pushRecvRequestID(parm->getID(), parm->getAtom());
 		return ret;
+	}
+
+	void CombinThreadComit::SendAsyncRequest(IPCUnit* ipc, Instruct& parm)
+	{
+		Pickle pick;
+		if (parm.getInstructType() == INSTRUCT_NULL)
+		{
+			parm.setInstructType(InstructType::INSTRUCT_DATA);
+		}
+		parm.setAsync(true);
+		Instruct::SerializationInstruct(&parm, pick);
+		bool bSend = ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 	}
 
 	void CombinThreadComit::SendRequest(IPCUnit* ipc, Instruct& parm, std::shared_ptr<Instruct>& response_val)
@@ -1207,6 +1243,12 @@ namespace cyjh{
 		bool objected = Instruct::ObjectInstruct(pick, spInstruct.get()); //¶ÔÏñ»¯
 		assert(objected);
 
+		if ( spInstruct->getAsync() )
+		{
+			ProcAsyncData(spInstruct);
+			return;
+		}
+
 		std::unique_lock<std::mutex> lock(newSessinBlockMutex_);
 		//newSessinBlockMutex_.lock();
 		if (spInstruct->getInstructType() == INSTRUCT_OUTQUEUE)
@@ -1440,6 +1482,11 @@ namespace cyjh{
 				procRecvRequest(spInstruct);
 			}
 		}
+	}
+
+	void CombinThreadComit::ProcAsyncData(std::shared_ptr<Instruct> spInfo)
+	{
+		procRecvData(spInfo);
 	}
 
 	bool CombinThreadComit::haveRequest()

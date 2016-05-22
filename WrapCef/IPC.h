@@ -256,11 +256,18 @@ namespace cyjh{
 
 		void Close();
 
+		void Attach();
+
+		const int& AttachNum(){
+			return attach_num_;
+		}
+
 	private:
 		IPCPipeSrv srv_;
 		IPCPipeClient cli_;
 		int id_;
 		bool close_;
+		int attach_num_;
 	};
 
 	class IPC_Manager

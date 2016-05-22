@@ -58,6 +58,7 @@ ResponseRender::ResponseRender()
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_invokedJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_callJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_queryElementAttrib);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_injectJS);
 }
 
 
@@ -280,4 +281,17 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 
 	ret = true;
 	return ret;
+}
+
+bool ResponseRender::rsp_injectJS(const CefRefPtr<CefBrowser> browser,
+		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	int64 frameID = req_parm->getList().GetInt64Val(0);
+	CefString cefjs(req_parm->getList().GetWStrVal(1));
+	CefRefPtr<CefFrame> frame = browser->GetFrame(frameID);
+	CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+	CefRefPtr<CefV8Value> retVal;
+	CefRefPtr<CefV8Exception> excp;
+	v8->Eval(cefjs, retVal, excp);
+	return true;
 }
