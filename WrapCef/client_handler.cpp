@@ -411,6 +411,14 @@ void helpNewUrl(CefRefPtr<CefBrowser> browser, std::shared_ptr<std::wstring> fra
 	}
 }
 
+void helpOppenUrl(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr<std::wstring> cookie_ctx)
+{
+	if (WebkitEcho::getFunMap()){
+		WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str(),
+			cookie_ctx->empty() ? NULL : cookie_ctx->c_str());
+	}
+}
+
 bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefFrame> frame,
                                   const CefString& target_url,
@@ -436,9 +444,9 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
   else{
 	  //HWND hHost = browser->GetHost()->GetWindowHandle();
 	  int id = browser->GetIdentifier();
-	  if (WebkitEcho::getFunMap()){
-		  WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str(),
-			  cookie_context_.empty() ? NULL : cookie_context_.c_str());
+	  if (!CefCurrentlyOn(TID_UI)){
+		  std::shared_ptr<std::wstring> cookie_ctx(new std::wstring(cookie_context_));
+		  CefPostTask(TID_UI, base::Bind(&helpOppenUrl, id, url, cookie_ctx));
 	  }
 	  return true;
   }
