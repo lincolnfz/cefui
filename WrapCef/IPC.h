@@ -258,7 +258,10 @@ namespace cyjh{
 
 		void Attach();
 
+		void Detch();
+
 		const int& AttachNum(){
+			std::unique_lock<std::mutex> lock(attach_mutex_);
 			return attach_num_;
 		}
 
@@ -268,6 +271,7 @@ namespace cyjh{
 		int id_;
 		bool close_;
 		int attach_num_;
+		std::mutex attach_mutex_;
 	};
 
 	class IPC_Manager

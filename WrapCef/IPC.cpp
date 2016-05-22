@@ -577,7 +577,14 @@ namespace cyjh{
 
 	void IPCUnit::Attach()
 	{
+		std::unique_lock<std::mutex> lock(attach_mutex_);
 		++attach_num_;
+	}
+
+	void IPCUnit::Detch()
+	{
+		std::unique_lock<std::mutex> lock(attach_mutex_);
+		--attach_num_;
 	}
 
 	void IPCUnit::Close()
