@@ -351,11 +351,12 @@ protected:
 		return (dwMessageLevel<<28) | m_ulSerialNumber;
 	}
 
+	virtual BOOL ProcDataPack(std::shared_ptr<MessageType>) = 0;
+
 	static unsigned int __stdcall LoopThread(void*);
 	static void __stdcall APCProc( DWORD dwParam){}
 
 protected:
-	virtual BOOL ProcDataPack(std::shared_ptr<MessageType>) = 0;
 	HANDLE m_hEvents[1];
 	HANDLE m_hLoopThreadFinishEvent;
 	HANDLE m_hNotifyNoBlockWrite;

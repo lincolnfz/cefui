@@ -15,6 +15,7 @@ public:
 
 protected:
 	void RecvPipeData(const unsigned char* data, DWORD len);
+	void PipeStateChange(int state);
 	virtual BOOL ProcDataPack(std::shared_ptr<cyjh::Instruct>) override;
 	virtual void Response(const std::shared_ptr<cyjh::Instruct> spOut) override;
 

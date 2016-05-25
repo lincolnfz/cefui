@@ -79,7 +79,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	PathRemoveFileSpec(exeFullPath);
 
 	ClientLogic logic;
-	if (wcsstr(lpCmdLine, L"--type=plugin"))
+	if (wcsstr(lpCmdLine, L"--type=plugin") && wcsstr(lpCmdLine, L"NPSWF32") )
 	{
 		logic.Connect(L"\\\\.\\pipe\\web_box_flash", L"\\\\.\\pipe\\web_box_main");
 	}	

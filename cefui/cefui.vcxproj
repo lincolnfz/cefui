@@ -44,12 +44,14 @@
     <OutDir>..\bin\$(Configuration)\</OutDir>
     <IncludePath>..\WrapCef;.\detour\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\bin\debug;.\detour\lib.x86;$(LibraryPath)</LibraryPath>
+    <TargetName>render</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\$(Configuration)\</OutDir>
     <IncludePath>..\WrapCef;.\detour\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\bin\release;.\detour\lib.x86;$(LibraryPath)</LibraryPath>
+    <TargetName>render</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
