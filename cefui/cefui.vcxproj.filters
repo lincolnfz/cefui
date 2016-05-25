@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="pipe">
+      <UniqueIdentifier>{7f84d854-03d4-42ba-9cc9-e1eeaca701c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -36,12 +39,45 @@
     <ClInclude Include="cefui.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SpeedBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientLogic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientResponse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cefui.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SpeedBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\cjpickle.cc">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\Instruct.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\IPC.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientLogic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\LogicUnit.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\ResponseHandle.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientResponse.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

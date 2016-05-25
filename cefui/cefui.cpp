@@ -6,8 +6,10 @@
 #include "WrapCef.h"
 #include <comdef.h>
 #include <gdiplus.h>
+#include <Shlwapi.h>
+#include "ClientLogic.h"
 
-//
+/*
 #if defined(CEF_USE_SANDBOX)
 // The cef_sandbox.lib static library is currently built with VS2013. It may not
 // link successfully with other VS versions.
@@ -21,8 +23,9 @@
 #pragma comment(lib, "dynamic_annotations.lib")
 #pragma comment(lib, "libcef.dll.lib")
 #pragma comment(lib, "libcef_dll_wrapper.lib")
-#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "opengl32.lib")*/
 #pragma comment(lib, "gdiplus.lib")
+#pragma comment(lib , "Shlwapi.lib")
 
 #ifdef _DEBUG
 #pragma comment(lib, "WrapCef_d.lib")
@@ -52,7 +55,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
                      LPTSTR    lpCmdLine,
                      int       nCmdShow)
 {
+#ifdef _DEBUG1
 	OutputDebugString(_T("################################_tWinMain----------------------------"));
+#endif
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -67,7 +72,24 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	Gdiplus::GdiplusStartupInput StartupInput;
 	GdiplusStartup(&gdiplusToken, &StartupInput, NULL);
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CEFUI));
-	InitCef(hInstance, hAccelTable);
+	//InitCef(hInstance, hAccelTable); //不测试
+
+	WCHAR   exeFullPath[MAX_PATH + 32], PluginDirPath[MAX_PATH], szRenderPath[MAX_PATH];
+	GetModuleFileNameW(NULL, exeFullPath, MAX_PATH);
+	PathRemoveFileSpec(exeFullPath);
+
+	ClientLogic logic;
+	if (wcsstr(lpCmdLine, L"--type=plugin"))
+	{
+		logic.Connect(L"\\\\.\\pipe\\web_box_flash", L"\\\\.\\pipe\\web_box_main");
+	}	
+	
+	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
+	if (wrapQweb::InitLibrary(hInstance, L"render.exe") < 0){
+		wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true);
+		wrapQweb::RunLoop();
+		wrapQweb::FreeLibrary();
+	}
 
 	// 执行应用程序初始化:
 	/*(if (!InitInstance (hInstance, nCmdShow))
