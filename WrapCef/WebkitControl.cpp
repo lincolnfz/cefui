@@ -9,6 +9,7 @@
 #include "include/cef_sandbox_win.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "NormalWebFactory.h"
+#include <boost/functional/hash.hpp>
 
 // Set focus to |browser| on the UI thread.
 static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
@@ -19,6 +20,57 @@ static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
 	}
 
 	browser->GetHost()->SetFocus(true);
+}
+
+typedef std::map<size_t, CefRefPtr<CefCookieManager>> COOKIES_MAN_MAP;
+
+class CookiesManage
+{
+public:
+	static CookiesManage& getInst(){
+		return s_inst;
+	}
+	virtual ~CookiesManage(){}
+	CefRefPtr<CefCookieManager> GetCookieManager(const WCHAR* cookie_ctx){
+		std::wstring path(cookie_ctx);
+		boost::hash<std::wstring> string_hash;
+		size_t hash = string_hash(path);
+		COOKIES_MAN_MAP::iterator it = map_.find(hash);
+		CefRefPtr<CefCookieManager> item;
+		if ( it != map_.end() )
+		{
+			item = it->second;
+		}
+		else{
+			item = CefCookieManager::CreateManager(CefString(path), false);
+			map_.insert(std::make_pair(hash, item));
+		}
+
+		COOKIES_MAN_MAP::iterator it2 = map_.find(hash);
+		CefRefPtr<CefCookieManager> val;
+		if (it2 != map_.end())
+		{
+			val = it2->second;
+		}
+		return val;
+	}
+protected:
+	CookiesManage(){}
+private:
+	static CookiesManage s_inst;
+	COOKIES_MAN_MAP map_;
+};
+CookiesManage CookiesManage::s_inst;
+
+
+CefRefPtr<CefCookieManager> RequestContextHandler::GetCookieManager()
+{
+	CefRefPtr<CefCookieManager> manager = CookiesManage::getInst().GetCookieManager(cookie_ctx_.c_str());
+	if ( manager.get() )
+	{
+		return manager;
+	}
+	return NULL;
 }
 
 ////
@@ -37,14 +89,20 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 	// Populate the browser settings based on command line arguments.
 	//AppGetBrowserSettings(browser_settings);
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
+	//browser_settings.Set()
 
 	RECT rect;
 
 	GetClientRect(hParent, &rect);
 	info.SetAsChild(hParent, rect);
 
+	CefRefPtr<CefRequestContext> request_context;
+	if (cookie_context && wcslen(cookie_context) > 0){
+		m_requestContextHandler = new RequestContextHandler(cookie_context);
+		request_context = CefRequestContext::CreateContext(m_requestContextHandler);
+	}
 	CefBrowserHost::CreateBrowser(info, m_handler.get(),
-		url, browser_settings, NULL);
+		url, browser_settings, request_context.get() ? request_context : NULL );
 
 	HWND hWnd = NULL;
 	if (m_handler->GetBrowser() && m_handler->GetBrowser()->GetHost()){
@@ -86,7 +144,10 @@ bool ChromeiumBrowserControl::loadUrl(const WCHAR* url)
 	bool ret = false;
 	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetMainFrame().get() )
 	{
-		m_handler->GetBrowser()->GetMainFrame()->LoadURL(CefString(url));
+		//m_handler->GetBrowser()->GetMainFrame()->LoadURL(CefString(url));
+		CefRefPtr<CefRequest> request = CefRequest::Create();
+		request->SetURL(CefString(std::wstring(url)));
+		m_handler->GetBrowser()->GetMainFrame()->LoadRequest(request);
 		ret = true;
 	}
 	return ret;
@@ -150,6 +211,14 @@ void ChromeiumBrowserControl::SetAudioMuted(const bool& bEnable)
 {
 	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get()){
 		m_handler->GetBrowser()->GetHost()->SetAudioMuted(bEnable);
+	}
+}
+
+void ChromeiumBrowserControl::Stop()
+{
+	if (m_handler->GetBrowser().get())
+	{
+		m_handler->GetBrowser()->StopLoad();
 	}
 }
 

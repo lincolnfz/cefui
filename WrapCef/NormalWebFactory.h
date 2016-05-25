@@ -44,6 +44,8 @@ public:
 
 	void SetAudioMuted(const HWND& hwnd, const bool& bEnable);
 
+	bool Stop(const HWND& hwnd);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;

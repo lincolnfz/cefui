@@ -3,6 +3,20 @@
 #pragma once
 #include "cefclient.h"
 
+class RequestContextHandler : public CefRequestContextHandler {
+public:
+	explicit RequestContextHandler(const WCHAR* cookie_path)
+	{
+		cookie_ctx_ = cookie_path;
+	}
+
+	virtual CefRefPtr<CefCookieManager> GetCookieManager() OVERRIDE;
+
+	IMPLEMENT_REFCOUNTING(RequestContextHandler);
+private:
+	std::wstring cookie_ctx_;
+};
+
 class ChromeiumBrowserControl : public CefBase
 {
 public:
@@ -25,10 +39,12 @@ public:
 	void reloadIgnoreCache();
 	bool IsAudioMuted();
 	void SetAudioMuted(const bool& bEnable);
+	void Stop();
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;
 	bool m_bClose;
+	CefRefPtr<RequestContextHandler> m_requestContextHandler;
 
 };
 

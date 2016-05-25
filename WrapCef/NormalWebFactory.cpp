@@ -194,3 +194,18 @@ void NormalWebFactory::SetAudioMuted(const HWND& hwnd, const bool& bEnable)
 		}
 	}
 }
+
+bool NormalWebFactory::Stop(const HWND& hwnd)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->Stop();
+			bret = true;
+		}
+	}
+	return bret;
+}

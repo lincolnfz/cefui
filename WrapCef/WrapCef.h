@@ -154,6 +154,8 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void SetAudioMuted(const HWND& hwnd, const bool& bEnable);
 
+	SHARED_EXPORT_API bool Stop(const HWND& hwnd);
+
 	class CChromeiumBrowserControl;
 
 	class SHARED_EXPORT_CLASS CWebkitControl

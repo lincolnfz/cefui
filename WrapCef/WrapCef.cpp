@@ -658,6 +658,11 @@ namespace wrapQweb{
 		NormalWebFactory::getInstance().SetAudioMuted(hwnd, bEnable);
 	}
 
+	bool Stop(const HWND& hwnd)
+	{
+		return NormalWebFactory::getInstance().Stop(hwnd);
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

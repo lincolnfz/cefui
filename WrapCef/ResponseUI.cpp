@@ -617,7 +617,7 @@ bool ResponseUI::rsp_invokeMethod(const CefRefPtr<CefBrowser> browser, const std
 		if ( control.get() )
 		{
 			if (WebkitEcho::getFunMap()){
-				out->getList().AppendVal( WebkitEcho::getFunMap()->webkitInvokeMethod(browser->GetIdentifier(), module, method, parm, extra) );
+				out->getList().AppendVal( std::wstring(WebkitEcho::getFunMap()->webkitInvokeMethod(browser->GetIdentifier(), module, method, parm, extra)) );
 				ret = true;
 			}
 		}
