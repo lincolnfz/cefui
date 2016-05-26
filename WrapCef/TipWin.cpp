@@ -199,8 +199,6 @@ void TipWin::initializeToolTipWindow(HWND hWnd)
 
 		::SendMessage(tooltip_hwnd_, TTM_ADDTOOL, 0, reinterpret_cast<LPARAM>(&info));
 		::SendMessage(tooltip_hwnd_, TTM_SETMAXTIPWIDTH, 0, maxToolTipWidth);
-
-		::SetWindowPos(tooltip_hwnd_, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	}
 }
 

@@ -93,6 +93,7 @@
     <ClInclude Include="ClientLogic.h" />
     <ClInclude Include="ClientResponse.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SoundBox.h" />
     <ClInclude Include="SpeedBox.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -106,6 +107,10 @@
     <ClCompile Include="pipe\IPC.cpp" />
     <ClCompile Include="pipe\LogicUnit.cpp" />
     <ClCompile Include="pipe\ResponseHandle.cpp" />
+    <ClCompile Include="SoundBox.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="SpeedBox.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

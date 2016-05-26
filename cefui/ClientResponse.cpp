@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "ClientResponse.h"
 #include "SpeedBox.h"
+#include "SoundBox.h"
 
 ClientResponse::ClientResponse()
 {
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AdjustFlashSpeed);
+	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AudioMuted);
 }
 
 
@@ -27,5 +29,23 @@ bool ClientResponse::rsp_AdjustFlashSpeed(const int id,
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed enable "));
 	}
 
+	return true;
+}
+
+bool ClientResponse::rsp_AudioMuted(const int id,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool muted = req_parm->getList().GetBooleanVal(0);
+	if ( muted )
+	{
+		EnableSoundControl(TRUE);
+		CloseSound();
+		//OutputDebugString(_T("------------------111ClientResponse::rsp_AudioMuted Enable "));
+	}
+	else{
+		OpenSound();
+		EnableSoundControl(FALSE);
+		//OutputDebugString(_T("------------------111ClientResponse::rsp_AudioMuted disable "));
+	}
 	return true;
 }

@@ -9,5 +9,8 @@ public:
 
 	bool rsp_AdjustFlashSpeed(const int id,
 		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
+
+	bool rsp_AudioMuted(const int id,
+		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
 };
 
