@@ -121,6 +121,8 @@ namespace wrapQweb {
 
 	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id);
 
+	typedef void(__stdcall *call_WebkitDownFileUrl)(const int& id, const WCHAR* url, const WCHAR* suggestFileName);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -131,6 +133,7 @@ namespace wrapQweb {
 		call_WebkitEndLoad webkitEndLoad;
 		call_WebkitInvokeMethod webkitInvokeMethod;
 		call_WebkitInjectJS webkitInjectJS;
+		call_WebkitDownFileUrl webkitDownFileUrl;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

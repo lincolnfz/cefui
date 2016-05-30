@@ -311,8 +311,14 @@ void ClientHandler::OnBeforeDownload(
     CefRefPtr<CefBeforeDownloadCallback> callback) {
   CEF_REQUIRE_UI_THREAD();
 
+
+  if (WebkitEcho::getFunMap()){
+	  std::wstring strTitle(download_item->GetURL());
+	  std::wstring strSuggestFileName(suggested_name);
+	  WebkitEcho::getFunMap()->webkitDownFileUrl(browser->GetIdentifier(), strTitle.c_str(), strSuggestFileName.c_str());
+  }else
   // Continue the download and show the "Save As" dialog.
-  callback->Continue(GetDownloadPath(suggested_name), true);
+	callback->Continue(GetDownloadPath(suggested_name), true);
 }
 
 void ClientHandler::OnDownloadUpdated(
