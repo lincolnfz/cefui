@@ -287,14 +287,19 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 bool ResponseRender::rsp_injectJS(const CefRefPtr<CefBrowser> browser,
 		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
 {
+	bool ret = false;
 	int64 frameID = req_parm->getList().GetInt64Val(0);
 	CefString cefjs(req_parm->getList().GetWStrVal(1));
 	CefRefPtr<CefFrame> frame = browser->GetFrame(frameID);
-	CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
-	CefRefPtr<CefV8Value> retVal;
-	CefRefPtr<CefV8Exception> excp;
-	v8->Eval(cefjs, retVal, excp);
-	return true;
+	if (frame.get())
+	{
+		CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+		CefRefPtr<CefV8Value> retVal;
+		CefRefPtr<CefV8Exception> excp;
+		v8->Eval(cefjs, retVal, excp);
+		ret = true;
+	}	
+	return ret;
 }
 
 bool ResponseRender::rsp_asyncInvokedJSMethod(const CefRefPtr<CefBrowser> browser,
