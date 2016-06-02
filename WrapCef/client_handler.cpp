@@ -706,7 +706,8 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
   {
 	  if (WebkitEcho::getFunMap())
 	  {
-		  WebkitEcho::getFunMap()->webkitBeginLoad(browser->GetIdentifier(), &cancel);
+		  std::wstring url = request->GetURL().ToWString();
+		  WebkitEcho::getFunMap()->webkitBeginLoad(browser->GetIdentifier(), url.c_str(), &cancel);
 	  }	  
   }
 

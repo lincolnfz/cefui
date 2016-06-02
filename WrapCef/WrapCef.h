@@ -113,7 +113,7 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_WebkitChangeTitle)(const int& id, const WCHAR* title);
 
-	typedef void(__stdcall *call_WebkitBeginLoad)(const int& id, bool* cancel);
+	typedef void(__stdcall *call_WebkitBeginLoad)(const int& id, const WCHAR* url, bool* cancel);
 
 	typedef void(__stdcall *call_WebkitEndLoad)(const int& id);
 
