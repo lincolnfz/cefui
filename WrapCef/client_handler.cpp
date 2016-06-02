@@ -701,16 +701,17 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
 	  fun->nativeFrameBegin(hWnd, url.c_str(), name.c_str());
   }*/
 
+  bool cancel = false;
   if (frame->IsMain())
   {
 	  if (WebkitEcho::getFunMap())
 	  {
-		  WebkitEcho::getFunMap()->webkitBeginLoad(browser->GetIdentifier());
+		  WebkitEcho::getFunMap()->webkitBeginLoad(browser->GetIdentifier(), &cancel);
 	  }	  
   }
 
   message_router_->OnBeforeBrowse(browser, frame);
-  return false;
+  return cancel;
 }
 
 CefRefPtr<CefResourceHandler> ClientHandler::GetResourceHandler(
