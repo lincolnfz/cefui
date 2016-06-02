@@ -663,6 +663,15 @@ namespace wrapQweb{
 		return NormalWebFactory::getInstance().Stop(hwnd);
 	}
 
+	bool asyncInvokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
+		const char* utf8_parm,
+		const char* utf8_frame_name, bool bNoticeJSTrans2JSON /*= true*/)
+	{
+		return NormalWebFactory::getInstance().asyncInvokedJSMethod(hWnd, utf8_module,
+			utf8_method, utf8_parm,
+			utf8_frame_name, bNoticeJSTrans2JSON);
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

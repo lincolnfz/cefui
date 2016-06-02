@@ -59,6 +59,7 @@ ResponseRender::ResponseRender()
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_callJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_queryElementAttrib);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_injectJS);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_asyncInvokedJSMethod);
 }
 
 
@@ -294,4 +295,60 @@ bool ResponseRender::rsp_injectJS(const CefRefPtr<CefBrowser> browser,
 	CefRefPtr<CefV8Exception> excp;
 	v8->Eval(cefjs, retVal, excp);
 	return true;
+}
+
+bool ResponseRender::rsp_asyncInvokedJSMethod(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool ret = false;
+	static std::string _ture("true");
+	static std::string _false("false");
+	std::string module = req_parm->getList().GetStrVal(0);
+	std::string method = req_parm->getList().GetStrVal(1);
+	std::string parm = req_parm->getList().GetStrVal(2);
+	std::string frameName = req_parm->getList().GetStrVal(3);
+	bool bNotifyJson = req_parm->getList().GetBooleanVal(4);
+	CefRefPtr<CefFrame> frame;
+	if (frameName.empty())
+	{
+		frame = browser->GetMainFrame();
+	}
+	else{
+		frame = browser->GetFrame(CefString(frameName));
+	}
+	if (frame.get())
+	{
+		boost::format fmt("window.invokeMethod('%1%', '%2%', '%3%', %4%)");
+		fmt % module % method % parm % (bNotifyJson ? _ture : _false);
+		std::string strJs = fmt.str();
+		CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+		CefRefPtr<CefV8Value> retVal;
+		CefRefPtr<CefV8Exception> excp;
+		CefString cefjs(strJs);
+#ifdef _DEBUG1
+		char szTmp[512] = { 0 };
+		char jspart[256] = { 0 };
+		strncpy_s(jspart, strJs.c_str(), 255);
+		sprintf_s(szTmp, "------async js invoke in render  %d ;  %s", GetCurrentThreadId(),
+			jspart);
+		OutputDebugStringA(szTmp);
+#endif
+		bool bEval = false;
+		if (parm.empty())
+		{
+			bEval = v8->Eval(cefjs, retVal, excp);
+		}
+		else{
+			bEval = v8->CallInvokeMethod(CefString("invokeMethod"), CefString(module), CefString(method), CefString(parm), bNotifyJson, retVal, excp);
+		}
+		ret = bEval;
+	}
+
+#ifdef _DEBUG1
+	char szTmp[256] = { 0 };
+	sprintf_s(szTmp, "------async js invoke finish!!!  %d ; ", GetCurrentThreadId());
+	OutputDebugStringA(szTmp);
+#endif
+	//assert(ret);
+	return ret;
 }

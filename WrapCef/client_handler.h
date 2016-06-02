@@ -318,6 +318,10 @@ class ClientHandler : public CefClient,
 	  const char* utf8_parm, CStringW* outstr,
 	  const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 
+  bool asyncInvokedJSMethod(const char* utf8_module, const char* utf8_method,
+	  const char* utf8_parm,  const char* utf8_frame_name,
+	  bool bNoticeJSTrans2JSON);
+
   bool callJSMethod(const char* fun_name, const char* utf8_parm,
 	  const char* utf8_frame_name, CStringW* outstr);
 

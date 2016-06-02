@@ -46,6 +46,10 @@ public:
 
 	bool Stop(const HWND& hwnd);
 
+	bool asyncInvokedJSMethod(const HWND& hwnd, const char* utf8_module, const char* utf8_method,
+		const char* utf8_parm, 
+		const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;

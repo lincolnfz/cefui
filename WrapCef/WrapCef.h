@@ -159,6 +159,10 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API bool Stop(const HWND& hwnd);
 
+	SHARED_EXPORT_API bool asyncInvokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
+		const char* utf8_parm,
+		const char* utf8_frame_name, bool bNoticeJSTrans2JSON = true);
+
 	class CChromeiumBrowserControl;
 
 	class SHARED_EXPORT_CLASS CWebkitControl

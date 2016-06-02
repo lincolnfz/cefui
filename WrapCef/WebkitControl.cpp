@@ -222,6 +222,18 @@ void ChromeiumBrowserControl::Stop()
 	}
 }
 
+bool ChromeiumBrowserControl::asyncInvokedJSMethod(const char* utf8_module, const char* utf8_method,
+	const char* utf8_parm,
+	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
+{
+	bool ret = false;
+	if (m_handler.get() && m_handler->GetBrowser().get())
+	{
+		ret = m_handler->asyncInvokedJSMethod(utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
+	}
+	return ret;
+}
+
 ////////////////////////////////////////////////////
 
 WebkitControl::WebkitControl()

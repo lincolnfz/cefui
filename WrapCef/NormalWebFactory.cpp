@@ -209,3 +209,22 @@ bool NormalWebFactory::Stop(const HWND& hwnd)
 	}
 	return bret;
 }
+
+bool NormalWebFactory::asyncInvokedJSMethod(const HWND& hwnd, const char* utf8_module, const char* utf8_method,
+	const char* utf8_parm,
+	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			bret = it->second->getBrowser()->asyncInvokedJSMethod(utf8_module,
+				utf8_method, utf8_parm,
+				utf8_frame_name, 
+				bNoticeJSTrans2JSON);
+		}
+	}
+	return bret;
+}
