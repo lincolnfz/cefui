@@ -49,6 +49,7 @@ enum client_menu_ids {
   CLIENT_ID_TESTMENU_RADIOITEM1,
   CLIENT_ID_TESTMENU_RADIOITEM2,
   CLIENT_ID_TESTMENU_RADIOITEM3,
+  CLIENT_ID_PASTE_VISIT,
 };
 
 const char kTestOrigin[] = "http://tests/";
@@ -201,6 +202,33 @@ bool ClientHandler::OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
 	return false;
 }
 
+std::string UnicodeToUTF8(const std::wstring& str)
+{
+	char*   pElementText;
+	int iTextLen;
+	iTextLen = WideCharToMultiByte(CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		NULL,
+		0,
+		NULL,
+		NULL);
+	pElementText = new char[iTextLen + 1];
+	memset((void*)pElementText, 0, sizeof(char) * (iTextLen + 1));
+	::WideCharToMultiByte(CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		pElementText,
+		iTextLen,
+		NULL,
+		NULL);
+	std::string strText(pElementText);
+	delete[] pElementText;
+	return strText;
+}
+
 void ClientHandler::OnBeforeContextMenu(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
@@ -224,6 +252,33 @@ void ClientHandler::OnBeforeContextMenu(
     BuildTestMenu(model);
   }
 #endif
+
+  if (params->IsEditable()){
+	  int x = params->GetXCoord();
+	  int y = params->GetYCoord();
+	  if ( browser->GetHost() )
+	  {
+		  HWND hwnd = browser->GetHost()->GetWindowHandle();
+		  POINT pt = { x, y };
+		  ClientToScreen(hwnd, &pt);
+		  std::wstring val;
+		  queryElementAttrib(x, y, pt.x, pt.y, val);
+		  if ( val.compare(L"inputUrl") == 0 )
+		  {
+			  bool bEnable = false;
+			  if (OpenClipboard(NULL))
+			  {
+				  if (IsClipboardFormatAvailable(CF_TEXT))
+					  bEnable = true;
+				  CloseClipboard();
+			  }
+			  std::string utf8 = UnicodeToUTF8(std::wstring(L"Õ³Ìù²¢·ÃÎÊ"));
+			  model->AddItem(CLIENT_ID_PASTE_VISIT, utf8.c_str());
+			  model->SetEnabled(CLIENT_ID_PASTE_VISIT, bEnable);
+		  }
+	  }
+	  
+  }
 }
 
 bool ClientHandler::OnContextMenuCommand(
@@ -244,8 +299,23 @@ bool ClientHandler::OnContextMenuCommand(
     case CLIENT_ID_INSPECT_ELEMENT:
       ShowDevTools(browser, CefPoint(params->GetXCoord(), params->GetYCoord()));
       return true;
-    default:  // Allow default handling, if any.
-      return ExecuteTestMenu(command_id);
+	default:  // Allow default handling, if any.
+	{
+		bool bExec = false;
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+		const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+		if (fun && item.get())
+		{
+			HWND hWnd = item->m_window->hwnd();
+			bExec = fun->doMenuCommand(hWnd, command_id);
+		}
+		if ( !bExec )
+		{
+			bExec = ExecuteTestMenu(command_id);
+		}
+		return bExec;
+	}
+      
   }
 }
 
