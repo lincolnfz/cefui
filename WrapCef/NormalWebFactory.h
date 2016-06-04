@@ -50,6 +50,8 @@ public:
 		const char* utf8_parm, 
 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 
+	void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;

@@ -672,6 +672,11 @@ namespace wrapQweb{
 			utf8_frame_name, bNoticeJSTrans2JSON);
 	}
 
+	void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed)
+	{
+		NormalWebFactory::getInstance().AdjustRenderSpeed(hWnd, dbSpeed);
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

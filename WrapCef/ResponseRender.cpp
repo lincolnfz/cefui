@@ -4,6 +4,7 @@
 #include <include/cef_v8.h>
 //#include <iostream>
 #include <sstream>
+#include "speedbox.h"
 //#include "client_app.h"
 
 
@@ -60,6 +61,7 @@ ResponseRender::ResponseRender()
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_queryElementAttrib);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_injectJS);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_asyncInvokedJSMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_AdjustRenderSpeed);
 }
 
 
@@ -356,4 +358,21 @@ bool ResponseRender::rsp_asyncInvokedJSMethod(const CefRefPtr<CefBrowser> browse
 #endif
 	//assert(ret);
 	return ret;
+}
+
+bool ResponseRender::rsp_AdjustRenderSpeed(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	double dt = req_parm->getList().GetDoubleVal(0);
+	if (abs(dt - 1.0) < 0.01)
+	{
+		EnableSpeedControl(FALSE);
+		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed disable "));
+	}
+	else{
+		EnableSpeedControl(TRUE);
+		SetSpeed(dt);
+		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed enable "));
+	}
+	return true;
 }

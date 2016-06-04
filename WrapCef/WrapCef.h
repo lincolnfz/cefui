@@ -166,6 +166,8 @@ namespace wrapQweb {
 		const char* utf8_parm,
 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON = true);
 
+	SHARED_EXPORT_API void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed);
+
 	class CChromeiumBrowserControl;
 
 	class SHARED_EXPORT_CLASS CWebkitControl

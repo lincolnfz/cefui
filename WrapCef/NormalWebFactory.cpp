@@ -228,3 +228,15 @@ bool NormalWebFactory::asyncInvokedJSMethod(const HWND& hwnd, const char* utf8_m
 	}
 	return bret;
 }
+
+void NormalWebFactory::AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed)
+{
+	NormalWebMap::iterator it = m_map.find(hWnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->AdjustRenderSpeed(dbSpeed);
+		}
+	}
+}

@@ -1327,3 +1327,16 @@ bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstr
 	}
 	return ret;
 }
+
+void ClientHandler::AdjustRenderSpeed(const double& dbSpeed)
+{
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
+	if (control.get() && browser_.get())
+	{
+		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		parm.getList().AppendVal(dbSpeed);
+		ipc->AsyncRequest(browser_, parm);
+	}
+}

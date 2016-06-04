@@ -234,6 +234,14 @@ bool ChromeiumBrowserControl::asyncInvokedJSMethod(const char* utf8_module, cons
 	return ret;
 }
 
+void ChromeiumBrowserControl::AdjustRenderSpeed(const double& dbSpeed)
+{
+	if (m_handler.get() && m_handler->GetBrowser().get())
+	{
+		m_handler->AdjustRenderSpeed(dbSpeed);
+	}
+}
+
 ////////////////////////////////////////////////////
 
 WebkitControl::WebkitControl()

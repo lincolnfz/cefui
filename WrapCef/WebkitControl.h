@@ -43,6 +43,7 @@ public:
 	bool asyncInvokedJSMethod(const char* utf8_module, const char* utf8_method,
 		const char* utf8_parm,
 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
+	void AdjustRenderSpeed( const double& dbSpeed);
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;

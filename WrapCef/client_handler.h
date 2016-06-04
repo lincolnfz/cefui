@@ -327,6 +327,8 @@ class ClientHandler : public CefClient,
 
   bool queryElementAttrib( int x, int y , int g_x, int g_y, std::wstring& val );
 
+  void AdjustRenderSpeed(const double& dbSpeed);
+
  private:
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);
