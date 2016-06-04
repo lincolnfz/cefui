@@ -568,10 +568,12 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
 
   if (browser->GetHost() ){
 	  HWND hWnd = browser->GetHost()->GetWindowHandle();
+	  HWND hWidget = browser->GetHost()->GetWidgetWindowHandle();
+	  //HWND hView = browser->GetHost()->GetViewWindowHandle();
 	  HWND hParent = GetParent(hWnd);
 	  int browserID = browser->GetIdentifier();
 	  if(WebkitEcho::getFunMap())
-		 WebkitEcho::getFunMap()->webkitAfterCreate(hParent, hWnd, browserID);
+		 WebkitEcho::getFunMap()->webkitAfterCreate(hParent, hWnd, hWidget, browserID);
   }
 
   browser_count_++;

@@ -106,7 +106,7 @@ namespace wrapQweb {
 //---------------------------------------------------------------------------------------------------------------------
 //¿‡∑÷∏Óœﬂ
 
-	typedef void(__stdcall *call_WebkitAfterCreate)(const HWND&, const HWND&, const int& id);
+	typedef void(__stdcall *call_WebkitAfterCreate)(const HWND&, const HWND&, const HWND&, const int& id);
 
 	typedef void(__stdcall *call_WebkitOpenNewUrl)(const int& id, const WCHAR* url, const WCHAR* cookie_ctx);
 
