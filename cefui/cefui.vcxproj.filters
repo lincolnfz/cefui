@@ -51,6 +51,9 @@
     <ClInclude Include="SoundBox.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CliAck.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -84,6 +87,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SoundBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\sockBase.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="pipe\sockCli.cpp">
+      <Filter>pipe</Filter>
+    </ClCompile>
+    <ClCompile Include="CliAck.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

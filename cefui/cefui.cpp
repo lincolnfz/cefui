@@ -6,8 +6,10 @@
 #include "WrapCef.h"
 #include <comdef.h>
 #include <gdiplus.h>
+#include <Shlobj.h>
 #include <Shlwapi.h>
 #include "ClientLogic.h"
+#include "./pipe/sockCli.h"
 
 /*
 #if defined(CEF_USE_SANDBOX)
@@ -34,7 +36,7 @@
 #endif
 
 
-
+#define PORT 22563
 #define MAX_LOADSTRING 100
 
 // 全局变量:
@@ -49,6 +51,34 @@ ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+
+
+ClientLogic* logic = NULL;
+cyjh::SockCli* cli = NULL;
+unsigned int __stdcall ConectSrvThread(void *){
+	HANDLE hMutex = NULL;
+
+	std::wstring directory;
+	wchar_t appDataDirectory[MAX_PATH];
+	if (FAILED(SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
+		return false;
+
+	directory = std::wstring(appDataDirectory) + L"\\webgameAgent";
+	directory.append(L"\\info.ini");
+
+	if (_waccess(directory.c_str(), 0) < 0)
+	{
+		return 0;
+	}
+	int port = GetPrivateProfileIntW(L"general", L"port", PORT, directory.c_str());
+	logic->setSockCli(cli);
+	cli->RegisterConnectFunction(&ClientLogic::Connect, logic);
+	cli->RegisterErrorFunction(&ClientLogic::Error, logic);
+	cli->RegisterRecvDataFunction(&ClientLogic::RecvSockData, logic);
+	cli->Connect("127.0.0.1", port);
+
+	return 0;
+}
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -78,11 +108,17 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	GetModuleFileNameW(NULL, exeFullPath, MAX_PATH);
 	PathRemoveFileSpec(exeFullPath);
 
-	ClientLogic logic;
-	if (wcsstr(lpCmdLine, L"--type=plugin") && wcsstr(lpCmdLine, L"NPSWF32") )
+	ClientLogic logic_inst;
+	cyjh::SockCli cli_inst;
+
+	logic = &logic_inst;
+	cli = &cli_inst;
+	if (wcsstr(lpCmdLine, L"--type=plugin")/* && wcsstr(lpCmdLine, L"NPSWF32")*/ )
 	{
-		logic.Connect(L"\\\\.\\pipe\\web_box_flash", L"\\\\.\\pipe\\web_box_main");
-	}	
+		unsigned int id;
+		HANDLE ht = (HANDLE)_beginthreadex(NULL, 0, ConectSrvThread, NULL, 0, &id);
+		CloseHandle(ht);
+	}
 	
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
 	if (wrapQweb::InitLibrary(hInstance, L"render.exe") < 0){
