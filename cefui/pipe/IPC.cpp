@@ -455,6 +455,7 @@ namespace cyjh{
 	bool IPCPipeClient::Close(){
 		//SetEvent(hEvents_[1]);
 		//WaitForSingleObject(hFin_, INFINITE);
+		//this->
 		return true;
 	}
 
@@ -604,7 +605,7 @@ namespace cyjh{
 	void IPCUnit::Close()
 	{
 		close_ = true;
-		//cli_.Close();
+		this->cli_->Close();
 	}
 
 	bool IPCUnit::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
@@ -618,7 +619,7 @@ namespace cyjh{
 
 	void IPCUnit::NotifyDisconst()
 	{
-		IPC_Manager::getInstance().Destruct(id_);
+		IPC_Manager::getInstance()->Destruct(id_);
 	}
 
 	void IPCUnit::StateChange(const int state){
@@ -640,8 +641,17 @@ namespace cyjh{
 	////////////////////////////////////
 	/////IPC_Manager
 	//////////////////////////////////////////////////////////////////////////
-	IPC_Manager IPC_Manager::s_inst;
+	IPC_Manager* IPC_Manager::s_inst = NULL;
 	volatile int IPC_Manager::id_ = 0;
+
+	IPC_Manager::~IPC_Manager()
+	{
+		std::map<int, std::shared_ptr<IPCUnit>>::iterator it = ipcs_.begin();
+		for (; it != ipcs_.begin(); ++it)
+		{
+			it->second->Close();
+		}
+	}
 
 	std::shared_ptr<IPCUnit> IPC_Manager::GenerateIPC(const WCHAR* srv, const WCHAR* client)
 	{

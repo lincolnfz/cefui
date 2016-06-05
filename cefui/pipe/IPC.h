@@ -305,15 +305,18 @@ namespace cyjh{
 	class IPC_Manager
 	{
 	public:
-		virtual ~IPC_Manager(){}
-		static IPC_Manager& getInstance(){
+		virtual ~IPC_Manager();// {}
+		static IPC_Manager* getInstance(){
+			if (s_inst == NULL){
+				s_inst = new IPC_Manager;
+			}				  
 			return s_inst;
 		}
 		std::shared_ptr<IPCUnit> GenerateIPC(const WCHAR* srv, const WCHAR* client);
 		std::shared_ptr<IPCUnit> GetIpc(const int& id);
 		int MatchIpc(const WCHAR*, const WCHAR*);
 		void Destruct(int id);
-		static IPC_Manager s_inst;
+		static IPC_Manager* s_inst;
 	protected:
 		IPC_Manager(){}
 		//std::vector<std::shared_ptr<IPCUnit>> ipcs_;

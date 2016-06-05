@@ -3,6 +3,7 @@
 #include "SpeedBox.h"
 #include "SoundBox.h"
 
+bool speed_adjust = false;
 ClientResponse::ClientResponse()
 {
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AdjustFlashSpeed);
@@ -20,12 +21,20 @@ bool ClientResponse::rsp_AdjustFlashSpeed(const int id,
 	double dt = req_parm->getList().GetDoubleVal(0);
 	if (abs(dt - 1.0) < 0.01)
 	{
-		EnableSpeedControl(FALSE);
+		//if (!speed_adjust)
+		//{
+			EnableSpeedControl(FALSE);
+		//}
+		//else{
+		//	EnableSpeedControl(TRUE);
+		//	SetSpeed(1.0);
+		//}
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed disable "));
 	}
 	else{
 		EnableSpeedControl(TRUE);
 		SetSpeed(dt);
+		speed_adjust = true;
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed enable "));
 	}
 

@@ -10,6 +10,9 @@
 #include <Shlwapi.h>
 #include "ClientLogic.h"
 #include "./pipe/sockCli.h"
+#include <DbgHelp.h>
+
+#pragma comment(lib, "DbgHelp.lib")
 
 /*
 #if defined(CEF_USE_SANDBOX)
@@ -80,6 +83,34 @@ unsigned int __stdcall ConectSrvThread(void *){
 	return 0;
 }
 
+long __stdcall callback(_EXCEPTION_POINTERS* pExInfo)
+{
+	//MessageBox(0,"Error","error",MB_OK);
+	TCHAR   exeFullPath[MAX_PATH];
+	GetModuleFileName(NULL, exeFullPath, MAX_PATH);
+	TCHAR lpszDrive[255], lpszPath[1024], lpszName[255], lpszTemp[255];
+	_tsplitpath_s(exeFullPath, lpszDrive, lpszPath, lpszName, lpszTemp);
+
+	TCHAR dumpPath[MAX_PATH];
+	_stprintf(dumpPath, _T("%s%s%s"), lpszDrive, lpszPath, _T("render_cash.dmp"));
+
+	HANDLE hFile = ::CreateFile(dumpPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile != INVALID_HANDLE_VALUE)
+	{
+		MINIDUMP_EXCEPTION_INFORMATION einfo;
+		einfo.ThreadId = ::GetCurrentThreadId();
+		einfo.ExceptionPointers = pExInfo;
+		einfo.ClientPointers = FALSE;
+
+		::MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(), hFile, MiniDumpNormal, &einfo, NULL, NULL);
+		::CloseHandle(hFile);
+	}
+	TCHAR msg[1024];
+	_stprintf(msg, _T("carsh, %s"), dumpPath);
+	//MessageBox(0, msg, _T("crash"), MB_OK | MB_ICONERROR);
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -104,6 +135,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CEFUI));
 	//InitCef(hInstance, hAccelTable); //≤ª≤‚ ‘
 
+	SetUnhandledExceptionFilter(callback);
+
 	WCHAR   exeFullPath[MAX_PATH + 32], PluginDirPath[MAX_PATH], szRenderPath[MAX_PATH];
 	GetModuleFileNameW(NULL, exeFullPath, MAX_PATH);
 	PathRemoveFileSpec(exeFullPath);
@@ -113,11 +146,13 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	logic = &logic_inst;
 	cli = &cli_inst;
+	bool bconnect = false;
 	if (wcsstr(lpCmdLine, L"--type=plugin")/* && wcsstr(lpCmdLine, L"NPSWF32")*/ )
 	{
 		unsigned int id;
 		HANDLE ht = (HANDLE)_beginthreadex(NULL, 0, ConectSrvThread, NULL, 0, &id);
 		CloseHandle(ht);
+		bconnect = true;
 	}
 	
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
