@@ -803,9 +803,10 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   static int lastClickY = 0;
   static CefBrowserHost::MouseButtonType lastClickButton = MBT_LEFT;
   static int gLastClickCount = 0;
-  static double gLastClickTime = 0;
+  static long gLastClickTime = 0;
 
   static bool gLastMouseDownOnView = false;
+  static unsigned int dbClickTiem = GetDoubleClickTime();
 
   OSRWindow* window =
       reinterpret_cast<OSRWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
@@ -817,22 +818,35 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   LONG currentTime = 0;
   bool cancelPreviousClick = false;
 
+  
   if (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
       message == WM_MBUTTONDOWN || message == WM_MOUSEMOVE ||
       message == WM_MOUSELEAVE) {
     currentTime = GetMessageTime();
     int x = GET_X_LPARAM(lParam);
     int y = GET_Y_LPARAM(lParam);
+
+#ifdef _DEBUG1
+	OutputDebugStringA("-----[ mouse down");
+#endif	
     cancelPreviousClick =
-        (abs(lastClickX - x) > (GetSystemMetrics(SM_CXDOUBLECLK) / 2))
-        || (abs(lastClickY - y) > (GetSystemMetrics(SM_CYDOUBLECLK) / 2))
-        || ((currentTime - gLastClickTime) > GetDoubleClickTime());
+        (abs(lastClickX - x) > (GetSystemMetrics(SM_CXDOUBLECLK)/2 ))
+        || (abs(lastClickY - y) > (GetSystemMetrics(SM_CYDOUBLECLK)/2 ))
+		|| ((currentTime - gLastClickTime) > dbClickTiem);
     if (cancelPreviousClick &&
         (message == WM_MOUSEMOVE || message == WM_MOUSELEAVE)) {
       gLastClickCount = 0;
       lastClickX = 0;
       lastClickY = 0;
       gLastClickTime = 0;
+#ifdef _DEBUG1
+	  char buf[128];
+	  sprintf_s(buf, "-----[ cancel last click msg = %d , {%d, %d}, {%d, %d}, {%d, %d}", message,
+		  abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
+		  abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
+		  (currentTime - gLastClickTime), dbClickTiem);
+	  OutputDebugStringA(buf);
+#endif
     }
   }
 
@@ -857,16 +871,38 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       lastMousePos.x = curMousePos.x = x;
       lastMousePos.y = curMousePos.y = y;
 	  mouseRotation = false;// true;
+	  OutputDebugStringA("-----[ shift");
     } else {
       CefBrowserHost::MouseButtonType btnType =
           (message == WM_LBUTTONDOWN ? MBT_LEFT : (
            message == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
       if (!cancelPreviousClick && (btnType == lastClickButton)) {
         ++gLastClickCount;
+		if ( gLastClickCount == 2 )
+		{
+			++gLastClickCount;
+		}
+#ifdef _DEBUG1
+		char buf[128];
+		//sprintf_s(buf, "-----[ last click num = %d ", gLastClickCount);
+		sprintf_s(buf, "-----[ last click num = %d , {%d, %d}, {%d, %d}, {%d, %d}", gLastClickCount,
+			abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
+			abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
+			(currentTime - gLastClickTime), dbClickTiem);
+		OutputDebugStringA(buf);
+#endif
       } else {
         gLastClickCount = 1;
         lastClickX = x;
         lastClickY = y;
+#ifdef _DEBUG1
+		char buf[128];
+		sprintf_s(buf, "-----[ last click set to 1 cancelPreviousClick = %d, {%d, %d}, {%d, %d}, {%d, %d}", cancelPreviousClick,
+			abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
+			abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
+			(currentTime - gLastClickTime), dbClickTiem);
+		OutputDebugStringA(buf);
+#endif
       }
       gLastClickTime = currentTime;
       lastClickButton = btnType;
@@ -955,7 +991,26 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       }
     }
     break;
-
+  case WM_LBUTTONDBLCLK:{
+	  if ( gLastClickCount == 1 )
+	  {
+#ifdef _DEBUG1
+		  OutputDebugStringA("-----[ send mouse WM_LBUTTONDBLCLK");
+#endif
+		  if (browser.get()) {
+			  int x = GET_X_LPARAM(lParam);
+			  int y = GET_Y_LPARAM(lParam);
+			  CefMouseEvent mouse_event;
+			  mouse_event.x = x;
+			  mouse_event.y = y;
+			  window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
+			  mouse_event.modifiers = GetCefMouseModifiers(wParam);
+			  browser->SendMouseClickEvent(mouse_event, MBT_LEFT, false,
+				  2);
+			}	  
+	  }
+  }
+	break;
   case WM_MOUSEMOVE: {
     int x = GET_X_LPARAM(lParam);
     int y = GET_Y_LPARAM(lParam);
@@ -1124,6 +1179,12 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
 				  cyjh::Instruct parm;
 				  parm.setName("closeBrowser");
+				  int id = 0;
+				  if (browser->GetBrowser().get())
+				  {
+					  id = browser->GetBrowser()->GetIdentifier();
+				  }
+				  parm.getList().AppendVal(id);
 				  //parm.setInstructType(cyjh::INSTRUCT_REQUEST);
 				  //cyjh::Pickle pick;
 				  //cyjh::Instruct::SerializationInstruct(&parm, pick);
