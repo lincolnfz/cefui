@@ -195,3 +195,20 @@ void WebViewFactory::CloseAll()
 		webit->get()->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
 	}
 }
+
+void WebViewFactory::ClearData(int compType)
+{
+	//if (!CefCurrentlyOn(TID_UI)){
+	//	CefPostTask(TID_UI, base::Bind(&WebViewFactory::ClearData, this, compType));
+	//	return;
+	//}
+	//bool ret = false;
+	int len = m_viewMap.size();
+	if ( len > 0 )
+	{
+		WebViewMap::iterator it = m_viewMap.begin();
+		it->second->m_provider->GetBrowser()->GetHost()->CleaarData(compType);
+		//ret = true;
+	}
+	//return ret;
+}

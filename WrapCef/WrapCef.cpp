@@ -677,6 +677,16 @@ namespace wrapQweb{
 		NormalWebFactory::getInstance().AdjustRenderSpeed(hWnd, dbSpeed);
 	}
 
+	void ClearBrowserData(int combType)
+	{
+		WebViewFactory::getInstance().ClearData(combType);
+	}
+
+	void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp)
+	{
+		NormalWebFactory::getInstance().SendMouseClickEvent(hWnd, msg, wp, lp);
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

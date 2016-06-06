@@ -52,6 +52,8 @@ public:
 
 	void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed);
 
+	void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;

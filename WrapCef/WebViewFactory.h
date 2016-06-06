@@ -72,6 +72,8 @@ public:
 
 	void CloseAll();
 
+	void ClearData(int compType);
+
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;

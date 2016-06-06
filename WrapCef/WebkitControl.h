@@ -44,6 +44,7 @@ public:
 		const char* utf8_parm,
 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 	void AdjustRenderSpeed( const double& dbSpeed);
+	void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;

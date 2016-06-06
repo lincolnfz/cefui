@@ -240,3 +240,15 @@ void NormalWebFactory::AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed
 		}
 	}
 }
+
+void NormalWebFactory::SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp)
+{
+	NormalWebMap::iterator it = m_map.find(hWnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->SendMouseClickEvent(msg, wp, lp);
+		}
+	}
+}

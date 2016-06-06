@@ -1342,3 +1342,47 @@ void ClientHandler::AdjustRenderSpeed(const double& dbSpeed)
 		ipc->AsyncRequest(browser_, parm);
 	}
 }
+
+void ClientHandler::SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp)
+{
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
+	if (control.get() && browser_.get() && browser_->GetHost().get())
+	{
+		int x = LOWORD(lp);
+		int y = HIWORD(wp);
+
+		CefMouseEvent mouse_event;
+		mouse_event.x = x;
+		mouse_event.y = y;
+
+		bool mouseup = true;
+		CefBrowserHost::MouseButtonType btnType = MBT_LEFT;
+		switch (msg)
+		{
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		{
+			btnType =
+				(msg == WM_LBUTTONDOWN ? MBT_LEFT : (
+				msg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
+			mouseup = false;
+			break;
+		}
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		{
+			btnType =
+				(msg == WM_LBUTTONUP ? MBT_LEFT : (
+				msg == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
+			mouseup = true;
+			break;
+		}
+		default:
+			break;
+		}
+
+		browser_->GetHost()->SendMouseClickEvent(mouse_event, btnType, mouseup ,1);
+	}
+}

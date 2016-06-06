@@ -168,6 +168,10 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed);
 
+	SHARED_EXPORT_API void ClearBrowserData(int combType);
+
+	SHARED_EXPORT_API void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp);	
+
 	class CChromeiumBrowserControl;
 
 	class SHARED_EXPORT_CLASS CWebkitControl

@@ -329,6 +329,8 @@ class ClientHandler : public CefClient,
 
   void AdjustRenderSpeed(const double& dbSpeed);
 
+  void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
+
  private:
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);

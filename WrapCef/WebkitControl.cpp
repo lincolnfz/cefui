@@ -242,6 +242,14 @@ void ChromeiumBrowserControl::AdjustRenderSpeed(const double& dbSpeed)
 	}
 }
 
+void ChromeiumBrowserControl::SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp)
+{
+	if (m_handler.get() && m_handler->GetBrowser().get())
+	{
+		m_handler->SendMouseClickEvent(msg, wp, lp);
+	}
+}
+
 ////////////////////////////////////////////////////
 
 WebkitControl::WebkitControl()
