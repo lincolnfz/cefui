@@ -198,10 +198,10 @@ void WebViewFactory::CloseAll()
 
 void WebViewFactory::ClearData(int compType)
 {
-	//if (!CefCurrentlyOn(TID_UI)){
-	//	CefPostTask(TID_UI, base::Bind(&WebViewFactory::ClearData, this, compType));
-	//	return;
-	//}
+	if (!CefCurrentlyOn(TID_UI)){
+		CefPostTask(TID_UI, base::Bind(&WebViewFactory::ClearData, this, compType));
+		return;
+	}
 	//bool ret = false;
 	int len = m_viewMap.size();
 	if ( len > 0 )

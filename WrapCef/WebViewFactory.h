@@ -49,7 +49,7 @@ private:
 
 typedef std::map<HWND, CefRefPtr<WebItem>> WebViewMap;
 
-class WebViewFactory
+class WebViewFactory : public CefBase
 {
 public:
 	~WebViewFactory();
@@ -79,6 +79,8 @@ protected:
 	static WebViewFactory s_inst;
 	WebViewMap m_viewMap;
 	//std::mutex factoryMutex_;
+
+	IMPLEMENT_REFCOUNTING(WebViewFactory);
 };
 
 #endif
