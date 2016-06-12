@@ -21,14 +21,14 @@ bool ClientResponse::rsp_AdjustFlashSpeed(const int id,
 	double dt = req_parm->getList().GetDoubleVal(0);
 	if (abs(dt - 1.0) < 0.01)
 	{
-		//if (!speed_adjust)
-		//{
+		if (!speed_adjust)
+		{
 			EnableSpeedControl(FALSE);
-		//}
-		//else{
-		//	EnableSpeedControl(TRUE);
-		//	SetSpeed(1.0);
-		//}
+		}
+		else{
+			EnableSpeedControl(TRUE);
+			SetSpeed(1.001);
+		}
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed disable "));
 	}
 	else{
