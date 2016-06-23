@@ -344,6 +344,7 @@ namespace cyjh{
 		int atom_;
 		bool bResponse_;
 		bool single_;
+		int browserID_;
 		BlockEvents events_;
 		std::shared_ptr<Instruct> parm_; //收到的请求参数放在这里
 		std::shared_ptr<Instruct> outval_; //收到的最终返回结果放在这里
@@ -351,6 +352,7 @@ namespace cyjh{
 		RequestContext(){			
 			id_ = 0;
 			atom_ = 0;
+			browserID_ = 0;
 			bResponse_ = true;
 			single_ = false;
 			events_[0] = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -366,17 +368,19 @@ namespace cyjh{
 	//记录收到的请求上下文id
 	struct RecvReqItem
 	{
-		RecvReqItem(const int& id, const int& atom){
+		RecvReqItem(const int& id, const int& atom, const int& browserID){
 			id_ = id;
 			atom_ = atom;
+			browserID_ = browserID;
 		}
 		int id_;
 		int atom_;
+		int browserID_;
 	};
 
 	struct MaybeProcItem
 	{
-		MaybeProcItem(const int& id, const int& atom) :reqContext_(id, atom){
+		MaybeProcItem(const int& id, const int& atom) :reqContext_(id, atom, 0){
 			hitProc_ = false;
 		}
 		RecvReqItem reqContext_;
@@ -483,7 +487,7 @@ namespace cyjh{
 
 		bool popRequestEvent(int reqid, int atom);
 
-		bool pushRecvRequestID(int id, int atom);
+		bool pushRecvRequestID(int id, int atom, int browserID);
 
 		bool popRecvRequestID(int id, int atom);
 
@@ -549,7 +553,7 @@ namespace cyjh{
 
 		bool haveResponse();
 
-		void manTriggerReqEvent();
+		void manTriggerReqEvent(int browserID);
 
 	protected:
 		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);

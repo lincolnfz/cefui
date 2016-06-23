@@ -183,6 +183,10 @@ void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
 void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {
 	DWORD Id = browser->GetIdentifier();
 	BrowserIdentifier::GetInst().RemoveBrowser(Id);
+	RenderThreadSync_->DetchBrowserIpc();
+#ifdef _DEBUG1
+	OutputDebugStringA("-----[ OnBrowserDestroyed");
+#endif
   RenderDelegateSet::iterator it = render_delegates_.begin();
   for (; it != render_delegates_.end(); ++it)
     (*it)->OnBrowserDestroyed(this, browser);

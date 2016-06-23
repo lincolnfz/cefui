@@ -132,7 +132,8 @@ namespace cyjh{
 			}
 			return;*/
 			if ( browser.get() == NULL )
-			{
+			{				
+				popRecvRequestID(spReq->getID(), spReq->getAtom());
 				assert(false);
 				return;
 			}
@@ -226,7 +227,7 @@ namespace cyjh{
 	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		CEF_REQUIRE_RENDERER_THREAD();
-		if ( bNeedClose_ )
+		/*if ( bNeedClose_ )
 		{
 			//当前已收到关闭请求,如果是新的请求不在发送。只允许发送已存在的响应
 			if ( !haveResponse() )
@@ -236,19 +237,26 @@ namespace cyjh{
 				val = tmp;
 				return;
 			}
+		}*/
+		if ( disableBrowserSet_.find( browser->GetIdentifier() ) != disableBrowserSet_.end() )
+		{
+			std::shared_ptr<Instruct> tmp(new Instruct);
+			tmp->setSucc(false);
+			val = tmp;
+			return;
 		}
 
 		parm.setBrowserID(browser->GetIdentifier());
 		SendRequest(ipc_.get(), parm, val);
 
-		if ( bNeedClose_ )
+		/*if ( bNeedClose_ )
 		{
 			//请求完毕,尝试关闭通讯
 			if ( !bClosed_ && spCloseInstruct_.get())
 			{
 				CloseIpcHelp(spCloseInstruct_);
 			}
-		}
+		}*/
 	}
 
 	void RenderThreadCombin::RecvData(const unsigned char* data, DWORD len)
@@ -284,8 +292,26 @@ namespace cyjh{
 #endif
 		if (spReq->getName().compare("closeBrowser") == 0)
 		{
-			//closeBrowser指令不要进栈
-			CloseIpcHelp(spReq);
+			//closeBrowser指令不要进栈			
+			int browserID = spReq->getList().GetIntVal(0);
+			disableBrowserSet_.insert(browserID);
+			CloseBrowserHelp(spReq, browserID);
+			return;
+		}
+
+		if (disableBrowserSet_.find(spReq->getBrowserID()) != disableBrowserSet_.end())
+		{
+			std::shared_ptr<Instruct> spOut(new Instruct);
+			spOut->setName(spReq->getName().c_str());
+			spOut->setBrowserID(spReq->getBrowserID());
+			spOut->setSucc(false);
+			spOut->setID(spReq->getID());
+			spOut->setAtom(spReq->getAtom());
+			spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
+			Pickle pick;
+			Instruct::SerializationInstruct(spOut.get(), pick);
+			ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+
 			return;
 		}
 
@@ -308,14 +334,14 @@ namespace cyjh{
 		//Response(spOut, spReq->getID());
 		Response(ipc_.get(),spOut, spReq->getID(), spReq->getAtom());
 
-		if (bNeedClose_)
+		/*if (bNeedClose_)
 		{
 			//响应完毕,尝试关闭通讯
 			if (!bClosed_ && spCloseInstruct_.get())
 			{
 				CloseIpcHelp(spCloseInstruct_);
 			}
-		}
+		}*/
 	}
 
 	void RenderThreadCombin::RejectReqHelp(std::shared_ptr<Instruct> spInfo)
@@ -346,14 +372,14 @@ namespace cyjh{
 		//CloseIpcHelp(spInfo);
 	}
 
-	void RenderThreadCombin::CloseIpcHelp(std::shared_ptr<Instruct> spInfo)
+	void RenderThreadCombin::CloseBrowserHelp(std::shared_ptr<Instruct> spInfo, int browserID)
 	{
 		if (!CefCurrentlyOn(TID_RENDERER)){
-			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::CloseIpcHelp, this, spInfo));
+			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::CloseBrowserHelp, this, spInfo, browserID));
 			return;
 		}
 		
-		bNeedClose_ = true;
+		/*bNeedClose_ = true;
 		if ( haveRequest() || haveResponse() ){
 			if ( !spCloseInstruct_.get() )
 			{
@@ -363,7 +389,8 @@ namespace cyjh{
 			return;
 		}
 
-		bClosed_ = true;
+		//bClosed_ = true;*/
+		manTriggerReqEvent(browserID);
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spInfo->getName().c_str());
 		spOut->setBrowserID(spInfo->getBrowserID());
@@ -374,12 +401,17 @@ namespace cyjh{
 		Pickle pick;
 		Instruct::SerializationInstruct(spOut.get(), pick);
 		ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
-		ipc_->Close();
+		//ipc_->Close();
 	}
 
 	void RenderThreadCombin::AttachNewBrowserIpc()
 	{
 		ipc_->Attach();
+	}
+
+	void RenderThreadCombin::DetchBrowserIpc()
+	{
+		ipc_->Detch();
 	}
 
 }

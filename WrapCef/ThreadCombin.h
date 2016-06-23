@@ -1,6 +1,8 @@
 #ifndef THREAD_COMBIN_H
 #define THREAD_COMBIN_H
 #pragma once
+
+#include <set>
 #include "CombinThreadComit.h"
 #include "ResponseRender.h"
 #include "ResponseUI.h"
@@ -53,6 +55,7 @@ namespace cyjh{
 		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) override;
 
 		void AttachNewBrowserIpc();
+		void DetchBrowserIpc();
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
 		virtual void procRecvData(const std::shared_ptr<Instruct>) override;
@@ -60,7 +63,7 @@ namespace cyjh{
 		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
 
 		virtual void CloseIpc(std::shared_ptr<Instruct> spInfo) override;
-		void CloseIpcHelp(std::shared_ptr<Instruct> spInfo);
+		void CloseBrowserHelp(std::shared_ptr<Instruct> spInfo, int browserID);
 
 		std::shared_ptr<IPCUnit> ipc_;
 
@@ -69,6 +72,7 @@ namespace cyjh{
 		RenderBlockThread block_;
 		bool bNeedClose_, bClosed_;
 		std::shared_ptr<Instruct> spCloseInstruct_;
+		std::set<int> disableBrowserSet_;
 		IMPLEMENT_REFCOUNTING(RenderThreadCombin);
 	};
 

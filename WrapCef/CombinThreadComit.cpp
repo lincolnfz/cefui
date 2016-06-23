@@ -380,12 +380,12 @@ namespace cyjh{
 		return ret;
 	}
 
-	bool CombinThreadComit::pushRecvRequestID(int id, int atom)
+	bool CombinThreadComit::pushRecvRequestID(int id, int atom, int browserID)
 	{
 		bool ret = true;
 		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
 
-		RecvReqItem item(id, atom);
+		RecvReqItem item(id, atom, browserID);
 #ifdef _SINGLE_INSTRUCT_PROC
 		eventResponsStack_.push_front(item);
 #else
@@ -594,7 +594,7 @@ namespace cyjh{
 
 		bool ret = true;
 		removeMaybelockQueue(parm);
-		pushRecvRequestID(parm->getID(), parm->getAtom());
+		pushRecvRequestID(parm->getID(), parm->getAtom(), parm->getBrowserID());
 		return ret;
 	}
 
@@ -717,6 +717,7 @@ namespace cyjh{
 		std::shared_ptr<RequestContext> sp(new RequestContext());
 		sp->id_ = reqeustid;
 		sp->atom_ = parm.getAtom();
+		sp->browserID_ = parm.getBrowserID();
 		pushRequestEvent(sp);
 		newSessinBlockMutex_.unlock();
 		//向另一个线程请求
@@ -1501,12 +1502,12 @@ namespace cyjh{
 		return !eventResponsStack_.empty();
 	}
 
-	void CombinThreadComit::manTriggerReqEvent()
+	void CombinThreadComit::manTriggerReqEvent(int browserID)
 	{
 		CEF_REQUIRE_RENDERER_THREAD();
 		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
 		std::deque<std::shared_ptr<RequestContext>>::iterator it = eventRequestStack_.begin();
-		while ( it != eventRequestStack_.end() )
+		/*while ( it != eventRequestStack_.end() )
 		{
 			std::shared_ptr<Instruct> tmp(new Instruct);
 			tmp->setSucc(false);
@@ -1514,6 +1515,20 @@ namespace cyjh{
 			SetEvent(it->get()->events_[0]);
 			eventRequestStack_.erase(it);
 			it = eventRequestStack_.begin();
+		}*/
+		while ( it != eventRequestStack_.end() )
+		{
+			if ( it->get()->browserID_ == browserID )
+			{
+				std::shared_ptr<Instruct> tmp(new Instruct);
+				tmp->setSucc(false);
+				it->get()->outval_ = tmp;
+				SetEvent(it->get()->events_[0]);
+				it = eventRequestStack_.erase(it);
+			}
+			else{
+				++it;
+			}
 		}
 	}
 }

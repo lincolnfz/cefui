@@ -1174,8 +1174,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 			  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(window->browser_provider_->GetBrowser()->GetIdentifier());
 			  if (item.get())
 			  {
-				  ipcID = item->m_ipcID;
-				  std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
+				  //ipcID = item->m_ipcID;
+				  //std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
 
 				  cyjh::Instruct parm;
 				  parm.setName("closeBrowser");
@@ -1191,7 +1191,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
 				  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
 				  ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
-				  ipc->Close();
+				  //ipc->Close();
 			  }
 		  }
 
