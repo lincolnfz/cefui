@@ -432,6 +432,10 @@ namespace wrapQweb{
 		WCHAR szLocal[] = L"zh-CN";
 		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);
 
+		WCHAR szLogFile[512] = { 0 };
+		wsprintfW(szLogFile, L"%s\\debug.log", cachePath.c_str());
+		cef_string_set(szLogFile, wcslen(szLogFile), &settings.log_file, true);
+
 		//实现渲染进程分离
 		
 		WCHAR szRender[MAX_PATH] = { 0 };

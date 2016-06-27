@@ -132,9 +132,24 @@ namespace cyjh{
 			}
 			return;*/
 			if ( browser.get() == NULL )
-			{				
-				popRecvRequestID(spReq->getID(), spReq->getAtom());
-				assert(false);
+			{
+				//如果遇到RegisterBrowser请求,响应回渲染进程的调用。
+				//调试工具因为不是经过manager创建的,此流程可以防止调试工具渲染进程卡住
+				if (spReq->getName().compare("RegisterBrowser") == 0)
+				{
+					std::wstring szSrvPipe = spReq->getList().GetWStrVal(0);
+					std::wstring szCliPipe = spReq->getList().GetWStrVal(1);
+					int ipcID = cyjh::IPC_Manager::getInstance().MatchIpc(szSrvPipe.c_str(), szCliPipe.c_str());
+					std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
+					if (ipc.get())
+					{
+						Response(ipc.get(), spOut, spReq->getID(), spReq->getAtom());
+					}
+				}
+				else{
+					popRecvRequestID(spReq->getID(), spReq->getAtom());
+					assert(false);
+				}				
 				return;
 			}
 		}

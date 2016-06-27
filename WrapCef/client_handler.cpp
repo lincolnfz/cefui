@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <Shlobj.h>
 
 #include "include/base/cef_bind.h"
 #include "include/cef_browser.h"
@@ -334,6 +335,23 @@ bool ClientHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
 
 #endif  // !defined(OS_LINUX)
 
+static bool getAppDataFolder(std::string& directory)
+{
+	char appDataDirectory[MAX_PATH];
+	if (FAILED(SHGetFolderPathA(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
+		return false;
+
+	char executablePath[MAX_PATH];
+	if (!::GetModuleFileNameA(0, executablePath, MAX_PATH))
+		return false;
+
+	::PathRemoveExtensionA(executablePath);
+
+	directory = std::string(appDataDirectory) + "\\" + ::PathFindFileNameA(executablePath);
+	directory.append("\\");
+	return true;
+}
+
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& message,
                                      const CefString& source,
@@ -346,8 +364,12 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
   {
     first_message = log_file_.empty();
     if (first_message) {
+		std::string cachePath;
+		getAppDataFolder(cachePath);
+
       std::stringstream ss;
       //ss << AppGetWorkingDirectory();
+	  ss << cachePath;
 #if defined(OS_WIN)
       ss << "\\";
 #else
