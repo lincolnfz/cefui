@@ -728,6 +728,19 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	{
 		hWnd = item->m_window->hwnd();
 		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
+
+		const WCHAR* js = fun->injectJS(hWnd, url.c_str(), name.c_str());
+		if (js && wcslen(js) > 0)
+		{
+			cyjh::Instruct parm;
+			parm.setName("injectJS");
+			parm.getList().AppendVal(frame->GetIdentifier());
+			parm.getList().AppendVal(std::wstring(js));
+
+			CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+			//std::shared_ptr<cyjh::Instruct> outVal;
+			ipc->AsyncRequest(browser, parm);
+		}
 	}
 	//cyjh::Instruct parm;
 	//parm.setName("NativeFrmeComplate");

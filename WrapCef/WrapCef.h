@@ -49,6 +49,8 @@ namespace wrapQweb {
 
 	typedef bool(__stdcall *call_doMenuCommand)(const HWND&, const int& id);
 
+	typedef const WCHAR*(__stdcall *call_InjectJS)(const HWND&, const WCHAR* url, const WCHAR* frameName);
+
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
 		call_setWindowPos setWindowPos;
@@ -65,6 +67,7 @@ namespace wrapQweb {
 		//call_NativeFrameBegin nativeFrameBegin;
 		call_newNativeUrl newNativeUrl;
 		call_doMenuCommand doMenuCommand;
+		call_InjectJS injectJS;
 	}FunMap;
 
 	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL);
