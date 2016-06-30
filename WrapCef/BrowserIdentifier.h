@@ -5,6 +5,13 @@
 #include "include/cef_browser.h"
 #include <map>
 
+struct BrowserProty : public CefBase
+{
+	CefRefPtr<CefBrowser> m_browser;
+	int m_type;
+	IMPLEMENT_REFCOUNTING(BrowserProty);
+};
+
 class BrowserIdentifier
 {
 public:
@@ -15,11 +22,13 @@ public:
 	static BrowserIdentifier s_inst;
 
 	CefRefPtr<CefBrowser> GetBrowser(int);
+	const int GetType(int);
 	bool InsertBrowser(int, CefRefPtr<CefBrowser>);
+	bool UpdateBrowserType(int, int);
 	bool RemoveBrowser(int);
 protected:
 	BrowserIdentifier();
-	std::map<int, CefRefPtr<CefBrowser> > m_browserMap;
+	std::map<int, CefRefPtr<BrowserProty> > m_browserMap;
 };
 
 #endif

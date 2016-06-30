@@ -24,6 +24,7 @@
 #include "json/json.h"
 #include "ResponseRender.h"
 #include "ShareHelper.h"
+#include "BrowserIdentifier.h"
 
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
@@ -944,6 +945,10 @@ public:
 		bool isLoading,
 		bool canGoBack,
 		bool canGoForward) {
+
+		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+			return;
+		}
 			if(!isLoading){
 				CefRefPtr<CefFrame>frame = browser->GetMainFrame();
 				std::vector<HttpCode> ids;
@@ -969,6 +974,9 @@ public:
 	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame) {
 
+		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+			return;
+		}
 		if (frame->IsMain())
 			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), false);
 
@@ -988,6 +996,10 @@ public:
 	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		int httpStatusCode) {
+
+		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+			return;
+		}
 		CefRefPtr<CefFrame> parent = frame->GetParent();
 		if (parent.get())
 		{
@@ -1006,6 +1018,10 @@ public:
 		ErrorCode errorCode,
 		const CefString& errorText,
 		const CefString& failedUrl) {
+
+		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+			return;
+		}
 		CefRefPtr<CefFrame> parent = frame->GetParent();
 		if (parent.get())
 		{
@@ -1022,6 +1038,10 @@ public:
 
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, int httpStatusCode){
+
+		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+			return;
+		}
 
 		if(frame->IsMain())
 			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
@@ -1053,6 +1073,8 @@ public:
 		CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		CefRefPtr<CefV8Context> context) OVERRIDE{
+
+		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
 		
 		CefRefPtr<CefV8Value> window = context->GetGlobal();
 		CefRefPtr<CefV8Accessor> myV8Acc = new Nativeapp(browser, frame);
@@ -1073,37 +1095,40 @@ public:
 		CefRefPtr<CefV8Handler> myV8handle = new NativeappHandler(browser, frame);
 
 		bool testSetVal = false;
-#define REG_JS_FUN(fnName) \
+#define REG_JS_FUN(fnName, comp) \
+		if( comp & browserType ){ \
 		static_cast<NativeappHandler*>(myV8handle.get())->RegisterFunction(#fnName, &NativeappHandler::##fnName); \
 		testSetVal = pObjApp->SetValue(#fnName, CefV8Value::CreateFunction(#fnName, myV8handle), attributes);\
-		assert(testSetVal);
+		assert(testSetVal);\
+		}
 
+		//REG_JS_FUN comp参数使用组合模式 1.只注册ui， 2.只注册控件模式窗口, 3.两种窗口都注册
 		//注册给js调用的函数
-		REG_JS_FUN(setWindowSize);
-		REG_JS_FUN(minWindow);
-		REG_JS_FUN(maxWindow);
-		REG_JS_FUN(restoreWindow);
-		REG_JS_FUN(closeWindow);
-		REG_JS_FUN(setWindowText);
-		REG_JS_FUN(fullScreen);
-		REG_JS_FUN(createWindow);
-		REG_JS_FUN(createModalWindow);
-		REG_JS_FUN(createModalWindow2);
-		REG_JS_FUN(setAlpha);
-		REG_JS_FUN(invokeMethod);
-		REG_JS_FUN(writePrivateProfileString);
-		REG_JS_FUN(getPrivateProfileInt);
-		REG_JS_FUN(getPrivateProfileString);
-		REG_JS_FUN(setWindowPos);
-		REG_JS_FUN(pushMessage);
-		REG_JS_FUN(crossInvokeWebMethod);
-		REG_JS_FUN(crossInvokeWebMethod2);
-		REG_JS_FUN(winProty);
-		REG_JS_FUN(setProfile);
-		REG_JS_FUN(getProfile);
-		REG_JS_FUN(getSoftwareAttribute);
-		REG_JS_FUN(addFrameStateChanged);
-		REG_JS_FUN(removeFrameStateChanged);
+		REG_JS_FUN(setWindowSize, 1);
+		REG_JS_FUN(minWindow, 1);
+		REG_JS_FUN(maxWindow, 1);
+		REG_JS_FUN(restoreWindow, 1);
+		REG_JS_FUN(closeWindow, 1);
+		REG_JS_FUN(setWindowText, 1);
+		REG_JS_FUN(fullScreen, 1);
+		REG_JS_FUN(createWindow, 1);
+		REG_JS_FUN(createModalWindow, 1);
+		REG_JS_FUN(createModalWindow2, 1);
+		REG_JS_FUN(setAlpha, 1);
+		REG_JS_FUN(invokeMethod, 3);
+		REG_JS_FUN(writePrivateProfileString, 1);
+		REG_JS_FUN(getPrivateProfileInt, 1);
+		REG_JS_FUN(getPrivateProfileString, 1);
+		REG_JS_FUN(setWindowPos, 1);
+		REG_JS_FUN(pushMessage, 1);
+		REG_JS_FUN(crossInvokeWebMethod, 1);
+		REG_JS_FUN(crossInvokeWebMethod2, 1);
+		REG_JS_FUN(winProty, 1);
+		REG_JS_FUN(setProfile, 1);
+		REG_JS_FUN(getProfile, 1);
+		REG_JS_FUN(getSoftwareAttribute, 1);
+		REG_JS_FUN(addFrameStateChanged, 1);
+		REG_JS_FUN(removeFrameStateChanged, 1);
 
 #undef REG_JS_FUN
 		/*const char proty[][16] = { "appname", "appDir", "appDataPath", "screen_w", "screen_h", "desktop_w", "desktop_h",
@@ -1116,24 +1141,27 @@ public:
 
 		static_cast<Nativeapp*>(myV8Acc.get())->RegisterFunction("appname", &Nativeapp::appname);*/
 
+		//属性只注册在ui
 #define REG_JS_PROTY(proyName) \
 		static_cast<Nativeapp*>(myV8Acc.get())->RegisterFunction(#proyName, &Nativeapp::##proyName); \
 		pObjApp->SetValue(#proyName, V8_ACCESS_CONTROL_DEFAULT, attributes);
 
-		REG_JS_PROTY(appname);
-		REG_JS_PROTY(appDir);
-		REG_JS_PROTY(appDataPath);
-		REG_JS_PROTY(screen_w);
-		REG_JS_PROTY(screen_h);
-		REG_JS_PROTY(desktop_w);
-		REG_JS_PROTY(desktop_h);
-		REG_JS_PROTY(window_x);
-		REG_JS_PROTY(window_y);
-		REG_JS_PROTY(window_w);
-		REG_JS_PROTY(window_h);
-		REG_JS_PROTY(is_zoomed);
-		REG_JS_PROTY(is_iconic);
-		REG_JS_PROTY(ver);
+		if (browserType == 1){
+			REG_JS_PROTY(appname);
+			REG_JS_PROTY(appDir);
+			REG_JS_PROTY(appDataPath);
+			REG_JS_PROTY(screen_w);
+			REG_JS_PROTY(screen_h);
+			REG_JS_PROTY(desktop_w);
+			REG_JS_PROTY(desktop_h);
+			REG_JS_PROTY(window_x);
+			REG_JS_PROTY(window_y);
+			REG_JS_PROTY(window_w);
+			REG_JS_PROTY(window_h);
+			REG_JS_PROTY(is_zoomed);
+			REG_JS_PROTY(is_iconic);
+			REG_JS_PROTY(ver);
+		}
 
 #undef REG_JS_PROTY
 		

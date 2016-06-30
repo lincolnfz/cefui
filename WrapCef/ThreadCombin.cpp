@@ -143,6 +143,7 @@ namespace cyjh{
 					std::shared_ptr<IPCUnit> ipc = IPC_Manager::getInstance().GetIpc(ipcID);
 					if (ipc.get())
 					{
+						spOut->getList().AppendVal((int)2);
 						Response(ipc.get(), spOut, spReq->getID(), spReq->getAtom());
 					}
 				}

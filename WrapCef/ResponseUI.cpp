@@ -36,7 +36,7 @@ ResponseUI::ResponseUI()
 	*lch = '\0';
 	wcsncpy_s(m_szPath, szPath, MAX_PATH);
 
-	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser); //注册浏览器放不放在框架中处理
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_RegisterBrowser); //注册浏览器 (渲染进程自已弹出的窗口放不放在框架中处理,如chromedev://)
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getPrivateProfileString);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_window_x);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_window_y);
@@ -80,7 +80,7 @@ void ResponseUI::SetFunMap(wrapQweb::FunMap* fnMap)
 	s_fnMap = fnMap;
 }
 
-bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> reqParm, std::shared_ptr<cyjh::Instruct> )
+bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> reqParm, std::shared_ptr<cyjh::Instruct> out )
 {
 	std::wstring szSrvPipe = reqParm->getList().GetWStrVal(0);
 	std::wstring szCliPipe = reqParm->getList().GetWStrVal(1);
@@ -95,6 +95,7 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 		{
 			unit->Attach();
 		}
+		out->getList().AppendVal((int)1);
 	}
 	else{
 		//assert(false);
@@ -108,9 +109,11 @@ bool ResponseUI::rsp_RegisterBrowser(const CefRefPtr<CefBrowser> browser, const 
 			{
 				unit->Attach();
 			}
+			out->getList().AppendVal((int)2);
 		}
 		else{
-			assert(false);
+			out->getList().AppendVal((int)0);
+			assert(false);			
 		}
 	}
 	return true;
