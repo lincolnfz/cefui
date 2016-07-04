@@ -755,7 +755,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	{
 		if (WebkitEcho::getFunMap())
 		{
-			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier());
+			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), name.c_str());
 			if ( js && wcslen(js) > 0 )
 			{
 				cyjh::Instruct parm;

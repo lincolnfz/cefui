@@ -125,7 +125,7 @@ namespace wrapQweb {
 
 	typedef const WCHAR*(__stdcall *call_WebkitInvokeMethod)(const int& id, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
 
-	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id);
+	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id, const WCHAR* url, const WCHAR* title);
 
 	typedef void(__stdcall *call_WebkitDownFileUrl)(const int& id, const WCHAR* url, const WCHAR* suggestFileName);
 
