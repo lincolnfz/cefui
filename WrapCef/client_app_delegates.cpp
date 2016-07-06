@@ -398,6 +398,12 @@ public:
 		std::wstring modulename = list[0]->GetStringValue().ToWString();
 		std::wstring methodname = list[1]->GetStringValue().ToWString();
 		std::wstring strparm = list[2]->GetStringValue().ToWString();
+		if (methodname.compare(L"getCurrentSkinName") == 0 && modulename.compare(L"CUI") == 0 )
+		{
+			val = CefV8Value::CreateString(CefString(L"temp"));
+			//OutputDebugStringW(L"-----[ render getCurrentSkinName");
+			return;
+		}
 		int extra = list[3]->GetIntValue();
 		parm.getList().AppendVal(modulename);
 		parm.getList().AppendVal(methodname);
@@ -673,6 +679,10 @@ public:
 		unsigned int uid = string_hash(id);
 		bool bAdd = DectetFrameLoad::getInst().Remove(browser_->GetIdentifier(), getFramePath(frame_), uid);
 		val = CefV8Value::CreateInt(bAdd ? 1 : 0);
+	}
+
+	void queryProduct(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		val = CefV8Value::CreateString(CefString(L"cyjh"));
 	}
 
 protected:
@@ -1129,6 +1139,7 @@ public:
 		REG_JS_FUN(getSoftwareAttribute, 1);
 		REG_JS_FUN(addFrameStateChanged, 1);
 		REG_JS_FUN(removeFrameStateChanged, 1);
+		REG_JS_FUN(queryProduct, 2);
 
 #undef REG_JS_FUN
 		/*const char proty[][16] = { "appname", "appDir", "appDataPath", "screen_w", "screen_h", "desktop_w", "desktop_h",
