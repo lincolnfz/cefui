@@ -152,6 +152,65 @@ std::string getFramePath(CefRefPtr<CefFrame>& frame){
 	return path;
 }
 
+struct OriginFrameName 
+{
+	int _browserID;
+	int64 _frameID;
+	std::string _name;
+};
+
+class RecordFrameName
+{
+public:
+	static RecordFrameName& getInst(){
+		return s_inst_record_name;
+	}	
+	~RecordFrameName(){}
+
+	bool SaveRecord(const int browser, const int64 frame, const char* name){
+		bool find = false;
+		std::list<OriginFrameName>::iterator it = _record_name_list.begin();
+		for (; it != _record_name_list.end(); ++it)
+		{
+			if ( it->_browserID == browser && it->_frameID == frame )
+			{
+				find = true;
+				break;
+			}
+		}
+		if ( !find )
+		{
+			OriginFrameName item;
+			item._browserID = browser;
+			item._frameID = frame;
+			item._name = name;
+			_record_name_list.push_back(item);
+		}
+		return !find;
+	}
+
+	std::string GetRecord(const int browser, const int64 frame){
+		std::string val;
+		std::list<OriginFrameName>::iterator it = _record_name_list.begin();
+		for (; it != _record_name_list.end(); ++it)
+		{
+			if (it->_browserID == browser && it->_frameID == frame)
+			{
+				val = it->_name;
+			}
+		}
+		return val;
+	}
+
+protected:
+	RecordFrameName(){}
+	static RecordFrameName s_inst_record_name;
+
+private:
+	std::list<OriginFrameName> _record_name_list;	
+};
+RecordFrameName RecordFrameName::s_inst_record_name;
+
 //这是一个响应js的c++ 函数(类)
 class NativeappHandler : public CefV8Handler {
 public:
@@ -992,9 +1051,12 @@ public:
 
 		CefRefPtr<CefFrame> parent = frame->GetParent();
 		if ( parent.get() )
-		{
+		{						
+			std::string frameNam = frame->GetName().ToString();			
+			if (!RecordFrameName::getInst().SaveRecord(browser->GetIdentifier(), frame->GetIdentifier(), frameNam.c_str())){
+				frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
+			}
 			boost::hash<std::string> string_hash;
-			std::string frameNam = frame->GetName().ToString();
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, -10086)){
 				std::string url = frame->GetURL().ToString();
@@ -1014,7 +1076,8 @@ public:
 		if (parent.get())
 		{
 			boost::hash<std::string> string_hash;
-			std::string frameNam = frame->GetName().ToString();
+			//std::string frameNam = frame->GetName().ToString();
+			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
 				std::string url = frame->GetURL().ToString();
@@ -1036,7 +1099,8 @@ public:
 		if (parent.get())
 		{
 			boost::hash<std::string> string_hash;
-			std::string frameNam = frame->GetName().ToString();
+			//std::string frameNam = frame->GetName().ToString();
+			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, errorCode)){
 				std::string url = frame->GetURL().ToString();
@@ -1060,7 +1124,8 @@ public:
 		if (parent.get())
 		{
 			boost::hash<std::string> string_hash;
-			std::string frameNam = frame->GetName().ToString();
+			//std::string frameNam = frame->GetName().ToString();
+			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
 			unsigned int id = string_hash(frameNam);
 			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
 				std::string url = frame->GetURL().ToString();
