@@ -68,6 +68,7 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod2);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_fullScreen);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCallMethod);
 }
 
 
@@ -693,6 +694,36 @@ bool ResponseUI::rsp_fullScreen(const CefRefPtr<CefBrowser> browser, const std::
 			style |= WS_DLGFRAME | WS_THICKFRAME;
 			SetWindowLong(hWnd, GWL_STYLE, style);
 			ShowWindow(hWnd, SW_NORMAL);
+		}
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_asyncCallMethod(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	std::wstring module = req_parm->getList().GetWStrVal(0);
+	std::wstring method = req_parm->getList().GetWStrVal(1);
+	std::wstring parm = req_parm->getList().GetWStrVal(2);
+	int extra = req_parm->getList().GetIntVal(3);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			
+			ret = true;
+		}
+	}
+	else{
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+		if (control.get())
+		{
+			if (WebkitEcho::getFunMap()){
+				WebkitEcho::getFunMap()->webkitAsyncCallMethod(browser->GetIdentifier(), module, method, parm, extra);
+				ret = true;
+			}
 		}
 	}
 	return ret;

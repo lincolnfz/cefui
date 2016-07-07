@@ -459,6 +459,7 @@ public:
 		std::wstring strparm = list[2]->GetStringValue().ToWString();
 		if (methodname.compare(L"getCurrentSkinName") == 0 && modulename.compare(L"CUI") == 0 )
 		{
+			//过滤getCurrentSkinName，用来解决4399网站使用这个方法引起ui进程卡死
 			val = CefV8Value::CreateString(CefString(L"temp"));
 			//OutputDebugStringW(L"-----[ render getCurrentSkinName");
 			return;
@@ -478,6 +479,21 @@ public:
 		else{
 			val = CefV8Value::CreateString(CefString(L""));
 		}
+	}
+
+	void asyncCallMethod(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		std::wstring modulename = list[0]->GetStringValue().ToWString();
+		std::wstring methodname = list[1]->GetStringValue().ToWString();
+		std::wstring strparm = list[2]->GetStringValue().ToWString();
+		int extra = list[3]->GetIntValue();
+		parm.getList().AppendVal(modulename);
+		parm.getList().AppendVal(methodname);
+		parm.getList().AppendVal(strparm);
+		parm.getList().AppendVal(extra);
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(this->browser_, parm);
 	}
 
 	void writePrivateProfileString(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
@@ -1190,7 +1206,8 @@ public:
 		REG_JS_FUN(createModalWindow, 1);
 		REG_JS_FUN(createModalWindow2, 1);
 		REG_JS_FUN(setAlpha, 1);
-		REG_JS_FUN(invokeMethod, 3);
+		REG_JS_FUN(invokeMethod, 3); 
+		REG_JS_FUN(asyncCallMethod, 2);
 		REG_JS_FUN(writePrivateProfileString, 1);
 		REG_JS_FUN(getPrivateProfileInt, 1);
 		REG_JS_FUN(getPrivateProfileString, 1);

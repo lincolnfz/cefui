@@ -129,6 +129,8 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_WebkitDownFileUrl)(const int& id, const WCHAR* url, const WCHAR* suggestFileName);
 
+	typedef void(__stdcall *call_WebkitAsyncCallMethod)(const int& id, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -140,6 +142,7 @@ namespace wrapQweb {
 		call_WebkitInvokeMethod webkitInvokeMethod;
 		call_WebkitInjectJS webkitInjectJS;
 		call_WebkitDownFileUrl webkitDownFileUrl;
+		call_WebkitAsyncCallMethod webkitAsyncCallMethod;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

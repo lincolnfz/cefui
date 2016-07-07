@@ -238,6 +238,12 @@ namespace cyjh{
 	void RenderThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
 	{
 		CEF_REQUIRE_RENDERER_THREAD();
+		if (disableBrowserSet_.find(browser->GetIdentifier()) != disableBrowserSet_.end())
+		{
+			return;
+		}
+		parm.setBrowserID(browser->GetIdentifier());
+		SendAsyncRequest(ipc_.get(), parm);
 	}
 
 	void RenderThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)

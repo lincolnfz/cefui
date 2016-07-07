@@ -478,6 +478,8 @@ namespace cyjh{
 		void SendAsyncRequest(IPCUnit*, Instruct& parm);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) = 0;
+
+		//响应处理异步通信的请求
 		virtual void procRecvData(const std::shared_ptr<Instruct>) = 0;
 		virtual bool prepareResponse(const std::shared_ptr<Instruct> parm);
 		bool RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id);
