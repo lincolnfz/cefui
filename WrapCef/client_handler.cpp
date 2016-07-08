@@ -883,6 +883,21 @@ void ClientHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
     allow_os_execution = true;
 }
 
+void ClientHandler::OnPluginCrashed(CefRefPtr<CefBrowser> browser,
+	const CefString& plugin_path)
+{
+	CEF_REQUIRE_UI_THREAD();
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+	if (control.get())
+	{
+		if (WebkitEcho::getFunMap())
+		{
+			std::wstring path = plugin_path.ToWString();
+			WebkitEcho::getFunMap()->webkitPluginCrash(browser->GetIdentifier(), path.c_str());
+		}
+	}
+}
+
 void ClientHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                               TerminationStatus status) {
   CEF_REQUIRE_UI_THREAD();

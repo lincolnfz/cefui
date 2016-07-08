@@ -230,6 +230,8 @@ class ClientHandler : public CefClient,
   virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
                                    const CefString& url,
                                    bool& allow_os_execution) OVERRIDE;
+  virtual void OnPluginCrashed(CefRefPtr<CefBrowser> browser,
+	  const CefString& plugin_path) OVERRIDE;
   virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                          TerminationStatus status) OVERRIDE;
 
