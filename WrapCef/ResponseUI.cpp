@@ -69,6 +69,7 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_fullScreen);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCallMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getInjectJS);
 }
 
 
@@ -722,6 +723,32 @@ bool ResponseUI::rsp_asyncCallMethod(const CefRefPtr<CefBrowser> browser, const 
 		{
 			if (WebkitEcho::getFunMap()){
 				WebkitEcho::getFunMap()->webkitAsyncCallMethod(browser->GetIdentifier(), module, method, parm, extra);
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
+
+bool  ResponseUI::rsp_getInjectJS(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+{
+	bool ret = false;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			std::wstring url = req_parm->getList().GetWStrVal(0);
+			std::wstring frameName = req_parm->getList().GetWStrVal(1);
+#ifdef _DEBUG1
+			WCHAR szBuf[2048] = { 0 };
+			wsprintf(szBuf, L"-----[1 rsp_getInjectJS name: %s url: %s", frameName.c_str(), url.c_str());
+			OutputDebugStringW(szBuf);
+#endif
+			const WCHAR* js = s_fnMap->injectJS(hWnd, url.c_str(), frameName.c_str());
+			if (js && wcslen(js) > 0)
+			{
+				out->getList().AppendVal(std::wstring(js));
 				ret = true;
 			}
 		}
