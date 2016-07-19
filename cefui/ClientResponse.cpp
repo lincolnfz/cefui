@@ -19,7 +19,7 @@ bool ClientResponse::rsp_AdjustFlashSpeed(const int id,
 	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
 {
 	double dt = req_parm->getList().GetDoubleVal(0);
-	if (abs(dt - 1.0) < 0.01)
+	if (fabs(dt - 1.0) < 0.01)
 	{
 		if (!speed_adjust)
 		{
