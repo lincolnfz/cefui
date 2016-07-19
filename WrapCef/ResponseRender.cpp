@@ -360,18 +360,27 @@ bool ResponseRender::rsp_asyncInvokedJSMethod(const CefRefPtr<CefBrowser> browse
 	return ret;
 }
 
+bool speed_adjust = false;
 bool ResponseRender::rsp_AdjustRenderSpeed(const CefRefPtr<CefBrowser> browser,
 	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
 {
 	double dt = req_parm->getList().GetDoubleVal(0);
-	if (abs(dt - 1.0) < 0.01)
+	if (fabs(dt - 1.0) < 0.01)
 	{
-		EnableSpeedControl(FALSE);
+		if (!speed_adjust)
+		{
+			EnableSpeedControl(FALSE);
+		}
+		else{
+			EnableSpeedControl(TRUE);
+			SetSpeed(1.001);
+		}
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed disable "));
 	}
 	else{
 		EnableSpeedControl(TRUE);
 		SetSpeed(dt);
+		speed_adjust = true;
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed enable "));
 	}
 	return true;
