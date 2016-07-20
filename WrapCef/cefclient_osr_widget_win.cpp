@@ -1145,8 +1145,14 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     else
       event.type = KEYEVENT_CHAR;
     event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
-    if (browser.get())
-      browser->SendKeyEvent(event);
+	if (browser.get()){
+#ifdef _DEBUG1
+		WCHAR szBuf[512];
+		wsprintf(szBuf, L"-----[1 message222: %d, wp: %d , lp: %08x", message, wParam, lParam);
+		OutputDebugStringW(szBuf);
+#endif
+		browser->SendKeyEvent(event);
+	}
     break;
   }
 

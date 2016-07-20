@@ -542,7 +542,7 @@ namespace wrapQweb{
 	{
 		bool bret = false;
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if ( item )
+		if ( item.get() && item->m_handle.get() )
 		{
 			bret = item->m_handle->invokedJSMethod(utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
 		}
