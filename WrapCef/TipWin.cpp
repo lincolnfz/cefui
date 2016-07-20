@@ -213,15 +213,6 @@ void TipWin::DestroyTipWin()
 
 void TipWin::setToolTip(const std::wstring& toolTip)
 {
-	//if (!tooltip_hwnd_)
-	//	return;
-
-	//static std::wstring trimstring = L" ";
-	//std::wstring strTmp(toolTip);
-
-	//strTmp.erase(strTmp.find_last_not_of(trimstring) + 1);
-	//strTmp.erase(0, strTmp.find_first_not_of(trimstring));
-
 	if (toolTip_.compare(toolTip) == 0)
 		return;
 
@@ -231,7 +222,7 @@ void TipWin::setToolTip(const std::wstring& toolTip)
 		return;
 	}
 
-	initializeToolTipWindow(parent_hwnd_);	
+	initializeToolTipWindow(parent_hwnd_);
 
 	if (!tooltip_hwnd_)
 		return;

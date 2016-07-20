@@ -1106,6 +1106,10 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  wsprintf(sz, L"----- is focus hwnd=%0x, %d", hWnd, message == WM_SETFOCUS);
 		  OutputDebugStringW(sz);
 #endif
+		  if ( window )
+		  {
+			  window->tipinfo_.DestroyTipWin();
+		  }		  
 		  browser->SendFocusEvent(message == WM_SETFOCUS);
 	  }
 	  else{
@@ -1205,6 +1209,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
 	  }
   }
+  break;
+
   }
 
 
