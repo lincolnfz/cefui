@@ -327,6 +327,47 @@ void OSRWindow::ShowTip(const std::wstring& info)
 	tipinfo_.setToolTip(info);
 }
 
+bool SaveToOtherFormat(Gdiplus::Bitmap* pImage, const wchar_t* pFileName)
+{
+	Gdiplus::EncoderParameters encoderParameters;
+	CLSID fClsid;
+	GetEncoderClsid2(L"image/png", &fClsid);
+	encoderParameters.Count = 1;
+	encoderParameters.Parameter[0].Guid = Gdiplus::EncoderQuality;
+	encoderParameters.Parameter[0].Type = Gdiplus::EncoderParameterValueTypeLong;
+	encoderParameters.Parameter[0].NumberOfValues = 1;
+
+	ULONG quality = 100;
+	encoderParameters.Parameter[0].Value = &quality;
+	Gdiplus::Status status = pImage->Save(pFileName, &fClsid, &encoderParameters);
+	if (status != Gdiplus::Ok)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+
+bool SaveBitmapToFile(HBITMAP hBitmap)
+{
+
+	HPALETTE     hOldPal = NULL;	//定义文件，分配内存句柄，调色板句柄
+	HANDLE hPal;
+	// 处理调色板   
+	hPal = GetStockObject(DEFAULT_PALETTE);
+
+	Gdiplus::Bitmap bmp(hBitmap, (HPALETTE)hPal);
+	static unsigned int idx = 0;
+	WCHAR path[256];
+	wsprintf(path, L"f:\\tt\\disp_%d.png", ++idx);
+	SaveToOtherFormat(&bmp, path);
+
+
+	return TRUE;
+}
+
 void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
                         PaintElementType type,
                         const RectList& dirtyRects,
@@ -411,7 +452,22 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 						destSize.cx = dirtyRects[0].width;
 						destSize.cy = dirtyRects[0].height;
 						if (bTrans_)
-							UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+						{
+							BOOL ret = UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+							if ( !ret )
+							{
+								//if ( GetLastError() == 87 )
+								{
+									long val = GetWindowLong(hWnd_, GWL_EXSTYLE);
+									val &= ~WS_EX_LAYERED;
+									SetWindowLong(hWnd_, GWL_EXSTYLE, val);
+									::SetWindowPos(hWnd_, 0, 0, 0, 0, 0,
+										SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+									bTrans_ = false;
+									BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
+								}
+							}
+						}
 						else
 							BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
 					}
