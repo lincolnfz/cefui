@@ -425,9 +425,9 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 	}
 	else{
 		HDC hdc = ::GetDC(hWnd_);
-		HDC hSrcDC = CreateCompatibleDC(hdc);
+		HDC hSrcDC = ::CreateCompatibleDC(hdc);
 		void* bitbuf = NULL;
-		HBITMAP hBitmap = CreateDIBSection(hSrcDC, &info, DIB_RGB_COLORS, (void**)&bitbuf, NULL, 0);
+		HBITMAP hBitmap = ::CreateDIBSection(hSrcDC, &info, DIB_RGB_COLORS, (void**)&bitbuf, NULL, 0);
 		if (hBitmap){
 			if (SetBitmapBits(hBitmap, datalen, buffer)){
 				HBITMAP hOldBmp = static_cast<HBITMAP>(SelectObject(hSrcDC, hBitmap));
@@ -453,7 +453,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 						destSize.cy = dirtyRects[0].height;
 						if (bTrans_)
 						{
-							BOOL ret = UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+							BOOL ret = ::UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, 0, &pb, ULW_ALPHA);
 							if ( !ret )
 							{
 								if (GetLastError() == ERROR_INVALID_PARAMETER)
@@ -463,8 +463,14 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 									SetWindowLong(hWnd_, GWL_EXSTYLE, val);
 									::SetWindowPos(hWnd_, 0, 0, 0, 0, 0,
 										SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-									bTrans_ = false;
-									BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
+									val = GetWindowLong(hWnd_, GWL_EXSTYLE);
+									val |= WS_EX_LAYERED;
+									SetWindowLong(hWnd_, GWL_EXSTYLE, val);
+									::SetWindowPos(hWnd_, 0, 0, 0, 0, 0,
+										SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+									::UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, 0, &pb, ULW_ALPHA);
+									//bTrans_ = false;
+									//BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
 								}
 							}
 						}
