@@ -456,7 +456,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 							BOOL ret = UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
 							if ( !ret )
 							{
-								//if ( GetLastError() == 87 )
+								if (GetLastError() == ERROR_INVALID_PARAMETER)
 								{
 									long val = GetWindowLong(hWnd_, GWL_EXSTYLE);
 									val &= ~WS_EX_LAYERED;
