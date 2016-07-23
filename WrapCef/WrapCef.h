@@ -133,6 +133,8 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_WebkitPluginCrash)(const int& id, const WCHAR* path);
 
+	typedef void(__stdcall *call_WebkitBeforeClose)(const int& id);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -146,6 +148,7 @@ namespace wrapQweb {
 		call_WebkitDownFileUrl webkitDownFileUrl;
 		call_WebkitAsyncCallMethod webkitAsyncCallMethod;
 		call_WebkitPluginCrash webkitPluginCrash;
+		call_WebkitBeforeClose webkitBeforeClose;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

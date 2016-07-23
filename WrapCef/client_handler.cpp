@@ -543,7 +543,6 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
     return true;
   }
   else{
-	  //HWND hHost = browser->GetHost()->GetWindowHandle();
 	  int id = browser->GetIdentifier();
 	  if (!CefCurrentlyOn(TID_UI)){
 		  std::shared_ptr<std::wstring> cookie_ctx(new std::wstring(cookie_context_));
@@ -621,6 +620,7 @@ bool ClientHandler::DoClose(CefRefPtr<CefBrowser> browser) {
 void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   CEF_REQUIRE_UI_THREAD();
 
+  int id = browser->GetIdentifier();
   message_router_->OnBeforeClose(browser);
 
   if (GetBrowserId() == browser->GetIdentifier()) {
@@ -658,6 +658,12 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 
     // Quit the application message loop.
     AppQuitMessageLoop();
+  }
+  else{
+	  if (WebkitEcho::getFunMap())
+	  {
+		  WebkitEcho::getFunMap()->webkitBeforeClose(id);
+	  }
   }
 }
 
