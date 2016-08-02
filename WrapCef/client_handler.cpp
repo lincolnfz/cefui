@@ -263,8 +263,8 @@ void ClientHandler::OnBeforeContextMenu(
 		  POINT pt = { x, y };
 		  ClientToScreen(hwnd, &pt);
 		  std::wstring val;
-		  queryElementAttrib(x, y, pt.x, pt.y, val);
-		  if ( val.compare(L"inputUrl") == 0 )
+		  queryElementAttrib(x, y, pt.x, pt.y, val);		  
+		  /*if ( val.compare(L"inputUrl") == 0 )
 		  {
 			  bool bEnable = false;
 			  if (OpenClipboard(NULL))
@@ -276,6 +276,34 @@ void ClientHandler::OnBeforeContextMenu(
 			  std::string utf8 = UnicodeToUTF8(std::wstring(L"粘贴并访问"));
 			  model->AddItem(CLIENT_ID_PASTE_VISIT, utf8.c_str());
 			  model->SetEnabled(CLIENT_ID_PASTE_VISIT, bEnable);
+		  }*/
+		  const int size = 64;
+		  WRAP_CEF_MENU_COMMAND menus[size];
+		  memset(menus, 0, sizeof(WRAP_CEF_MENU_COMMAND) * size);
+		  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+		  const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+		  if (fun && item.get())
+		  {
+			  HWND hWnd = item->m_window->hwnd();
+			  fun->insertMenu(hwnd, val.c_str(), menus);
+			  for (int i = 0; i < size; ++i)
+			  {
+				  if ( menus[i].command > 0 )
+				  {
+					  std::string utf8 = UnicodeToUTF8(std::wstring(menus[i].szTxt));
+					  if ( menus[i].top )
+					  {
+						  model->InsertItemAt(0, menus[i].command, utf8.c_str());
+					  }
+					  else{
+						  model->AddItem(menus[i].command, utf8.c_str());
+					  }					  
+					  model->SetEnabled(menus[i].command, menus[i].bEnable);
+				  }
+				  else{
+					  break;
+				  }
+			  }
 		  }
 	  }
 	  
@@ -724,17 +752,25 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	int httpStatusCode) {
 
 	CEF_REQUIRE_UI_THREAD();
-	//网页加载结束
+	
+	//网页加载结束	
 	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
 	std::wstring name = frame->GetName().ToWString();
 	std::wstring url = frame->GetURL().ToWString();
+	std::wstring mainUrl;
+	if (browser->GetMainFrame().get())
+	{
+		mainUrl = browser->GetMainFrame()->GetURL().ToWString();
+	}
 	HWND hWnd = NULL;
 	if ( fun && item.get() )
 	{
 		hWnd = item->m_window->hwnd();
 		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
 
+		//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入
+		/*
 		const WCHAR* js = fun->injectJS(hWnd, url.c_str(), name.c_str());
 		if (js && wcslen(js) > 0)
 		{
@@ -744,24 +780,19 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 			parm.getList().AppendVal(std::wstring(js));
 
 			CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-			//std::shared_ptr<cyjh::Instruct> outVal;
 			ipc->AsyncRequest(browser, parm);
 		}
+		*/
 	}
-	//cyjh::Instruct parm;
-	//parm.setName("NativeFrmeComplate");
-	//parm.getList().AppendVal(name.ToWString());
-	//parm.getList().AppendVal(url.ToWString());
-	//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-	//std::shared_ptr<cyjh::Instruct> outVal;
-	//ipc->Request(this->browser_, parm, outVal);
 
+	//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入
+	/*
 	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 	if ( control.get() )
 	{
 		if (WebkitEcho::getFunMap())
 		{
-			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), name.c_str());
+			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), mainUrl.c_str(), name.c_str());
 			if ( js && wcslen(js) > 0 )
 			{
 				cyjh::Instruct parm;
@@ -773,7 +804,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 				ipc->AsyncRequest(browser, parm);
 			}
 		}		
-	}
+	}*/
 
 	if (frame->IsMain()){
 		if (fun && item.get())
@@ -781,19 +812,12 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 			hWnd = item->m_window->hwnd();
 			fun->nativeComplate(hWnd);
 		}
-		//SetFocus2Browser(browser);
-		//cyjh::Instruct parm;
-		//parm.setName("NativeComplate");
-		//CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-		//std::shared_ptr<cyjh::Instruct> outVal;
-		//ipc->Request(this->browser_, parm, outVal);
+
 		if (WebkitEcho::getFunMap())
 		{
 			WebkitEcho::getFunMap()->webkitEndLoad(browser->GetIdentifier());
 		}
 	}
-	//CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
-	//int i = 0;
 	
 }
 

@@ -12,6 +12,14 @@ SHARED_EXPORT_API int InitBrowser(HINSTANCE hInstance);
 
 SHARED_EXPORT_API int UnInitBrowser();
 
+struct WRAP_CEF_MENU_COMMAND
+{
+	WCHAR szTxt[256];
+	int command;
+	bool bEnable;
+	bool top;
+};
+
 namespace wrapQweb {
 
 	typedef long(__stdcall *call_closeWindow)(HWND hWnd);
@@ -49,7 +57,9 @@ namespace wrapQweb {
 
 	typedef bool(__stdcall *call_doMenuCommand)(const HWND&, const int& id);
 
-	typedef const WCHAR*(__stdcall *call_InjectJS)(const HWND&, const WCHAR* url, const WCHAR* frameName);
+	typedef const WCHAR*(__stdcall *call_InjectJS)(const HWND&, const WCHAR* url, const WCHAR* mainurl, const WCHAR* frameName);
+
+	typedef void(__stdcall *call_InertMenu)(const HWND&, const WCHAR* attribName, WRAP_CEF_MENU_COMMAND[]);
 
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
@@ -68,6 +78,7 @@ namespace wrapQweb {
 		call_newNativeUrl newNativeUrl;
 		call_doMenuCommand doMenuCommand;
 		call_InjectJS injectJS;
+		call_InertMenu insertMenu;
 	}FunMap;
 
 	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL);
@@ -125,7 +136,7 @@ namespace wrapQweb {
 
 	typedef const WCHAR*(__stdcall *call_WebkitInvokeMethod)(const int& id, std::wstring& modulename, std::wstring& methodname, std::wstring& parm, unsigned long extra);
 
-	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id, const WCHAR* url, const WCHAR* title);
+	typedef const WCHAR*(__stdcall *call_WebkitInjectJS)(const int& id, const WCHAR* url, const WCHAR* mainurl, const WCHAR* title);
 
 	typedef void(__stdcall *call_WebkitDownFileUrl)(const int& id, const WCHAR* url, const WCHAR* suggestFileName);
 

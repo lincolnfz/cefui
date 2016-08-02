@@ -54,6 +54,9 @@
     <ClInclude Include="CliAck.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SubClassWindow.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -96,6 +99,9 @@
       <Filter>pipe</Filter>
     </ClCompile>
     <ClCompile Include="CliAck.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SubClassWindow.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

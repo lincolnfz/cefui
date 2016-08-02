@@ -730,28 +730,58 @@ bool ResponseUI::rsp_asyncCallMethod(const CefRefPtr<CefBrowser> browser, const 
 	return ret;
 }
 
-bool  ResponseUI::rsp_getInjectJS(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> out)
+bool  ResponseUI::rsp_getInjectJS(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
 {
 	bool ret = false;
+	std::wstring strjs;
+	std::wstring url = req_parm->getList().GetWStrVal(0);
+	std::wstring frameName = req_parm->getList().GetWStrVal(1);
+	std::wstring mainurl = req_parm->getList().GetWStrVal(2);
+	int64  frameid = req_parm->getList().GetInt64Val(3);
 	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	if (item.get() && IsWindow(item->m_window->hwnd()))
 	{
 		HWND hWnd = item->m_window->hwnd();
-		if (s_fnMap){
-			std::wstring url = req_parm->getList().GetWStrVal(0);
-			std::wstring frameName = req_parm->getList().GetWStrVal(1);
+		if (s_fnMap){			
 #ifdef _DEBUG1
 			WCHAR szBuf[2048] = { 0 };
 			wsprintf(szBuf, L"-----[1 rsp_getInjectJS name: %s url: %s", frameName.c_str(), url.c_str());
 			OutputDebugStringW(szBuf);
 #endif
-			const WCHAR* js = s_fnMap->injectJS(hWnd, url.c_str(), frameName.c_str());
+			const WCHAR* js = s_fnMap->injectJS(hWnd, url.c_str(), mainurl.c_str(), frameName.c_str());
 			if (js && wcslen(js) > 0)
 			{
-				out->getList().AppendVal(std::wstring(js));
+				//out->getList().AppendVal(std::wstring(js));
+				strjs = js;
 				ret = true;
 			}
 		}
+	}
+	else{
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+		if (control.get())
+		{
+			if (WebkitEcho::getFunMap()){
+				const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), mainurl.c_str(), frameName.c_str());
+				if (js && wcslen(js) > 0)
+				{
+					//out->getList().AppendVal(std::wstring(js));
+					strjs = js;
+					ret = true;
+				}
+			}
+		}
+	}
+
+	if ( ret )
+	{
+		cyjh::Instruct parm;
+		parm.setName("injectJS");
+		parm.getList().AppendVal(frameid);
+		parm.getList().AppendVal(strjs);
+
+		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+		ipc->AsyncRequest(browser, parm);
 	}
 	return ret;
 }

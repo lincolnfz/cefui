@@ -2,12 +2,15 @@
 #include "ClientResponse.h"
 #include "SpeedBox.h"
 #include "SoundBox.h"
+#include "SubClassWindow.h"
 
 bool speed_adjust = false;
 ClientResponse::ClientResponse()
 {
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AdjustFlashSpeed);
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AudioMuted);
+	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_ProtectWindow);
+	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_UnProtectWindow);
 }
 
 
@@ -56,5 +59,22 @@ bool ClientResponse::rsp_AudioMuted(const int id,
 		EnableSoundControl(FALSE);
 		//OutputDebugString(_T("------------------111ClientResponse::rsp_AudioMuted disable "));
 	}
+	return true;
+}
+
+bool ClientResponse::rsp_ProtectWindow(const int id,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	HWND hWnd = (HWND)req_parm->getList().GetIntVal(0);
+	int flag = req_parm->getList().GetIntVal(1);
+	SubClassWindow::GetInst().SubWindow(hWnd, flag);
+	return true;
+}
+
+bool ClientResponse::rsp_UnProtectWindow(const int id,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	HWND hWnd = (HWND)req_parm->getList().GetIntVal(0);
+	SubClassWindow::GetInst().UnSubWIndow(hWnd);
 	return true;
 }

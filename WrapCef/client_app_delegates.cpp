@@ -1129,9 +1129,10 @@ public:
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, int httpStatusCode){
 
-		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-			return;
-		}
+		//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+		//  只注入主ui界面
+		//	return;
+		//}
 
 		if(frame->IsMain())
 			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
@@ -1148,6 +1149,52 @@ public:
 				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 			}
 		}
+
+		//inject js
+		std::wstring name = frame->GetName().ToWString();
+		std::wstring url = frame->GetURL().ToWString();
+		std::wstring mainurl;
+		if (browser->GetMainFrame().get()){
+			mainurl = browser->GetMainFrame()->GetURL().ToWString();
+		}
+#ifdef _DEBUG1
+		WCHAR szBuf[2048] = { 0 };
+		wsprintf(szBuf, L"-----[1 inject_js name: %s url: %s", name.c_str(), url.c_str());
+		OutputDebugStringW(szBuf);
+#endif
+		cyjh::Instruct parm;
+		parm.setName("getInjectJS");
+		parm.getList().AppendVal(url);
+		parm.getList().AppendVal(name);
+		parm.getList().AppendVal(mainurl);
+		parm.getList().AppendVal(frame->GetIdentifier());
+
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(browser, parm);
+
+		//异步注入
+		/*
+		std::shared_ptr<cyjh::Instruct> outVal;
+		ipc->Request(browser, parm, outVal);		
+		if (outVal.get() && outVal->getSucc())
+		{
+			std::wstring js = outVal->getList().GetWStrVal(0);
+			//std::wstring js = L"alert('00');";
+			if (!js.empty())
+			{
+#ifdef _DEBUG1
+				WCHAR szBuf[2048] = { 0 };
+				wnsprintf(szBuf, 2040, L"-----[1 inject_js js: %s", js.c_str());
+				OutputDebugStringW(szBuf);
+#endif
+				CefString cefjs(outVal->getList().GetWStrVal(0));
+				CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+				CefRefPtr<CefV8Value> retVal;
+				CefRefPtr<CefV8Exception> excp;
+				v8->Eval(cefjs, retVal, excp);
+			}
+		}
+		*/
 	}
 protected:
 private:
