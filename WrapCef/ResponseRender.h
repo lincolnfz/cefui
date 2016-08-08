@@ -13,6 +13,7 @@ struct DocLoadComplate
 	}
 };
 
+//指示主框架dom加载完毕（仅用在ui界面）
 class DocComplate
 {
 public:

@@ -754,6 +754,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	CEF_REQUIRE_UI_THREAD();
 	
 	//网页加载结束	
+	bool bCallInjectJS = false;
 	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
 	std::wstring name = frame->GetName().ToWString();
@@ -766,12 +767,13 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	HWND hWnd = NULL;
 	if ( fun && item.get() )
 	{
+		bCallInjectJS = true;
 		hWnd = item->m_window->hwnd();
 		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
 
-		//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入
-		/*
-		const WCHAR* js = fun->injectJS(hWnd, url.c_str(), name.c_str());
+		//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入,
+		//OnDocumentLoadedInFrame注入暂不用
+		const WCHAR* js = fun->injectJS(hWnd, url.c_str(), mainUrl.c_str(), name.c_str());
 		if (js && wcslen(js) > 0)
 		{
 			cyjh::Instruct parm;
@@ -782,29 +784,32 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 			CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 			ipc->AsyncRequest(browser, parm);
 		}
-		*/
 	}
 
 	//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入
-	/*
-	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
-	if ( control.get() )
+	//OnDocumentLoadedInFrame注入暂不用
+	if (!bCallInjectJS)
 	{
-		if (WebkitEcho::getFunMap())
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+		if (control.get())
 		{
-			const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), mainUrl.c_str(), name.c_str());
-			if ( js && wcslen(js) > 0 )
+			if (WebkitEcho::getFunMap())
 			{
-				cyjh::Instruct parm;
-				parm.setName("injectJS");
-				parm.getList().AppendVal(frame->GetIdentifier());
-				parm.getList().AppendVal( std::wstring(js) );
+				const WCHAR* js = WebkitEcho::getFunMap()->webkitInjectJS(browser->GetIdentifier(), url.c_str(), mainUrl.c_str(), name.c_str());
+				if (js && wcslen(js) > 0)
+				{
+					cyjh::Instruct parm;
+					parm.setName("injectJS");
+					parm.getList().AppendVal(frame->GetIdentifier());
+					parm.getList().AppendVal(std::wstring(js));
 
-				CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-				ipc->AsyncRequest(browser, parm);
+					CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+					ipc->AsyncRequest(browser, parm);
+				}
 			}
-		}		
-	}*/
+		}
+	}
+
 
 	if (frame->IsMain()){
 		if (fun && item.get())

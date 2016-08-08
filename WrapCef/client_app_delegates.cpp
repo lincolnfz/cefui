@@ -26,6 +26,10 @@
 #include "ShareHelper.h"
 #include "BrowserIdentifier.h"
 
+#define BROWSER_UI 0x01 
+#define BROWSER_WEB 0x02
+#define BROWSER_ALL (BROWSER_UI|BROWSER_WEB)
+
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
 }
@@ -1059,45 +1063,56 @@ public:
 	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame) {
 
-		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-			return;
-		}
-		if (frame->IsMain())
-			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), false);
+		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
+		if (browserType == BROWSER_UI)
+		{
+			//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+				//只注入主ui界面
+			//	return;
+			//}
+			if (frame->IsMain())
+				DocComplate::getInst().setBrowsr(browser->GetIdentifier(), false);
 
-		CefRefPtr<CefFrame> parent = frame->GetParent();
-		if ( parent.get() )
-		{						
-			std::string frameNam = frame->GetName().ToString();			
-			if (!RecordFrameName::getInst().SaveRecord(browser->GetIdentifier(), frame->GetIdentifier(), frameNam.c_str())){
-				frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
-			}
-			boost::hash<std::string> string_hash;
-			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, -10086)){
-				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, false);
+			CefRefPtr<CefFrame> parent = frame->GetParent();
+			if (parent.get())
+			{
+				std::string frameNam = frame->GetName().ToString();
+				if (!RecordFrameName::getInst().SaveRecord(browser->GetIdentifier(), frame->GetIdentifier(), frameNam.c_str())){
+					frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
+				}
+				boost::hash<std::string> string_hash;
+				unsigned int id = string_hash(frameNam);
+				if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, -10086)){
+					std::string url = frame->GetURL().ToString();
+					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), -10086, false);
+				}
 			}
 		}
+
 	}
 
 	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		int httpStatusCode) {
 
-		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-			return;
-		}
-		CefRefPtr<CefFrame> parent = frame->GetParent();
-		if (parent.get())
+		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
+		if (browserType == BROWSER_UI)
 		{
-			boost::hash<std::string> string_hash;
-			//std::string frameNam = frame->GetName().ToString();
-			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
-			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
-				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, true);
+			//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+				//只注入主ui界面
+			//	return;
+			//}
+			CefRefPtr<CefFrame> parent = frame->GetParent();
+			if (parent.get())
+			{
+				boost::hash<std::string> string_hash;
+				//std::string frameNam = frame->GetName().ToString();
+				std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
+				unsigned int id = string_hash(frameNam);
+				if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
+					std::string url = frame->GetURL().ToString();
+					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, true);
+				}
 			}
 		}
 	}
@@ -1108,20 +1123,25 @@ public:
 		const CefString& errorText,
 		const CefString& failedUrl) {
 
-		if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-			return;
-		}
-		CefRefPtr<CefFrame> parent = frame->GetParent();
-		if (parent.get())
+		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
+		if (browserType == BROWSER_UI)
 		{
-			boost::hash<std::string> string_hash;
-			//std::string frameNam = frame->GetName().ToString();
-			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
-			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, errorCode)){
-				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, false);
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, true);
+			//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+				//只注入主ui界面
+			//	return;
+			//}
+			CefRefPtr<CefFrame> parent = frame->GetParent();
+			if (parent.get())
+			{
+				boost::hash<std::string> string_hash;
+				//std::string frameNam = frame->GetName().ToString();
+				std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
+				unsigned int id = string_hash(frameNam);
+				if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, errorCode)){
+					std::string url = frame->GetURL().ToString();
+					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, false);
+					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), errorCode, true);
+				}
 			}
 		}
 	}
@@ -1129,27 +1149,33 @@ public:
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, int httpStatusCode){
 
-		//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-		//  只注入主ui界面
-		//	return;
-		//}
-
-		if(frame->IsMain())
-			DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
-
-		CefRefPtr<CefFrame> parent = frame->GetParent();
-		if (parent.get())
+		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
+		if (browserType == BROWSER_UI)
 		{
-			boost::hash<std::string> string_hash;
-			//std::string frameNam = frame->GetName().ToString();
-			std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
-			unsigned int id = string_hash(frameNam);
-			if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
-				std::string url = frame->GetURL().ToString();
-				call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
+			//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
+				//只注入主ui界面
+			//	return;
+			//}
+
+			if (frame->IsMain())
+				DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
+
+			CefRefPtr<CefFrame> parent = frame->GetParent();
+			if (parent.get())
+			{
+				boost::hash<std::string> string_hash;
+				//std::string frameNam = frame->GetName().ToString();
+				std::string frameNam = RecordFrameName::getInst().GetRecord(browser->GetIdentifier(), frame->GetIdentifier());
+				unsigned int id = string_hash(frameNam);
+				if (DectetFrameLoad::getInst().hit(browser->GetIdentifier(), getFramePath(parent), id, httpStatusCode)){
+					std::string url = frame->GetURL().ToString();
+					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
+				}
 			}
 		}
 
+
+		/*
 		//inject js
 		std::wstring name = frame->GetName().ToWString();
 		std::wstring url = frame->GetURL().ToWString();
@@ -1170,10 +1196,11 @@ public:
 		parm.getList().AppendVal(frame->GetIdentifier());
 
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
-		ipc->AsyncRequest(browser, parm);
-
-		//异步注入
+		ipc->AsyncRequest(browser, parm);//异步请求注入
+		*/
+		
 		/*
+		//同步请求注入,如果要在OnDocumentLoadedInFrame注入js，不建议使用同步
 		std::shared_ptr<cyjh::Instruct> outVal;
 		ipc->Request(browser, parm, outVal);		
 		if (outVal.get() && outVal->getSucc())
