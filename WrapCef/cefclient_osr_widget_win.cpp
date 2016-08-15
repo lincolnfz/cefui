@@ -888,9 +888,6 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     int x = GET_X_LPARAM(lParam);
     int y = GET_Y_LPARAM(lParam);
 
-#ifdef _DEBUG1
-	OutputDebugStringA("-----[ mouse down");
-#endif	
     cancelPreviousClick =
         (abs(lastClickX - x) > (GetSystemMetrics(SM_CXDOUBLECLK)/2 ))
         || (abs(lastClickY - y) > (GetSystemMetrics(SM_CYDOUBLECLK)/2 ))
@@ -901,14 +898,6 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       lastClickX = 0;
       lastClickY = 0;
       gLastClickTime = 0;
-#ifdef _DEBUG1
-	  char buf[128];
-	  sprintf_s(buf, "-----[ cancel last click msg = %d , {%d, %d}, {%d, %d}, {%d, %d}", message,
-		  abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
-		  abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
-		  (currentTime - gLastClickTime), dbClickTiem);
-	  OutputDebugStringA(buf);
-#endif
     }
   }
 
@@ -944,27 +933,10 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		{
 			++gLastClickCount;
 		}
-#ifdef _DEBUG1
-		char buf[128];
-		//sprintf_s(buf, "-----[ last click num = %d ", gLastClickCount);
-		sprintf_s(buf, "-----[ last click num = %d , {%d, %d}, {%d, %d}, {%d, %d}", gLastClickCount,
-			abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
-			abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
-			(currentTime - gLastClickTime), dbClickTiem);
-		OutputDebugStringA(buf);
-#endif
       } else {
         gLastClickCount = 1;
         lastClickX = x;
         lastClickY = y;
-#ifdef _DEBUG1
-		char buf[128];
-		sprintf_s(buf, "-----[ last click set to 1 cancelPreviousClick = %d, {%d, %d}, {%d, %d}, {%d, %d}", cancelPreviousClick,
-			abs(lastClickX - x), (GetSystemMetrics(SM_CXDOUBLECLK) / 2),
-			abs(lastClickY - y), (GetSystemMetrics(SM_CYDOUBLECLK) / 2),
-			(currentTime - gLastClickTime), dbClickTiem);
-		OutputDebugStringA(buf);
-#endif
       }
       gLastClickTime = currentTime;
       lastClickButton = btnType;
@@ -1056,9 +1028,6 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   case WM_LBUTTONDBLCLK:{
 	  if ( gLastClickCount == 1 )
 	  {
-#ifdef _DEBUG1
-		  OutputDebugStringA("-----[ send mouse WM_LBUTTONDBLCLK");
-#endif
 		  if (browser.get()) {
 			  int x = GET_X_LPARAM(lParam);
 			  int y = GET_Y_LPARAM(lParam);
@@ -1212,11 +1181,6 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       event.type = KEYEVENT_CHAR;
     event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
 	if (browser.get()){
-#ifdef _DEBUG1
-		WCHAR szBuf[512];
-		wsprintf(szBuf, L"-----[1 message222: %d, wp: %d , lp: %08x", message, wParam, lParam);
-		OutputDebugStringW(szBuf);
-#endif
 		browser->SendKeyEvent(event);
 	}
     break;
