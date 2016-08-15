@@ -844,7 +844,7 @@ bool ClientHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
   }*/
 
   bool cancel = false;
-  if (frame->IsMain())
+  //if (frame->IsMain())
   {
 	  if (WebkitEcho::getFunMap())
 	  {

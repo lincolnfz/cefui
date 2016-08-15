@@ -601,8 +601,9 @@ namespace cyjh{
 	void CombinThreadComit::SendAsyncRequest(IPCUnit* ipc, Instruct& parm)
 	{
 		Pickle pick;
-		if (parm.getInstructType() == INSTRUCT_NULL)
+		//if (parm.getInstructType() == INSTRUCT_NULL)
 		{
+			//异步必需用 INSTRUCT_DATA
 			parm.setInstructType(InstructType::INSTRUCT_DATA);
 		}
 		parm.setAsync(true);
@@ -1525,6 +1526,25 @@ namespace cyjh{
 				it->get()->outval_ = tmp;
 				SetEvent(it->get()->events_[0]);
 				it = eventRequestStack_.erase(it);
+			}
+			else{
+				++it;
+			}
+		}
+	}
+
+	void CombinThreadComit::uiTriggerReqEvent(int browserID)
+	{
+		CEF_REQUIRE_UI_THREAD();
+		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
+		std::deque<std::shared_ptr<RequestContext>>::iterator it = eventRequestStack_.begin();
+		while (it != eventRequestStack_.end())
+		{
+			if (it->get()->browserID_ == browserID)
+			{
+				assert(it->get()->browserID_ == browserID);
+				break;  //test
+				++it;
 			}
 			else{
 				++it;

@@ -12,6 +12,7 @@ class WebItem : public CefBase
 public:
 	WebItem(){
 		m_ipcID = 0;
+		m_bPrepareClose = false;
 	}
 	~WebItem(){
 
@@ -20,6 +21,7 @@ public:
 	CefRefPtr<BrowserProvider> m_provider;
 	CefRefPtr<OSRWindow> m_window;
 	int m_ipcID;
+	bool m_bPrepareClose;
 	IMPLEMENT_REFCOUNTING(WebItem);
 };
 

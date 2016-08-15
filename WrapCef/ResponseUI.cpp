@@ -70,6 +70,7 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCallMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getInjectJS);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_closeBrowser);
 }
 
 
@@ -782,6 +783,26 @@ bool  ResponseUI::rsp_getInjectJS(const CefRefPtr<CefBrowser> browser, const std
 
 		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 		ipc->AsyncRequest(browser, parm);
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_closeBrowser(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = true;
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+#ifdef _DEBUG1
+	OutputDebugStringA("-----[ rsp_closeBrowser");
+#endif
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		item->m_bPrepareClose = true;
+#ifdef _DEBUG1
+		WCHAR szbuf[128] = { 0 };
+		wsprintfW(szbuf, L"-----[ rsp_closeBrowser in ui, id : %d, hwnd: %d", browser->GetIdentifier(), item->m_window->hwnd());
+		OutputDebugStringW(szbuf);
+#endif
+		PostMessage(item->m_window->hwnd(), WM_CLOSE, NULL, NULL);
 	}
 	return ret;
 }

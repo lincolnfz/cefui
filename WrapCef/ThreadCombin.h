@@ -20,6 +20,7 @@ namespace cyjh{
 		virtual void AsyncRequest(CefRefPtr<CefBrowser>, Instruct& parm) override;
 		virtual void RecvData(const unsigned char*, DWORD) override;
 		virtual void postInstruct(std::shared_ptr<Instruct> spInfo) override;
+		void DisableSendBrowser(int id);
 	protected:
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) override;
 		virtual void procRecvData(const std::shared_ptr<Instruct>) override;
@@ -31,6 +32,7 @@ namespace cyjh{
 	protected:
 		ResponseUI handle_;
 		UIBlockThread block_;
+		std::set<int> disableBrowserSet_;
 		IMPLEMENT_REFCOUNTING(UIThreadCombin);
 	};
 

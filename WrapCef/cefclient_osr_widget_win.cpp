@@ -1238,6 +1238,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
   case WM_CLOSE:
   {
+	  bool bPrepareClose = true;
 	  if ( browser.get() )
 	  {
 		  int ipcID = 0;
@@ -1249,26 +1250,42 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 				  //ipcID = item->m_ipcID;
 				  //std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
 
-				  cyjh::Instruct parm;
-				  parm.setName("closeBrowser");
-				  int id = 0;
-				  if (browser->GetBrowser().get())
+				  bPrepareClose = item->m_bPrepareClose;
+				  if ( bPrepareClose == false )
 				  {
-					  id = browser->GetBrowser()->GetIdentifier();
+					  cyjh::Instruct parm;
+					  parm.setName("closeBrowser");
+					  int id = 0;
+					  if (browser->GetBrowser().get())
+					  {
+						  id = browser->GetBrowser()->GetIdentifier();
+					  }
+					  parm.getList().AppendVal(id);
+					  //parm.setInstructType(cyjh::INSTRUCT_REQUEST);
+					  //cyjh::Pickle pick;
+					  //cyjh::Instruct::SerializationInstruct(&parm, pick);
+					  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
+					  //std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
+					  //ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
+					  ipcsync->AsyncRequest(window->browser_provider_->GetBrowser(), parm);
+					  //ipc->Close();
+					  ipcsync->DisableSendBrowser(id);
 				  }
-				  parm.getList().AppendVal(id);
-				  //parm.setInstructType(cyjh::INSTRUCT_REQUEST);
-				  //cyjh::Pickle pick;
-				  //cyjh::Instruct::SerializationInstruct(&parm, pick);
-				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
-				  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
-				  ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
-				  //ipc->Close();
 			  }
 		  }
-
-		  browser->CloseBrowser(true); //关闭单独
+		  if ( bPrepareClose )
+		  {
+			  browser->CloseBrowser(true); //关闭单独
+		  }
+		  
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
+	  }
+	  if (bPrepareClose == false)
+	  {
+		  return 0;
+	  }
+	  else{
+		  return DefWindowProc(hWnd, message, wParam, lParam);
 	  }
   }
   break;

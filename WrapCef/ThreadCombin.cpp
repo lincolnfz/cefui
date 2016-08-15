@@ -25,15 +25,22 @@ namespace cyjh{
 	void UIThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
 	{
 		CEF_REQUIRE_UI_THREAD();
-		parm.setBrowserID(browser->GetIdentifier());
+		int id = browser->GetIdentifier();
+		if (disableBrowserSet_.find(id) != disableBrowserSet_.end()){
+			return;
+		}
+#ifdef _DEBUG
+		uiTriggerReqEvent(id);
+#endif		
+		parm.setBrowserID(id);
 		std::shared_ptr<IPCUnit> unit;
-		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(id);
 		if (item.get())
 		{
 			unit = IPC_Manager::getInstance().GetIpc(item->m_ipcID);		
 		}
 		else{
-			CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+			CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(id);
 			if ( control.get() )
 			{
 				unit = IPC_Manager::getInstance().GetIpc(control->getIpcID());
@@ -49,6 +56,9 @@ namespace cyjh{
 	void UIThreadCombin::Request(CefRefPtr<CefBrowser> browser, Instruct& parm, std::shared_ptr<Instruct>& val)
 	{
 		CEF_REQUIRE_UI_THREAD();
+		if (disableBrowserSet_.find(browser->GetIdentifier()) != disableBrowserSet_.end()){
+			return;
+		}
 		parm.setBrowserID(browser->GetIdentifier());
 		CefRefPtr<WebItem>item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 		if ( item.get() )
@@ -68,6 +78,14 @@ namespace cyjh{
 
 	void UIThreadCombin::postInstruct(std::shared_ptr<Instruct> spInfo){
 		CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvRequest, this, spInfo));
+	}
+
+	void  UIThreadCombin::DisableSendBrowser(int id){
+		if (!CefCurrentlyOn(TID_UI)){
+			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::DisableSendBrowser, this, id));
+			return;
+		}
+		disableBrowserSet_.insert(id);
 	}
 
 	void UIThreadCombin::procRecvData(const std::shared_ptr<Instruct> spData)
@@ -296,6 +314,14 @@ namespace cyjh{
 			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::procRecvData, this, spData));
 			return;
 		}
+		if (spData->getName().compare("closeBrowser") == 0)
+		{
+			//closeBrowser指令不要进栈			
+			int browserID = spData->getList().GetIntVal(0);
+			CloseBrowserHelp(spData, browserID);
+			disableBrowserSet_.insert(browserID);
+			return;
+		}
 		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(spData->getBrowserID());
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spData->getName().c_str());
@@ -312,14 +338,6 @@ namespace cyjh{
 #ifdef _DEBUG1
 		OutputDebugStringA("---calc begin");
 #endif
-		if (spReq->getName().compare("closeBrowser") == 0)
-		{
-			//closeBrowser指令不要进栈			
-			int browserID = spReq->getList().GetIntVal(0);
-			disableBrowserSet_.insert(browserID);
-			CloseBrowserHelp(spReq, browserID);
-			return;
-		}
 
 		if (disableBrowserSet_.find(spReq->getBrowserID()) != disableBrowserSet_.end())
 		{
@@ -416,14 +434,16 @@ namespace cyjh{
 		std::shared_ptr<Instruct> spOut(new Instruct);
 		spOut->setName(spInfo->getName().c_str());
 		spOut->setBrowserID(spInfo->getBrowserID());
-		spOut->setSucc(true);
+		//spOut->setSucc(true);
 		spOut->setID(spInfo->getID());
 		spOut->setAtom(spInfo->getAtom());
-		spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
-		Pickle pick;
-		Instruct::SerializationInstruct(spOut.get(), pick);
-		ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
+		//spOut->setInstructType(InstructType::INSTRUCT_RESPONSE);
+		//Pickle pick;
+		//Instruct::SerializationInstruct(spOut.get(), pick);
+		//ipc_->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 		//ipc_->Close();
+		CefRefPtr<CefBrowser> browser = BrowserIdentifier::GetInst().GetBrowser(browserID);
+		AsyncRequest(browser, *(spOut.get()));
 	}
 
 	void RenderThreadCombin::AttachNewBrowserIpc()

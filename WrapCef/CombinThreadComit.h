@@ -557,6 +557,8 @@ namespace cyjh{
 
 		void manTriggerReqEvent(int browserID);
 
+		void uiTriggerReqEvent(int browserID);
+
 	protected:
 		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);
 		std::shared_ptr<RequestContext> triggerReqStackID(int id, int atom);
