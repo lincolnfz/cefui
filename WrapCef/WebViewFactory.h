@@ -13,6 +13,7 @@ public:
 	WebItem(){
 		m_ipcID = 0;
 		m_bPrepareClose = false;
+		m_bNeedClose = false;
 	}
 	~WebItem(){
 
@@ -22,6 +23,7 @@ public:
 	CefRefPtr<OSRWindow> m_window;
 	int m_ipcID;
 	bool m_bPrepareClose;
+	bool m_bNeedClose;
 	IMPLEMENT_REFCOUNTING(WebItem);
 };
 

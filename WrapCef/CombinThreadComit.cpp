@@ -771,6 +771,8 @@ namespace cyjh{
 			{
 				//ÊÕµ½·µÀ¡
 				response_val = sp->outval_;
+				//after myself request
+				AfterRequest(parm.getBrowserID());
 				break;
 			}
 		}
@@ -1030,6 +1032,8 @@ namespace cyjh{
 		//pick.data(), pick.size()
 		ipc->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 		//checkPendingReq();
+		//after response aouther
+		AfterResponse(resp->getBrowserID());
 	}
 
 	std::shared_ptr<RequestContext> CombinThreadComit::getReqStackNearlTopID(int id)
@@ -1186,6 +1190,36 @@ namespace cyjh{
 		}
 		//popRecvRequestID(reqid, atom);
 		sendRenderImmedNoBlockQueue_.pop_front();
+	}
+
+	bool CombinThreadComit::isEmptyRequest(int browserID){
+		bool ret = true;
+		std::unique_lock<std::mutex> lock(eventRequestStackMutex_);
+		std::deque<std::shared_ptr<RequestContext>>::iterator it = eventRequestStack_.begin();
+		for (; it != eventRequestStack_.end(); ++it)
+		{
+			std::shared_ptr<RequestContext> context = *it;
+			if (context->browserID_ == browserID){
+				ret = false;
+				break;
+			}
+		}
+		return ret;
+	}
+
+	bool CombinThreadComit::isEmptyResponse(int browserID){
+		bool ret = true;
+		std::unique_lock<std::mutex> lock(eventResponseStackMutex_);
+		std::deque<RecvReqItem>::iterator it = eventResponsStack_.begin();
+		for (; it != eventResponsStack_.end(); ++it)
+		{
+			if (it->browserID_ == browserID)
+			{
+				ret = false;
+				break;
+			}
+		}
+		return ret;
 	}
 
 	bool CombinThreadComit::RegisterReqID(IPCUnit* ipc, const int browser_id, const int req_id)

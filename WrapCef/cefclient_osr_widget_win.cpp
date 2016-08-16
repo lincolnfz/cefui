@@ -1202,6 +1202,11 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
   case WM_CLOSE:
   {
+#ifdef _DEBUG1
+	  WCHAR szbuf[128] = { 0 };
+	  wsprintfW(szbuf, L"-----[ revc  close in ui hwnd: %d", hWnd);
+	  OutputDebugStringW(szbuf);
+#endif
 	  bool bPrepareClose = true;
 	  if ( browser.get() )
 	  {
@@ -1213,44 +1218,60 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 			  {
 				  //ipcID = item->m_ipcID;
 				  //std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
-
+				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
+				  item->m_bNeedClose = true;
+				  {
+					  int id = browser->GetBrowser()->GetIdentifier();
+					  if (!ipcsync->isEmptyRequest(id) && !ipcsync->isEmptyResponse(id))
+					  {
+						  return 0;
+					  }
+				  }
+				  
 				  bPrepareClose = item->m_bPrepareClose;
 				  if ( bPrepareClose == false )
 				  {
-					  cyjh::Instruct parm;
-					  parm.setName("closeBrowser");
+					  item->m_bPrepareClose = true;
 					  int id = 0;
 					  if (browser->GetBrowser().get())
 					  {
 						  id = browser->GetBrowser()->GetIdentifier();
 					  }
+#ifdef _DEBUG1
+					  WCHAR szbuf[128] = { 0 };
+					  wsprintfW(szbuf, L"-----[ prepare close in ui, id : %d, hwnd: %d", id, hWnd);
+					  OutputDebugStringW(szbuf);
+#endif
+					  cyjh::Instruct parm;
+					  parm.setName("closeBrowser");
+					  
 					  parm.getList().AppendVal(id);
-					  //parm.setInstructType(cyjh::INSTRUCT_REQUEST);
-					  //cyjh::Pickle pick;
-					  //cyjh::Instruct::SerializationInstruct(&parm, pick);
+					  parm.setInstructType(cyjh::INSTRUCT_REQUEST);
+					  cyjh::Pickle pick;
+					  cyjh::Instruct::SerializationInstruct(&parm, pick);
 					  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
-					  //std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
-					  //ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
-					  ipcsync->AsyncRequest(window->browser_provider_->GetBrowser(), parm);
-					  //ipc->Close();
+					  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
+					  ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
+
+					  //ipcsync->AsyncRequest(window->browser_provider_->GetBrowser(), parm);
 					  ipcsync->DisableSendBrowser(id);
 				  }
 			  }
 		  }
-		  if ( bPrepareClose )
+		  //if ( bPrepareClose )
 		  {
 			  browser->CloseBrowser(true); //¹Ø±Õµ¥¶À
 		  }
 		  
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
 	  }
-	  if (bPrepareClose == false)
-	  {
-		  return 0;
-	  }
-	  else{
+	  //if (bPrepareClose == false)
+	  //{
+	//	  return 0;
+	  //}
+	 // else{
 		  return DefWindowProc(hWnd, message, wParam, lParam);
-	  }
+	 // }
   }
   break;
 

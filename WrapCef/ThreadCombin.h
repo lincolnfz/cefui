@@ -28,6 +28,8 @@ namespace cyjh{
 		virtual void RejectReq(std::shared_ptr<Instruct> spInfo) override;
 
 		void RejectReqHelp(std::shared_ptr<Instruct> spInfo);
+		virtual void AfterRequest(int browserID) override;
+		virtual void AfterResponse(int browserID) override;
 
 	protected:
 		ResponseUI handle_;
@@ -66,7 +68,10 @@ namespace cyjh{
 
 		virtual void CloseIpc(std::shared_ptr<Instruct> spInfo) override;
 		void CloseBrowserHelp(std::shared_ptr<Instruct> spInfo, int browserID);
-
+		virtual void AfterRequest(int browserID) override{
+		}
+		virtual void AfterResponse(int browserID) override{
+		}
 		std::shared_ptr<IPCUnit> ipc_;
 
 	protected:

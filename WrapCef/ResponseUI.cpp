@@ -70,7 +70,7 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCallMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_getInjectJS);
-	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_closeBrowser);
+	//REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_closeBrowser);
 }
 
 

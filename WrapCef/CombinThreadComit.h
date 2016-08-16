@@ -472,11 +472,15 @@ namespace cyjh{
 		virtual void RecvData(const unsigned char*, DWORD);
 		void WakeUp();
 		void SendRenderWakeUpHelp(int browserID/*, int reqid, int atom*/);
+		bool isEmptyRequest(int browserID);
+		bool isEmptyResponse(int browserID);
 
 	protected:
 		void SendRequest(IPCUnit*, Instruct& parm, std::shared_ptr<Instruct>& val);
 		void SendAsyncRequest(IPCUnit*, Instruct& parm);
 		void Response(IPCUnit* ipc, std::shared_ptr<Instruct>, const int& req_id, const int& req_atom);
+
+		//响应同步处理
 		virtual void procRecvRequest(const std::shared_ptr<Instruct>) = 0;
 
 		//响应处理异步通信的请求
@@ -558,6 +562,9 @@ namespace cyjh{
 		void manTriggerReqEvent(int browserID);
 
 		void uiTriggerReqEvent(int browserID);
+
+		virtual void AfterRequest(int browserID) = 0;
+		virtual void AfterResponse(int browserID) = 0;
 
 	protected:
 		std::shared_ptr<RequestContext> getReqStackNearlTopID(int id);
