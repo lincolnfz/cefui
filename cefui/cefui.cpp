@@ -111,6 +111,44 @@ long __stdcall callback(_EXCEPTION_POINTERS* pExInfo)
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
+HHOOK hGetMsg = NULL;
+HHOOK hCallMsg = NULL;
+
+LRESULT CALLBACK GetMsgProc(
+	_In_ int    code,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam
+	)
+{
+	if (code == HC_ACTION)
+	{
+		CWPSTRUCT* cwp = (CWPSTRUCT*)lParam;
+		if (cwp->message == WM_SETFOCUS){
+			OutputDebugStringW(L"-----[ GetMsgProc WM_SETFOCUS");
+			//return 0;
+			//cwp->message = WM_KILLFOCUS;
+		}
+	}
+	return CallNextHookEx(hGetMsg, code, wParam, lParam);
+}
+
+LRESULT CALLBACK CallWndProc(
+	_In_ int    nCode,
+	_In_ WPARAM wParam,
+	_In_ LPARAM lParam
+	)
+{
+	if (nCode == HC_ACTION)
+	{
+		CWPSTRUCT* cwp = (CWPSTRUCT*)lParam;
+		if (cwp->message == WM_SETFOCUS){
+			OutputDebugStringW(L"-----[ CallWndProc WM_SETFOCUS");
+			//return 0;
+		}
+	}
+	return CallNextHookEx(hCallMsg, nCode, wParam, lParam);
+}
+
 int APIENTRY _tWinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPTSTR    lpCmdLine,
@@ -153,6 +191,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		HANDLE ht = (HANDLE)_beginthreadex(NULL, 0, ConectSrvThread, NULL, 0, &id);
 		CloseHandle(ht);
 		bconnect = true;
+		//hGetMsg = SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, 0, GetCurrentThreadId());
+		//hCallMsg = SetWindowsHookEx(WH_CALLWNDPROC, CallWndProc, 0, GetCurrentThreadId());
 	}
 	
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
@@ -182,6 +222,17 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 
 	return (int)msg.wParam; */
 	Gdiplus::GdiplusShutdown(gdiplusToken);
+
+	if (hGetMsg)
+	{
+		UnhookWindowsHookEx(hGetMsg);
+		hGetMsg = NULL;
+	}
+	if (hCallMsg)
+	{
+		UnhookWindowsHookEx(hCallMsg);
+		hCallMsg = NULL;
+	}
 	return 0;
 }
 

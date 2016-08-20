@@ -77,16 +77,30 @@ SubClassWindow& SubClassWindow::GetInst()
 	return s_inst;
 }
 
-WNDPROC SubClassWindow::findProc(HWND hWnd)
+BOOL SubClassWindow::GetProcInfo(HWND hWnd, WNDPROC& proc, bool& val, bool& send)
+{
+	BOOL ret = FALSE;
+	std::unique_lock<std::mutex> lock(m_MapMutex_);
+	WNCPROC_MAP::iterator it = m_defProcs.find(hWnd);
+	if (it != m_defProcs.end())
+	{
+		proc = it->second->m_proc;
+		val = it->second->m_bClick;
+		send = it->second->m_bSendDown;
+		ret = TRUE;
+	}
+	return ret;
+}
+
+void SubClassWindow::SetClickVal(HWND hWnd, bool val, bool send)
 {
 	std::unique_lock<std::mutex> lock(m_MapMutex_);
-	WNDPROC proc = NULL;
 	WNCPROC_MAP::iterator it = m_defProcs.find(hWnd);
-	if ( it != m_defProcs.end() )
+	if (it != m_defProcs.end())
 	{
-		proc = it->second;
+		it->second->m_bClick = val;
+		it->second->m_bSendDown = send;
 	}
-	return proc;
 }
 
 BOOL SubClassWindow::IsInFitler(HWND hWnd)
@@ -112,8 +126,11 @@ void SubClassWindow::SubWindow(HWND hWnd, int)
 		return;
 	}
 	WNDPROC proc = reinterpret_cast<WNDPROC>(::GetWindowLong(hWnd, GWL_WNDPROC));
-	if (::SetWindowLong(hWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(WndProc))){
-		m_defProcs.insert(std::make_pair(hWnd, proc));
+	if (::SetWindowLong(hWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(myWndProc))){
+		boost::shared_ptr<InWndProcContext> context(new InWndProcContext);
+		context->m_proc = proc;
+		context->m_bClick = false;
+		m_defProcs.insert(std::make_pair(hWnd, context));
 		PostMessageW(hWnd, WM_USER + 828, 0, 0);
 	}
 	else{
@@ -126,19 +143,19 @@ void SubClassWindow::SubWindow(HWND hWnd, int)
 void SubClassWindow::UnSubWIndow(HWND hWnd)
 {
 	std::unique_lock<std::mutex> lock(m_MapMutex_);
-	OutputDebugStringW(L"-----[! begin SubClassWindow::SubWindow");
+	OutputDebugStringW(L"-----[! begin UnSubWIndow:: UnSubWIndow");
 	WNCPROC_MAP::iterator it = m_defProcs.find(hWnd);
-	if (it != m_defProcs.end())
+	if (it == m_defProcs.end())
 	{
-		OutputDebugStringW(L"-----[! begin SubClassWindow::UnSubWIndow return");
+		OutputDebugStringW(L"-----[! begin UnSubWIndow::UnSubWIndow return");
 		return;
 	}
-	WNDPROC defProc = it->second;
+	WNDPROC defProc = it->second->m_proc;
 	if (::SetWindowLong(hWnd, GWL_WNDPROC, reinterpret_cast<LONG_PTR>(defProc))){
 
 	}
 	else{
-		OutputDebugStringW(L"-----[! begin SubClassWindow::SetWindowLong fail");
+		OutputDebugStringW(L"-----[! begin UnSubWIndow::SetWindowLong fail");
 	}
 	m_defProcs.erase(hWnd);	
 }
@@ -167,11 +184,14 @@ bool filterMsg(UINT msg){
 	return hit;
 }
 
-LRESULT __stdcall SubClassWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT __stdcall SubClassWindow::myWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	WNDPROC proc = SubClassWindow::GetInst().findProc(hWnd);
-	if ( proc == NULL )
+	WNDPROC proc = NULL;
+	bool bClick = false;
+	bool bSend = false;
+	if (!SubClassWindow::GetInst().GetProcInfo(hWnd, proc, bClick, bSend) )
 	{
+		OutputDebugStringW(L"-----[ SubClassWindow::WndProc no frond");
 		return 0L;
 	}
 	/*if ( !filterMsg(message) )
@@ -180,22 +200,36 @@ LRESULT __stdcall SubClassWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
 		wsprintf(szBuf, L"-----[! SubClassWindow::WndProc msg: 0x%04x", message);
 		OutputDebugStringW(szBuf);
 	}*/
-	/*if (message == WM_SETFOCUS ){
-		OutputDebugStringW(L"-----[! DISABLE WM_SETFOCUS");
-		return 0;
-	}
-	else if (message == WM_MOUSEACTIVATE){
-		OutputDebugStringW(L"-----[! DISABLE WM_MOUSEACTIVATE");
-		return MA_NOACTIVATE;
-	}
-	else if (message == WM_USER + 828)
+	if ( message ==WM_LBUTTONDOWN )
 	{
-		long val = GetWindowLong(hWnd, GWL_EXSTYLE);
-		val |= WS_EX_NOACTIVATE;
-		SetWindowLong(hWnd, GWL_EXSTYLE, val);
-		::SetWindowPos(hWnd, 0, 0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-		return 0;
-	}*/
+		return CallWindowProc(proc, hWnd, message, wParam, lParam);
+		//return DefWindowProc(hWnd, message, wParam, lParam);
+		/*WCHAR szBuf[128];
+		wsprintf(szBuf, L"-----[! DISABLE WM_LBUTTONDOWN hwnd : %08x", hWnd);
+		OutputDebugStringW(szBuf);
+		if ( bClick == false )
+		{
+			SubClassWindow::GetInst().SetClickVal(hWnd, true, false);
+			PostMessage(hWnd, message, wParam, lParam);
+			return 0;
+		}
+		else{
+			
+			if ( bSend == false )
+			{
+				SubClassWindow::GetInst().SetClickVal(hWnd, true, true);
+				SendMessage(hWnd, WM_LBUTTONDOWN, wParam, lParam);
+				//Sleep(0);
+				SendMessage(hWnd, WM_LBUTTONUP, wParam, lParam);
+				SubClassWindow::GetInst().SetClickVal(hWnd, false, false);
+			}
+			else{
+				return CallWindowProc(proc, hWnd, message, wParam, lParam);
+				//return DefWindowProc(hWnd, message, wParam, lParam);
+			}
+			return 0;
+		}
+		return 0;*/
+	}
 	return CallWindowProc(proc, hWnd, message, wParam, lParam);
 }
