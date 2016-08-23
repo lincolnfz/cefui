@@ -340,11 +340,16 @@ void RegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar,
                            std::vector<CefString>& cookiable_schemes) {
   registrar->AddCustomScheme("xpack", false, true, true);
   registrar->AddCustomScheme("file", false, true, true);
+  registrar->AddCustomScheme("resui", false, true, true);
 }
 
 void InitTest() {
   CefRegisterSchemeHandlerFactory("xpack", "",
       new ClientSchemeHandlerFactory());
+
+  //保证scheme为5个字符,可以通用ClientSchemeHandler
+  CefRegisterSchemeHandlerFactory("resui", "",
+	  new ClientSchemeHandlerFactory());
 }
 
 }  // namespace scheme_test
