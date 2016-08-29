@@ -677,6 +677,42 @@ public:
 		}
 	}
 
+	void asyncCrossInvokeWebMethod(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		int sign = list[0]->GetIntValue();
+		std::wstring modulename = list[1]->GetStringValue().ToWString();
+		std::wstring methodname = list[2]->GetStringValue().ToWString();
+		std::wstring strparm = list[3]->GetStringValue().ToWString();
+		bool bjson = list[4]->GetBoolValue();
+		parm.getList().AppendVal(sign);
+		parm.getList().AppendVal(modulename);
+		parm.getList().AppendVal(methodname);
+		parm.getList().AppendVal(strparm);
+		parm.getList().AppendVal(bjson);
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(this->browser_, parm);
+	}
+
+	void asyncCrossInvokeWebMethod2(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		int sign = list[0]->GetIntValue();
+		std::wstring framename = list[1]->GetStringValue().ToWString();
+		std::wstring modulename = list[2]->GetStringValue().ToWString();
+		std::wstring methodname = list[3]->GetStringValue().ToWString();
+		std::wstring strparm = list[4]->GetStringValue().ToWString();
+		bool bjson = list[5]->GetBoolValue();
+		parm.getList().AppendVal(sign);
+		parm.getList().AppendVal(framename);
+		parm.getList().AppendVal(modulename);
+		parm.getList().AppendVal(methodname);
+		parm.getList().AppendVal(strparm);
+		parm.getList().AppendVal(bjson);
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(this->browser_, parm);
+	}
+
 	void winProty(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		cyjh::Instruct parm;
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
@@ -1289,6 +1325,8 @@ public:
 		REG_JS_FUN(pushMessage, 1);
 		REG_JS_FUN(crossInvokeWebMethod, 1);
 		REG_JS_FUN(crossInvokeWebMethod2, 1);
+		REG_JS_FUN(asyncCrossInvokeWebMethod, 1);
+		REG_JS_FUN(asyncCrossInvokeWebMethod2, 1);
 		REG_JS_FUN(winProty, 1);
 		REG_JS_FUN(setProfile, 1);
 		REG_JS_FUN(getProfile, 1);

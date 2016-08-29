@@ -66,6 +66,8 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_invokeMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_crossInvokeWebMethod2);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCrossInvokeWebMethod);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCrossInvokeWebMethod2);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_fullScreen);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_appDataPath);
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_asyncCallMethod);
@@ -666,6 +668,47 @@ bool ResponseUI::rsp_crossInvokeWebMethod2(const CefRefPtr<CefBrowser> browser, 
 		HWND hWnd = item->m_window->hwnd();
 		if (s_fnMap){
 			out->getList().AppendVal(std::wstring(s_fnMap->crossInvokeWebMethod2(hWnd, sign, frame, module, method, parm, json)));
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_asyncCrossInvokeWebMethod(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	int sign = req_parm->getList().GetIntVal(0);
+	std::wstring module = req_parm->getList().GetWStrVal(1);
+	std::wstring method = req_parm->getList().GetWStrVal(2);
+	std::wstring parm = req_parm->getList().GetWStrVal(3);
+	bool json = req_parm->getList().GetBooleanVal(4);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			s_fnMap->asyncCrossInvokeWebMethod(hWnd, sign, module, method, parm, json);
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_asyncCrossInvokeWebMethod2(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	int sign = req_parm->getList().GetIntVal(0);
+	std::wstring frame = req_parm->getList().GetWStrVal(1);
+	std::wstring module = req_parm->getList().GetWStrVal(2);
+	std::wstring method = req_parm->getList().GetWStrVal(3);
+	std::wstring parm = req_parm->getList().GetWStrVal(4);
+	bool json = req_parm->getList().GetBooleanVal(5);
+	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+	if (item.get() && IsWindow(item->m_window->hwnd()))
+	{
+		HWND hWnd = item->m_window->hwnd();
+		if (s_fnMap){
+			s_fnMap->asyncCrossInvokeWebMethod2(hWnd, sign, frame, module, method, parm, json);
 			ret = true;
 		}
 	}

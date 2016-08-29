@@ -90,6 +90,7 @@ namespace cyjh{
 
 	void UIThreadCombin::procRecvData(const std::shared_ptr<Instruct> spData)
 	{
+		//处理异步消息
 		if (!CefCurrentlyOn(TID_UI)){
 			CefPostTask(TID_UI, base::Bind(&UIThreadCombin::procRecvData, this, spData));
 			return;
@@ -334,6 +335,7 @@ namespace cyjh{
 
 	void RenderThreadCombin::procRecvData(const std::shared_ptr<Instruct> spData)
 	{
+		//处理异步消息
 		if (!CefCurrentlyOn(TID_RENDERER)){
 			CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::procRecvData, this, spData));
 			return;

@@ -43,6 +43,12 @@ namespace wrapQweb {
 	typedef const WCHAR*(__stdcall *call_crossInvokeWebMethod2)(HWND hWnd, long winSign, std::wstring& framename, std::wstring& modulename,
 		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
 
+	typedef void(__stdcall *call_asyncCrossInvokeWebMethod)(HWND hWnd, long winSign, std::wstring& modulename,
+		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
+
+	typedef void(__stdcall *call_asyncCrossInvokeWebMethod2)(HWND hWnd, long winSign, std::wstring& framename, std::wstring& modulename,
+		std::wstring& methodname, std::wstring& parm, bool bNoticeJSTrans2JSON);
+
 	typedef const WCHAR*(__stdcall *call_winProty)(HWND hWnd);
 
 	typedef const WCHAR*(__stdcall *call_softwareAttribute)(unsigned long);
@@ -66,10 +72,12 @@ namespace wrapQweb {
 		call_setWindowPos setWindowPos;
 		call_createWindow createWindow;
 		call_createModalWindow createModalWindow;
-		call_createModalWindow2 createModalWindow2;
+		call_createModalWindow2 createModalWindow2;		
 		call_invokeMethod invokeMethod;
 		call_crossInvokeWebMethod crossInvokeWebMethod;
 		call_crossInvokeWebMethod2 crossInvokeWebMethod2;
+		call_asyncCrossInvokeWebMethod asyncCrossInvokeWebMethod;
+		call_asyncCrossInvokeWebMethod2 asyncCrossInvokeWebMethod2;
 		call_winProty winProty;
 		call_softwareAttribute softAttr;
 		call_NativeComplate nativeComplate;
