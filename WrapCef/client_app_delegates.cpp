@@ -1281,7 +1281,7 @@ public:
 		REG_JS_FUN(createModalWindow2, 1);
 		REG_JS_FUN(setAlpha, 1);
 		REG_JS_FUN(invokeMethod, 3); 
-		REG_JS_FUN(asyncCallMethod, 2);
+		REG_JS_FUN(asyncCallMethod, 3);
 		REG_JS_FUN(writePrivateProfileString, 1);
 		REG_JS_FUN(getPrivateProfileInt, 1);
 		REG_JS_FUN(getPrivateProfileString, 1);

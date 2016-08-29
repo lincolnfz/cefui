@@ -550,6 +550,25 @@ namespace wrapQweb{
 		return bret;
 	}
 
+	bool asyncInvokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
+		const char* utf8_parm,
+		const char* utf8_frame_name /*= 0*/, bool bNoticeJSTrans2JSON /*= true*/)
+	{
+		bool bret = false;
+		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
+		if (item.get() && item->m_handle.get())
+		{
+			bret = item->m_handle->asyncInvokedJSMethod(utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
+		}
+		else{
+			bret = NormalWebFactory::getInstance().asyncInvokedJSMethod(hWnd, utf8_module,
+				utf8_method, utf8_parm,
+				utf8_frame_name, bNoticeJSTrans2JSON);
+		}
+
+		return bret;
+	}
+
 	bool freeMem(HGLOBAL hMem)
 	{
 		return GlobalFree(hMem) == NULL;
@@ -667,14 +686,14 @@ namespace wrapQweb{
 		return NormalWebFactory::getInstance().Stop(hwnd);
 	}
 
-	bool asyncInvokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
-		const char* utf8_parm,
-		const char* utf8_frame_name, bool bNoticeJSTrans2JSON /*= true*/)
-	{
-		return NormalWebFactory::getInstance().asyncInvokedJSMethod(hWnd, utf8_module,
-			utf8_method, utf8_parm,
-			utf8_frame_name, bNoticeJSTrans2JSON);
-	}
+// 	bool asyncInvokedJSMethod(const HWND& hWnd, const char* utf8_module, const char* utf8_method,
+// 		const char* utf8_parm,
+// 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON /*= true*/)
+// 	{
+// 		return NormalWebFactory::getInstance().asyncInvokedJSMethod(hWnd, utf8_module,
+// 			utf8_method, utf8_parm,
+// 			utf8_frame_name, bNoticeJSTrans2JSON);
+// 	}
 
 	void AdjustRenderSpeed(const HWND& hWnd, const double& dbSpeed)
 	{
