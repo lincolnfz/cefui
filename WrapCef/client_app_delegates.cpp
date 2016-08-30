@@ -327,8 +327,9 @@ public:
 		cyjh::Instruct parm;
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
-		std::shared_ptr<cyjh::Instruct> outVal;
-		ipc->Request(this->browser_, parm, outVal);
+		//std::shared_ptr<cyjh::Instruct> outVal;
+		//ipc->Request(this->browser_, parm, outVal);
+		ipc->AsyncRequest(this->browser_, parm);
 	}
 
 	void setWindowText(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
@@ -336,8 +337,9 @@ public:
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(list[0]->GetStringValue().ToWString());
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
-		std::shared_ptr<cyjh::Instruct> outVal;
-		ipc->Request(this->browser_, parm, outVal);
+		//std::shared_ptr<cyjh::Instruct> outVal;
+		//ipc->Request(this->browser_, parm, outVal);
+		ipc->AsyncRequest(this->browser_, parm);
 	}
 
 	void fullScreen(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){

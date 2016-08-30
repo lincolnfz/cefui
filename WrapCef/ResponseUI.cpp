@@ -322,7 +322,7 @@ bool ResponseUI::rsp_closeWindow(const CefRefPtr<CefBrowser> browser, const std:
 		{
 			s_fnMap->closeWindow(hWnd);
 			ret = true;
-		}		
+		}
 	}
 	return ret;
 }
