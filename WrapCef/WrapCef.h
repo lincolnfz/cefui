@@ -128,7 +128,7 @@ namespace wrapQweb {
 	SHARED_EXPORT_API bool freeMem(HGLOBAL hMem);
 
 	//注册浏览器插件
-	SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
+	//SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
 
 //---------------------------------------------------------------------------------------------------------------------
 //类分割线

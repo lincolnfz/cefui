@@ -46,7 +46,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	CefRefPtr<WebItem> item = new  WebItem;
 	item->m_handle = new ClientHandler();
 	item->m_handle->SetMainWindowHandle(NULL);
-	item->m_provider = new BrowserProvider(item->m_handle);
+	CefRefPtr<BrowserProvider> provider = new BrowserProvider(item->m_handle);
 	CefWindowInfo info;
 	CefBrowserSettings browser_settings;
 	const bool transparent = false;
@@ -54,28 +54,32 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	const bool show_update_rect = false;
 	RECT rect;
 
-	item->m_window =
-		OSRWindow::Create(item->m_provider, transparent,
+	CefRefPtr<OSRWindow> window =
+		OSRWindow::Create(provider, transparent,
 		show_update_rect);
 	WCHAR szOSRWindowClass[] = L"WebViewWindowClass";
 	rect.left = x;
 	rect.top = y;
 	rect.right = x + width;
 	rect.bottom = y + height;
-	item->m_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans);
-	info.SetAsWindowless(item->m_window->hwnd(), transparent);
+	window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans);
+	assert(IsWindow(window->hwnd()));
+	bool bTest = item->m_window_map.insert(std::make_pair(window->hwnd(), window)).second;
+	assert(bTest == true);
+
+	info.SetAsWindowless(window->hwnd(), transparent);
 	info.transparent_painting_enabled = trans; //是否需要?
 	info.windowless_rendering_enabled = true;
-	item->m_provider->GetClientHandler()->SetOSRHandler(item->m_window.get());
+	item->m_handle->SetOSRHandler(window.get());
 	if ( !taskbar )
 	{
-		DWORD exStyle = GetWindowLong(item->m_window->hwnd(), GWL_EXSTYLE);
+		DWORD exStyle = GetWindowLong(window->hwnd(), GWL_EXSTYLE);
 		exStyle &= ~WS_EX_APPWINDOW;
 		exStyle |= WS_EX_TOOLWINDOW;
-		SetWindowLong(item->m_window->hwnd(), GWL_EXSTYLE, exStyle);
-		SetWindowPos(item->m_window->hwnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		SetWindowLong(window->hwnd(), GWL_EXSTYLE, exStyle);
+		SetWindowPos(window->hwnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
-	item->m_window->SetAlpha(alpha);
+	window->SetAlpha(alpha);
 	//ShowWindow(item->m_window->hwnd(), SW_SHOW);
 
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
@@ -86,32 +90,41 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	//browser_settings.java = STATE_DISABLED;
 	//browser_settings.application_cache = STATE_DISABLED; //不用缓存
 	// Creat the new child browser window
-	CefBrowserHost::CreateBrowser(info, item->m_provider->GetClientHandler().get(),
+	CefBrowserHost::CreateBrowser(info, item->m_handle,
 		url, browser_settings, NULL);
-	m_viewMap.insert(std::make_pair(item->m_window->hwnd(), item));
+	m_viewList.push_back(item);
 	//WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
 	//item->m_provider->GetBrowser()->RegPlugin(szBuf, true);
-	return item->m_window->hwnd();
+	return window->hwnd();
 }
 
 void WebViewFactory::RemoveWindow(HWND hWnd)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
-	WebViewMap::iterator it = m_viewMap.find(hWnd);
-	if ( it != m_viewMap.end() )
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
 	{
-		m_viewMap.erase(it);
+		if ( (*it)->removeHwnd(hWnd) )
+		{
+			if ((*it)->size() == 0){
+				m_viewList.erase(it);
+			}
+			break;
+		}
 	}
 }
 
-CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND hWnd)
+CefRefPtr<WebItem> WebViewFactory::FindItem(const HWND& hWnd)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<WebItem> ptr;
-	WebViewMap::iterator it = m_viewMap.find(hWnd);
-	if ( it != m_viewMap.end() )
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
 	{
-		ptr = it->second;
+		if ((*it)->isHit(hWnd)){
+			ptr = *it;
+			break;
+		}
 	}
 	return ptr;
 }
@@ -120,22 +133,17 @@ CefRefPtr<CefBrowser> WebViewFactory::GetBrowser(int browserID)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<CefBrowser> ptr_ret;
-	WebViewMap::iterator it = m_viewMap.begin();
+	WebViewList::iterator it = m_viewList.begin();
 	bool bFind = false;
-	for (; it != m_viewMap.end(); ++it)
+	for (; it != m_viewList.end(); ++it)
 	{
-		CefRefPtr<CefBrowser> ptr = it->second->m_provider->GetBrowser();
-		if (ptr.get() && ptr.get()->GetIdentifier() == browserID)
+		CefRefPtr<CefBrowser> ptr = (*it)->getBrowser(browserID);
+		if (ptr.get())
 		{
 			ptr_ret = ptr;
 			bFind = true;
 			break;
 		}
-	}
-	if ( !bFind )
-	{
-		//没有找到
-		int i = 0;
 	}
 	return ptr_ret;
 }
@@ -144,30 +152,31 @@ CefRefPtr<WebItem> WebViewFactory::GetBrowserItem(int browserID)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	CefRefPtr<WebItem> ptr;
-	WebViewMap::iterator it = m_viewMap.begin();
-	for (; it != m_viewMap.end(); ++it)
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
 	{
-		CefRefPtr<CefBrowser> browser = it->second->m_provider->GetBrowser();
-		if (browser.get() && browser.get()->GetIdentifier() == browserID)
+		if ( (*it)->isHitItem(browserID) )
 		{
-			ptr = it->second;
+			ptr = (*it);
 			break;
 		}
 	}
 	return ptr;
 }
 
-HWND WebViewFactory::GetBrowserHwnd(int browserID)
+HWND WebViewFactory::GetBrowserHwndByID(int browserID)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	HWND hWnd = NULL;
 	CefRefPtr<CefBrowser> ptr;
-	WebViewMap::iterator it = m_viewMap.begin();
-	for (; it != m_viewMap.end(); ++it)
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
 	{
-		if (ptr.get() && ptr.get()->GetIdentifier() == browserID)
+		CefRefPtr<CefBrowser>browser = (*it)->getBrowser(browserID);
+		if (browser.get())
 		{
-			hWnd = it->first;
+			hWnd = browser->GetHost()->GetWindowHandle();
+			break;
 		}
 	}
 
@@ -179,19 +188,18 @@ void WebViewFactory::CloseAll()
 	NormalWebFactory::getInstance().CloseAll();
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 	std::vector<CefRefPtr<WebItem>> weblist;
-	WebViewMap::iterator it = m_viewMap.begin();
-	for (; it != m_viewMap.end(); ++it)
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
 	{
 		//it->second->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
 		//it = m_viewMap.erase(it);
-		weblist.push_back( it->second );
+		weblist.push_back( *it );
 	}
 
 	std::vector<CefRefPtr<WebItem>>::iterator webit = weblist.begin();
 	for ( ; webit != weblist.end(); ++webit )
 	{
-		//webit->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
-		webit->get()->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
+		(*webit)->closeAll();
 	}
 }
 
@@ -201,13 +209,58 @@ void WebViewFactory::ClearData(int compType)
 		CefPostTask(TID_UI, base::Bind(&WebViewFactory::ClearData, this, compType));
 		return;
 	}
-	//bool ret = false;
-	int len = m_viewMap.size();
+
+	int len = m_viewList.size();
 	if ( len > 0 )
 	{
-		WebViewMap::iterator it = m_viewMap.begin();
-		it->second->m_provider->GetBrowser()->GetHost()->CleaarData(compType);
-		//ret = true;
+		WebViewList::iterator it = m_viewList.begin();
+		//it->second->m_provider->GetBrowser()->GetHost()->CleaarData(compType);
+		(*it)->clearData(compType);
 	}
-	//return ret;
+
+}
+
+CefRefPtr<CefBrowser> WebViewFactory::GetBrowserByHwnd(const HWND& hWnd)
+{
+	CefRefPtr<CefBrowser> ptr;
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
+	{
+		ptr = (*it)->getBrowserByHwnd(hWnd);
+		if ( ptr.get() )
+		{
+			break;
+		}
+	}
+	return ptr;
+}
+
+CefRefPtr<OSRWindow> WebViewFactory::getWindowByHwnd(const HWND& hWnd)
+{
+	CefRefPtr<OSRWindow> ptr;
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
+	{
+		ptr = (*it)->getWindowByHwnd(hWnd);
+		if ( ptr.get() )
+		{
+			break;
+		}
+	}
+	return ptr;
+}
+
+CefRefPtr<OSRWindow> WebViewFactory::getWindowByID(const int& browserID)
+{
+	CefRefPtr<OSRWindow> ptr;
+	WebViewList::iterator it = m_viewList.begin();
+	for (; it != m_viewList.end(); ++it)
+	{
+		ptr = (*it)->getWindowByID(browserID);
+		if (ptr.get())
+		{
+			break;
+		}
+	}
+	return ptr;
 }

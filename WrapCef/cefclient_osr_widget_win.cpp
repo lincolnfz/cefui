@@ -52,7 +52,7 @@ class ScopedGLContext {
 bool OSRWindow::s_singleProcess = true;
 // static
 CefRefPtr<OSRWindow> OSRWindow::Create(
-    OSRBrowserProvider* browser_provider,
+	CefRefPtr<OSRBrowserProvider> browser_provider,
     bool transparent,
     bool show_update_rect) {
   DCHECK(browser_provider);
@@ -605,7 +605,7 @@ CefBrowserHost::DragOperationsMask
 
 #endif  // defined(CEF_USE_ATL)
 
-OSRWindow::OSRWindow(OSRBrowserProvider* browser_provider,
+OSRWindow::OSRWindow(CefRefPtr<OSRBrowserProvider> browser_provider,
                      bool transparent,
                      bool show_update_rect)
     : renderer_(transparent, show_update_rect),
@@ -629,6 +629,8 @@ OSRWindow::OSRWindow(OSRBrowserProvider* browser_provider,
 	d3d_ = NULL;
 	d3ddev_ = NULL;
 #endif
+	m_bPrepareClose = false;
+	m_bNeedClose = false;
 }
 
 OSRWindow::~OSRWindow() {
@@ -1218,13 +1220,13 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  int ipcID = 0;
 		  if (!OSRWindow::s_singleProcess && browser.get())
 		  {
-			  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-			  if (item.get())
+			  CefRefPtr<OSRWindow> window = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+			  if (window.get())
 			  {
 				  //ipcID = item->m_ipcID;
 				  //std::shared_ptr<cyjh::IPCUnit> ipc = cyjh::IPC_Manager::getInstance().GetIpc(ipcID);
 				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
-				  item->m_bNeedClose = true;
+				  window->m_bNeedClose = true;
 				  {
 					  int id = browser->GetIdentifier();
 					  if (!ipcsync->isEmptyRequest(id) && !ipcsync->isEmptyResponse(id))
@@ -1233,10 +1235,10 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 					  }
 				  }
 				  
-				  bPrepareClose = item->m_bPrepareClose;
+				  bPrepareClose = window->m_bPrepareClose;
 				  if ( bPrepareClose == false )
 				  {
-					  item->m_bPrepareClose = true;
+					  window->m_bPrepareClose = true;
 					  int id = 0;
 					  if (browser.get())
 					  {

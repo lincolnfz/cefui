@@ -580,15 +580,14 @@ namespace wrapQweb{
 
 	void CloseWebview(const HWND& hWnd)
 	{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if (item)
+		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowserByHwnd(hWnd);
+		if (browser.get())
 		{
-			item->m_provider->GetBrowser()->GetHost()->CloseBrowser(true);
-			//item->m_handle->CloseAllBrowsers(true);
+			browser->GetHost()->CloseBrowser(true);
 		}
 	}
 
-	bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox)
+	/*bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox)
 	{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if (item)
@@ -607,7 +606,7 @@ namespace wrapQweb{
 			item->m_provider->GetBrowser()->RegPlugin(std::wstring(szVal), bPPapi);
 		}
 		return true;
-	}
+	}*/
 
 	void CloseAllWebView()
 	{
@@ -627,10 +626,10 @@ namespace wrapQweb{
 
 	void SetFouceWebView(const HWND& hWnd, const bool& fouce)
 	{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if (item.get() && item->m_provider->GetBrowser().get() )
+		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowserByHwnd(hWnd);
+		if (browser.get())
 		{
-			item->m_provider->GetBrowser()->GetHost()->SendFocusEvent(fouce);
+			browser->GetHost()->SendFocusEvent(fouce);
 		}
 	}
 

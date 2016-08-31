@@ -12,18 +12,124 @@ class WebItem : public CefBase
 public:
 	WebItem(){
 		m_ipcID = 0;
-		m_bPrepareClose = false;
-		m_bNeedClose = false;
 	}
 	~WebItem(){
 
 	}
+	bool removeHwnd(const HWND& hWnd)
+	{
+		bool ret = false;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.find(hWnd);
+		if ( it != m_window_map.end() )
+		{
+			m_window_map.erase(it);
+			ret = true;
+		}
+		return ret;
+	}
+
+	bool isHit(const HWND& hWnd)
+	{
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.find(hWnd);
+		return it != m_window_map.end();
+	}
+
+	bool isHitItem(const int browserID)
+	{
+		bool ret = false;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.begin();
+		for (; it != m_window_map.end(); ++it)
+		{
+			if (it->second->getProvider().get() && it->second->getProvider()->GetBrowser().get()){
+				if (it->second->getProvider()->GetBrowser()->GetIdentifier() == browserID){
+					ret = true;
+					break;
+				}
+			}
+		}
+		return ret;
+	}
+
+	int size(){
+		return m_window_map.size();
+	}
+
+	CefRefPtr<CefBrowser> getBrowser(const int& id)
+	{
+		CefRefPtr<CefBrowser> ptr;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.begin();
+		for (; it != m_window_map.end(); ++it)
+		{
+			if (it->second->getProvider().get() && it->second->getProvider()->GetBrowser().get()){
+				if (it->second->getProvider()->GetBrowser()->GetIdentifier() == id){
+					ptr = it->second->getProvider()->GetBrowser();
+					break;
+				}
+			}
+		}
+		return ptr;
+	}
+
+	CefRefPtr<CefBrowser> getBrowserByHwnd(const HWND& hWnd)
+	{
+		CefRefPtr<CefBrowser> ptr;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.find(hWnd);
+		if ( it != m_window_map.end() )
+		{
+			ptr = it->second->getProvider()->GetBrowser();
+		}
+		return ptr;
+	}
+
+	void closeAll(){
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.begin();
+		for (; it != m_window_map.end(); ++it)
+		{
+			if (it->second->getProvider().get() && it->second->getProvider()->GetBrowser().get() &&
+				it->second->getProvider()->GetBrowser()->GetHost().get() ){
+				it->second->getProvider()->GetBrowser()->GetHost()->CloseBrowser(true);
+			}
+		}
+	}
+
+	CefRefPtr<OSRWindow> getWindowByHwnd(const HWND& hWnd)
+	{
+		CefRefPtr<OSRWindow> win;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.find(hWnd);
+		if ( it != m_window_map.cend() )
+		{
+			win = it->second;
+		}
+		return win;
+	}
+
+	CefRefPtr<OSRWindow> getWindowByID(const int& id)
+	{
+		CefRefPtr<OSRWindow> ptr;
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.begin();
+		for (; it != m_window_map.end(); ++it)
+		{
+			if (it->second->getProvider().get() && it->second->getProvider()->GetBrowser().get()){
+				if (it->second->getProvider()->GetBrowser()->GetIdentifier() == id){
+					ptr = it->second;
+					break;
+				}
+			}
+		}
+		return ptr;
+	}
+
+	void clearData(int compType){
+		std::map<HWND, CefRefPtr<OSRWindow>>::iterator it = m_window_map.begin();
+		if ( it != m_window_map.end() )
+		{
+			it->second->getProvider()->GetBrowser()->GetHost()->CleaarData(compType);
+		}
+	}
+
 	CefRefPtr<ClientHandler> m_handle;
-	CefRefPtr<BrowserProvider> m_provider;
-	CefRefPtr<OSRWindow> m_window;
+	std::map<HWND, CefRefPtr<OSRWindow>> m_window_map;
 	int m_ipcID;
-	bool m_bPrepareClose;
-	bool m_bNeedClose;
 	IMPLEMENT_REFCOUNTING(WebItem);
 };
 
@@ -58,7 +164,7 @@ private:
 	IMPLEMENT_REFCOUNTING(BrowserProvider);
 };
 
-typedef std::map<HWND, CefRefPtr<WebItem>> WebViewMap;
+typedef std::list<CefRefPtr<WebItem>> WebViewList;
 
 class WebViewFactory : public CefBase
 {
@@ -71,7 +177,7 @@ public:
 	HWND GetWebView(const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
 		const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans);
 
-	CefRefPtr<WebItem> FindItem(const HWND hWnd);
+	CefRefPtr<WebItem> FindItem(const HWND& hWnd);
 
 	void RemoveWindow(HWND);
 
@@ -79,7 +185,13 @@ public:
 
 	CefRefPtr<WebItem> GetBrowserItem(int browserID);
 
-	HWND GetBrowserHwnd(int);
+	HWND GetBrowserHwndByID(int browserID);
+
+	CefRefPtr<CefBrowser> GetBrowserByHwnd(const HWND& hWnd);
+
+	CefRefPtr<OSRWindow> getWindowByHwnd(const HWND& hWnd);
+
+	CefRefPtr<OSRWindow> getWindowByID(const int& browserID);
 
 	void CloseAll();
 
@@ -88,7 +200,7 @@ public:
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;
-	WebViewMap m_viewMap;
+	WebViewList m_viewList;
 	//std::mutex factoryMutex_;
 
 	IMPLEMENT_REFCOUNTING(WebViewFactory);

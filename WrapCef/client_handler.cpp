@@ -280,11 +280,10 @@ void ClientHandler::OnBeforeContextMenu(
 		  const int size = 64;
 		  WRAP_CEF_MENU_COMMAND menus[size];
 		  memset(menus, 0, sizeof(WRAP_CEF_MENU_COMMAND) * size);
-		  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 		  const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
-		  if (fun && item.get())
+		  HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+		  if (fun && IsWindow(hWnd))
 		  {
-			  HWND hWnd = item->m_window->hwnd();
 			  fun->insertMenu(hwnd, val.c_str(), menus);
 			  for (int i = 0; i < size; ++i)
 			  {
@@ -331,11 +330,10 @@ bool ClientHandler::OnContextMenuCommand(
 	default:  // Allow default handling, if any.
 	{
 		bool bExec = false;
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 		const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
-		if (fun && item.get())
+		HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+		if (fun && IsWindow(hWnd))
 		{
-			HWND hWnd = item->m_window->hwnd();
 			bExec = fun->doMenuCommand(hWnd, command_id);
 		}
 		if ( !bExec )
@@ -532,11 +530,10 @@ bool ClientHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
 }
 
 void helpNewUrl(CefRefPtr<CefBrowser> browser, std::shared_ptr<std::wstring> frameName, std::shared_ptr<std::wstring> url){
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
-	if (fun && item.get())
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (fun && IsWindow(hWnd))
 	{
-		HWND hWnd = item->m_window->hwnd();
 		fun->newNativeUrl(hWnd, url->c_str(), frameName->c_str());
 	}
 }
@@ -563,13 +560,14 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
   std::shared_ptr<std::wstring> frameName(new std::wstring(frame->GetName().ToWString()));
   std::shared_ptr<std::wstring> url(new std::wstring(target_url.ToWString()));
 
-
+  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
+  
   if (browser->GetHost()->IsWindowRenderingDisabled()) {
 	  if (!CefCurrentlyOn(TID_UI)){
 		  CefPostTask(TID_UI, base::Bind(&helpNewUrl, browser, frameName, url));
 	  }
 	  // Cancel popups in off-screen rendering mode.
-    return true;
+    return false;
   }
   else{
 	  int id = browser->GetIdentifier();
@@ -756,7 +754,6 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	
 	//网页加载结束	
 	bool bCallInjectJS = false;
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 	const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
 	std::wstring name = frame->GetName().ToWString();
 	std::wstring url = frame->GetURL().ToWString();
@@ -765,11 +762,10 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	{
 		mainUrl = browser->GetMainFrame()->GetURL().ToWString();
 	}
-	HWND hWnd = NULL;
-	if ( fun && item.get() )
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (fun && IsWindow(hWnd))
 	{
 		bCallInjectJS = true;
-		hWnd = item->m_window->hwnd();
 		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
 
 		//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入,
@@ -813,9 +809,8 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 
 
 	if (frame->IsMain()){
-		if (fun && item.get())
+		if (fun && IsWindow(hWnd))
 		{
-			hWnd = item->m_window->hwnd();
 			fun->nativeComplate(hWnd);
 		}
 

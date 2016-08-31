@@ -240,24 +240,24 @@ namespace cyjh{
 
 	void UIThreadCombin::AfterRequest(int browserID)
 	{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browserID);
-		if ( item.get() && item->m_bNeedClose )
+		CefRefPtr<OSRWindow> window = WebViewFactory::getInstance().getWindowByID(browserID);
+		if (window.get() && window->m_bNeedClose)
 		{
 			if ( isEmptyRequest(browserID) && isEmptyResponse(browserID) )
 			{
-				PostMessage(item->m_window->hwnd(), WM_CLOSE, NULL, NULL);
+				PostMessage(window->hwnd(), WM_CLOSE, NULL, NULL);
 			}
 		}
 	}
 
 	void UIThreadCombin::AfterResponse(int browserID)
 	{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browserID);
-		if (item.get() && item->m_bNeedClose)
+		CefRefPtr<OSRWindow> window = WebViewFactory::getInstance().getWindowByID(browserID);
+		if (window.get() && window->m_bNeedClose)
 		{
 			if (isEmptyRequest(browserID) && isEmptyResponse(browserID))
 			{
-				PostMessage(item->m_window->hwnd(), WM_CLOSE, NULL, NULL);
+				PostMessage(window->hwnd(), WM_CLOSE, NULL, NULL);
 			}
 		}
 	}

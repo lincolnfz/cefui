@@ -44,10 +44,9 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
   }*/
 
   std::wstring strTitle(title);
-  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-  if (item.get() && IsWindow(item->m_window->hwnd()))
+  HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+  if (IsWindow(hWnd))
   {
-	  HWND hWnd = item->m_window->hwnd();
 	  SetWindowText(hWnd, strTitle.c_str());
   }
   if ( WebkitEcho::getFunMap() )
@@ -63,10 +62,10 @@ bool ClientHandler::OnTooltip(CefRefPtr<CefBrowser> browser,
 	CEF_REQUIRE_UI_THREAD();
 	//CefWindowHandle hwnd = browser->GetHost()->GetWindowHandle();
 	std::wstring tipTxt = text.ToWString();
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-	if (item.get())
+	CefRefPtr<OSRWindow> window = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+	if (window.get())
 	{
-		item->m_window->ShowTip(tipTxt);
+		window->ShowTip(tipTxt);
 	}
 	
 	return true;

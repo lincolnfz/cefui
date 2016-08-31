@@ -37,7 +37,7 @@ class OSRWindow : public ClientHandler::RenderHandler
  public:
   // Create a new OSRWindow instance. |browser_provider| must outlive this
   // object.
-  static CefRefPtr<OSRWindow> Create(OSRBrowserProvider* browser_provider,
+	 static CefRefPtr<OSRWindow> Create(CefRefPtr<OSRBrowserProvider> browser_provider,
                                      bool transparent,
                                      bool show_update_rect);
 
@@ -114,10 +114,17 @@ class OSRWindow : public ClientHandler::RenderHandler
 
   void ShowTip(const std::wstring& info);
 
+  CefRefPtr<OSRBrowserProvider> getProvider(){
+	  return browser_provider_;
+  }
+
   static bool s_singleProcess; //是否是单进程
 
+  bool m_bPrepareClose;
+  bool m_bNeedClose;
+
  private:
-  OSRWindow(OSRBrowserProvider* browser_provider,
+  OSRWindow(CefRefPtr<OSRBrowserProvider> browser_provider,
             bool transparent,
             bool show_update_rect);
   virtual ~OSRWindow();
@@ -140,7 +147,7 @@ class OSRWindow : public ClientHandler::RenderHandler
   void dx_Destroy();
 
   ClientOSRenderer renderer_;
-  OSRBrowserProvider* browser_provider_;
+  CefRefPtr<OSRBrowserProvider> browser_provider_;
   HWND hWnd_;
   HDC hDC_;
   HGLRC hRC_;

@@ -98,10 +98,9 @@ void myCreateWindow(HWND hWnd, std::string parm)
 bool BridageRender::rsp_createWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser> browser, CefRefPtr<CefProcessMessage> msg, CefRefPtr<CefListValue>, bool&)
 {
 	bool ret = true;
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-	if (item.get() && IsWindow(item->m_window->hwnd()))
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (IsWindow(hWnd))
 	{
-		HWND hWnd = item->m_window->hwnd();
 		if (ResponseUI::getFunMap()){
 			std::string parm = msg->GetArgumentList()->GetString(0).ToString();
 			CefPostTask(TID_UI, base::Bind(&myCreateWindow, hWnd, parm));
@@ -122,10 +121,9 @@ bool BridageRender::rsp_createWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser>
 bool BridageRender::rsp_createModalWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser> browser, CefRefPtr<CefProcessMessage> msg, CefRefPtr<CefListValue>, bool&)
 {
 	bool ret = false;
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-	if (item.get() && IsWindow(item->m_window->hwnd()))
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (IsWindow(hWnd))
 	{
-		HWND hWnd = item->m_window->hwnd();
 		if (ResponseUI::getFunMap()){
 			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
 			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
@@ -143,10 +141,9 @@ bool BridageRender::rsp_createModalWindow(CefRefPtr<ClientApp>, CefRefPtr<CefBro
 bool BridageRender::rsp_createModalWindow2(CefRefPtr<ClientApp>, CefRefPtr<CefBrowser> browser, CefRefPtr<CefProcessMessage> msg, CefRefPtr<CefListValue>, bool&)
 {
 	bool ret = false;
-	CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
-	if (item.get() && IsWindow(item->m_window->hwnd()))
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (IsWindow(hWnd))
 	{
-		HWND hWnd = item->m_window->hwnd();
 		if (ResponseUI::getFunMap()){
 			long x; long y; long width; long height; long min_cx; long min_cy; long max_cx; long max_cy;
 			std::string skin; long alpha; unsigned long ulStyle; unsigned long extra; unsigned long parentSign;
