@@ -872,10 +872,15 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 
   OSRWindow* window =
       reinterpret_cast<OSRWindow*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-  CefRefPtr<CefBrowserHost> browser;
 
-  if (window && window->browser_provider_->GetBrowser().get())
-    browser = window->browser_provider_->GetBrowser()->GetHost();
+  CefRefPtr<CefBrowser> browser;
+  CefRefPtr<CefBrowserHost> browserhost;
+
+  if (window && window->browser_provider_->GetBrowserByWnd(hWnd).get()){
+	  browser = window->browser_provider_->GetBrowserByWnd(hWnd);
+	  browserhost = browser->GetHost();
+  }
+	  
 
   LONG currentTime = 0;
   bool cancelPreviousClick = false;
@@ -941,14 +946,14 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       gLastClickTime = currentTime;
       lastClickButton = btnType;
 
-      if (browser.get()) {
+	  if (browserhost.get()) {
         CefMouseEvent mouse_event;
         mouse_event.x = x;
         mouse_event.y = y;
         gLastMouseDownOnView = !window->IsOverPopupWidget(x, y);
         window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
 		mouse_event.modifiers = GetCefMouseModifiers(wParam);
-        browser->SendMouseClickEvent(mouse_event, btnType, false,
+		browserhost->SendMouseClickEvent(mouse_event, btnType, false,
                                      gLastClickCount);
 		//test by lincoln
 		/*{
@@ -1009,7 +1014,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       CefBrowserHost::MouseButtonType btnType =
           (message == WM_LBUTTONUP ? MBT_LEFT : (
            message == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
-      if (browser.get()) {
+	  if (browserhost.get()) {
         CefMouseEvent mouse_event;
         mouse_event.x = x;
         mouse_event.y = y;
@@ -1020,7 +1025,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
         }
         window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
         mouse_event.modifiers = GetCefMouseModifiers(wParam);
-        browser->SendMouseClickEvent(mouse_event, btnType, true,
+		browserhost->SendMouseClickEvent(mouse_event, btnType, true,
                                      gLastClickCount);
       }
     }
@@ -1028,7 +1033,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   case WM_LBUTTONDBLCLK:{
 	  if ( gLastClickCount == 1 )
 	  {
-		  if (browser.get()) {
+		  if (browserhost.get()) {
 			  int x = GET_X_LPARAM(lParam);
 			  int y = GET_Y_LPARAM(lParam);
 			  CefMouseEvent mouse_event;
@@ -1036,7 +1041,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 			  mouse_event.y = y;
 			  window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
 			  mouse_event.modifiers = GetCefMouseModifiers(wParam);
-			  browser->SendMouseClickEvent(mouse_event, MBT_LEFT, false,
+			  browserhost->SendMouseClickEvent(mouse_event, MBT_LEFT, false,
 				  2);
 			}	  
 	  }
@@ -1065,13 +1070,13 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
         TrackMouseEvent(&tme);
         mouseTracking = true;
       }
-      if (browser.get()) {
+	  if (browserhost.get()) {
         CefMouseEvent mouse_event;
         mouse_event.x = x;
         mouse_event.y = y;
         window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
         mouse_event.modifiers = GetCefMouseModifiers(wParam);
-        browser->SendMouseMoveEvent(mouse_event, false);
+		browserhost->SendMouseMoveEvent(mouse_event, false);
       }
     }
     break;
@@ -1087,7 +1092,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       TrackMouseEvent(&tme);
       mouseTracking = false;
     }
-    if (browser.get()) {
+	if (browserhost.get()) {
       // Determine the cursor position in screen coordinates.
       POINT p;
       ::GetCursorPos(&p);
@@ -1097,12 +1102,12 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       mouse_event.x = p.x;
       mouse_event.y = p.y;
       mouse_event.modifiers = GetCefMouseModifiers(wParam);
-      browser->SendMouseMoveEvent(mouse_event, true);
+	  browserhost->SendMouseMoveEvent(mouse_event, true);
     }
     break;
 
   case WM_MOUSEWHEEL:
-    if (browser.get()) {
+	  if (browserhost.get()) {
       POINT screen_point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
       HWND scrolled_wnd = ::WindowFromPoint(screen_point);
       if (scrolled_wnd != hWnd) {
@@ -1117,20 +1122,20 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
       window->ApplyPopupOffset(mouse_event.x, mouse_event.y);
       mouse_event.modifiers = GetCefMouseModifiers(wParam);
 
-      browser->SendMouseWheelEvent(mouse_event,
+	  browserhost->SendMouseWheelEvent(mouse_event,
                                    isKeyDown(VK_SHIFT) ? delta : 0,
                                    !isKeyDown(VK_SHIFT) ? delta : 0);
     }
     break;
 
   case WM_SIZE:
-    if (browser.get())
-      browser->WasResized();
+	  if (browserhost.get())
+		  browserhost->WasResized();
     break;
 
   case WM_SETFOCUS:
   case WM_KILLFOCUS:{
-	  if (browser.get())
+	  if (browserhost.get())
 	  {
 #ifdef _DEBUG1
 		  WCHAR sz[256];
@@ -1141,7 +1146,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  {
 			  window->tipinfo_.DestroyTipWin();
 		  }		  
-		  browser->SendFocusEvent(message == WM_SETFOCUS);
+		  browserhost->SendFocusEvent(message == WM_SETFOCUS);
 	  }
 	  else{
 #ifdef _DEBUG1
@@ -1156,8 +1161,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   case WM_CAPTURECHANGED:
   case WM_CANCELMODE:
     if (!mouseRotation) {
-      if (browser.get())
-        browser->SendCaptureLostEvent();
+		if (browserhost.get())
+			browserhost->SendCaptureLostEvent();
     }
     break;
   case WM_SYSCHAR:
@@ -1180,8 +1185,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     else
       event.type = KEYEVENT_CHAR;
     event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
-	if (browser.get()){
-		browser->SendKeyEvent(event);
+	if (browserhost.get()){
+		browserhost->SendKeyEvent(event);
 	}
     break;
   }
@@ -1192,8 +1197,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     BeginPaint(hWnd, &ps);
     rc = ps.rcPaint;
     EndPaint(hWnd, &ps);
-    if (browser.get())
-      browser->Invalidate(PET_VIEW);
+	if (browserhost.get())
+		browserhost->Invalidate(PET_VIEW);
     return 0;
   }
 
@@ -1211,9 +1216,9 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 	  if ( browser.get() )
 	  {
 		  int ipcID = 0;
-		  if (!OSRWindow::s_singleProcess && window->browser_provider_->GetBrowser().get())
+		  if (!OSRWindow::s_singleProcess && browser.get())
 		  {
-			  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(window->browser_provider_->GetBrowser()->GetIdentifier());
+			  CefRefPtr<WebItem> item = WebViewFactory::getInstance().GetBrowserItem(browser->GetIdentifier());
 			  if (item.get())
 			  {
 				  //ipcID = item->m_ipcID;
@@ -1221,7 +1226,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 				  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
 				  item->m_bNeedClose = true;
 				  {
-					  int id = browser->GetBrowser()->GetIdentifier();
+					  int id = browser->GetIdentifier();
 					  if (!ipcsync->isEmptyRequest(id) && !ipcsync->isEmptyResponse(id))
 					  {
 						  return 0;
@@ -1233,9 +1238,9 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 				  {
 					  item->m_bPrepareClose = true;
 					  int id = 0;
-					  if (browser->GetBrowser().get())
+					  if (browser.get())
 					  {
-						  id = browser->GetBrowser()->GetIdentifier();
+						  id = browser->GetIdentifier();
 					  }
 #ifdef _DEBUG1
 					  WCHAR szbuf[128] = { 0 };
@@ -1251,16 +1256,16 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 					  cyjh::Instruct::SerializationInstruct(&parm, pick);
 					  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
 					  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
-					  ipcsync->Request(window->browser_provider_->GetBrowser(), parm, spOut);
+					  ipcsync->Request(browser, parm, spOut);
 
-					  //ipcsync->AsyncRequest(window->browser_provider_->GetBrowser(), parm);
+					  //ipcsync->AsyncRequest(browser, parm);
 					  ipcsync->DisableSendBrowser(id);
 				  }
 			  }
 		  }
 		  //if ( bPrepareClose )
 		  {
-			  browser->CloseBrowser(true); //关闭单独
+			  browserhost->CloseBrowser(true); //关闭单独
 		  }
 		  
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);

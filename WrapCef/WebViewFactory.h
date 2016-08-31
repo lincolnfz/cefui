@@ -44,6 +44,13 @@ public:
 		return handle_;
 	}
 
+		virtual CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd) OVERRIDE{
+		if (handle_.get())
+		return handle_->GetBrowserByWnd(hWnd);
+
+		return NULL;
+	}
+
 private:
 	CefRefPtr<ClientHandler> handle_;
 

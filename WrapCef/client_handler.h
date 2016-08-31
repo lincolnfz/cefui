@@ -333,6 +333,9 @@ class ClientHandler : public CefClient,
 
   void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
 
+  //一个handler可以容纳很多browser
+  CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd);
+
  private:
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);

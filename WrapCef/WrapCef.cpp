@@ -121,6 +121,10 @@ public:
 		return handle_;
 	}
 
+	virtual CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd) OVERRIDE{
+		return NULL;
+	}
+
 private:
 	CefRefPtr<ClientHandler> handle_;
 

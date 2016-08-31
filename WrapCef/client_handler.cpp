@@ -1472,3 +1472,29 @@ void ClientHandler::SendMouseClickEvent(const unsigned int& msg, const long& wp,
 		browser_->GetHost()->SendMouseClickEvent(mouse_event, btnType, mouseup ,1);
 	}
 }
+
+CefRefPtr<CefBrowser> ClientHandler::GetBrowserByWnd(HWND hWnd)
+{
+	base::AutoLock lock_scope(lock_);
+	CefRefPtr<CefBrowser> browser;
+	if ( !browser_.get() )
+	{
+		return NULL;
+	}
+	if ( browser_->GetHost()->GetWindowHandle() == hWnd )
+	{
+		browser = browser_;
+		return browser;
+	}
+	BrowserList::iterator it = popup_browsers_.begin();
+	for (; it != popup_browsers_.end(); ++it)
+	{
+		if ( (*it)->GetHost()->GetWindowHandle() == hWnd )
+		{
+			browser = *it;
+			break;
+		}
+	}
+
+	return browser;
+}
