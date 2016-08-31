@@ -567,7 +567,7 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 		  CefPostTask(TID_UI, base::Bind(&helpNewUrl, browser, frameName, url));
 	  }
 	  // Cancel popups in off-screen rendering mode.
-    return false;
+	  return true;
   }
   else{
 	  int id = browser->GetIdentifier();
