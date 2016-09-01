@@ -878,8 +878,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   CefRefPtr<CefBrowser> browser;
   CefRefPtr<CefBrowserHost> browserhost;
 
-  if (window && window->browser_provider_->GetBrowserByWnd(hWnd).get()){
-	  browser = window->browser_provider_->GetBrowserByWnd(hWnd);
+  if (window && window->browser_provider_->GetBrowser().get()){
+	  browser = window->browser_provider_->GetBrowser();
 	  browserhost = browser->GetHost();
   }
 	  

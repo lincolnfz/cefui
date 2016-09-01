@@ -121,8 +121,8 @@ public:
 		return handle_;
 	}
 
-	virtual CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd) OVERRIDE{
-		return NULL;
+	virtual void UpdateBrowserInfo(int, HWND) OVERRIDE{
+
 	}
 
 private:

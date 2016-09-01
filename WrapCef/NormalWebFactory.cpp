@@ -16,8 +16,8 @@ NormalWebFactory::~NormalWebFactory()
 void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx)
 {
 	CefRefPtr<WebkitControl> item = new  WebkitControl;
-	item->AttachHwnd(hwnd, url, cookie_ctx);
 	m_map.insert(std::make_pair(hwnd, item));
+	item->AttachHwnd(hwnd, url, cookie_ctx);	
 }
 
 bool NormalWebFactory::CloseWebControl(const HWND& hwnd)

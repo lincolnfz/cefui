@@ -137,28 +137,33 @@ public:
 class BrowserProvider : public OSRBrowserProvider {
 public:
 	virtual CefRefPtr<CefBrowser> GetBrowser() OVERRIDE{
-		if (handle_.get())
-		return handle_->GetBrowser();
+		if (handle_.get()){
+			return handle_->GetBrowserByID(id_);
+		}
 
 		return NULL;
 	}
-		BrowserProvider(CefRefPtr<ClientHandler> handle){
+	BrowserProvider(CefRefPtr<ClientHandler> handle){
 		handle_ = handle;
+		id_ = 0;
+		hwnd_ = 0;
 	}
 
 	virtual CefRefPtr<ClientHandler> GetClientHandler() OVERRIDE{
 		return handle_;
 	}
 
-		virtual CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd) OVERRIDE{
-		if (handle_.get())
-		return handle_->GetBrowserByWnd(hWnd);
-
-		return NULL;
+	virtual void UpdateBrowserInfo(int id, HWND hwnd) OVERRIDE{
+		id_ = id;
+		hwnd_ = hwnd;
 	}
 
 private:
 	CefRefPtr<ClientHandler> handle_;
+
+	int id_;
+
+	HWND hwnd_;
 
 	// Include the default reference counting implementation.
 	IMPLEMENT_REFCOUNTING(BrowserProvider);

@@ -70,7 +70,7 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	info.SetAsWindowless(window->hwnd(), transparent);
 	info.transparent_painting_enabled = trans; //是否需要?
 	info.windowless_rendering_enabled = true;
-	item->m_handle->SetOSRHandler(window.get());
+	//item->m_handle->SetOSRHandler(window.get());
 	if ( !taskbar )
 	{
 		DWORD exStyle = GetWindowLong(window->hwnd(), GWL_EXSTYLE);
@@ -90,9 +90,10 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	//browser_settings.java = STATE_DISABLED;
 	//browser_settings.application_cache = STATE_DISABLED; //不用缓存
 	// Creat the new child browser window
+
+	m_viewList.push_back(item);
 	CefBrowserHost::CreateBrowser(info, item->m_handle,
 		url, browser_settings, NULL);
-	m_viewList.push_back(item);
 	//WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
 	//item->m_provider->GetBrowser()->RegPlugin(szBuf, true);
 	return window->hwnd();

@@ -23,7 +23,7 @@ class OSRBrowserProvider : public CefBase {
 
   virtual CefRefPtr<ClientHandler> GetClientHandler() = 0;
 
-  virtual CefRefPtr<CefBrowser> GetBrowserByWnd(HWND) = 0;
+  virtual void UpdateBrowserInfo(int, HWND) = 0;
 
  protected:
   virtual ~OSRBrowserProvider() {}

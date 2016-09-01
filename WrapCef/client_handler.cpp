@@ -599,6 +599,12 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   if (mouse_cursor_change_disabled_)
     browser->GetHost()->SetMouseCursorChangeDisabled(true);
 
+  CefRefPtr<OSRWindow>window = WebViewFactory::getInstance().getWindowByHwnd(browser->GetHost()->GetWindowHandle());
+  if ( window )
+  {
+	  window->getProvider()->UpdateBrowserInfo(browser->GetIdentifier(), browser->GetHost()->GetWindowHandle());
+  }
+
   if (!GetBrowser())   {
     base::AutoLock lock_scope(lock_);
     // We need to keep the main child window, but not popup windows
@@ -657,9 +663,9 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
       browser_ = NULL;
     }
 
-    if (osr_handler_.get()) {
-      osr_handler_->OnBeforeClose(browser);
-      osr_handler_ = NULL;
+	CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+	if (osr_handler.get()) {
+		osr_handler->OnBeforeClose(browser);
     }
   } else if (browser->IsPopup()) {
     // Remove from the browser popup list.
@@ -950,16 +956,18 @@ void ClientHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
 bool ClientHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                       CefRect& rect) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return false;
-  return osr_handler_->GetRootScreenRect(browser, rect);
+  return osr_handler->GetRootScreenRect(browser, rect);
 }
 
 bool ClientHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return false;
-  return osr_handler_->GetViewRect(browser, rect);
+  return osr_handler->GetViewRect(browser, rect);
 }
 
 bool ClientHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser,
@@ -968,33 +976,37 @@ bool ClientHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser,
                                    int& screenX,
                                    int& screenY) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return false;
-  return osr_handler_->GetScreenPoint(browser, viewX, viewY, screenX, screenY);
+  return osr_handler->GetScreenPoint(browser, viewX, viewY, screenX, screenY);
 }
 
 bool ClientHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser,
                                   CefScreenInfo& screen_info) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return false;
-  return osr_handler_->GetScreenInfo(browser, screen_info);
+  return osr_handler->GetScreenInfo(browser, screen_info);
 }
 
 void ClientHandler::OnPopupShow(CefRefPtr<CefBrowser> browser,
                                 bool show) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return;
-  return osr_handler_->OnPopupShow(browser, show);
+  return osr_handler->OnPopupShow(browser, show);
 }
 
 void ClientHandler::OnPopupSize(CefRefPtr<CefBrowser> browser,
                                 const CefRect& rect) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return;
-  return osr_handler_->OnPopupSize(browser, rect);
+  return osr_handler->OnPopupSize(browser, rect);
 }
 
 void ClientHandler::OnPaint(CefRefPtr<CefBrowser> browser,
@@ -1004,9 +1016,10 @@ void ClientHandler::OnPaint(CefRefPtr<CefBrowser> browser,
                             int width,
                             int height) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return;
-  osr_handler_->OnPaint(browser, type, dirtyRects, buffer, width, height);
+  osr_handler->OnPaint(browser, type, dirtyRects, buffer, width, height);
 }
 
 void ClientHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
@@ -1014,9 +1027,10 @@ void ClientHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                                    CursorType type,
                                    const CefCursorInfo& custom_cursor_info) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return;
-  osr_handler_->OnCursorChange(browser, cursor, type, custom_cursor_info);
+  osr_handler->OnCursorChange(browser, cursor, type, custom_cursor_info);
 }
 
 bool ClientHandler::StartDragging(CefRefPtr<CefBrowser> browser,
@@ -1024,17 +1038,19 @@ bool ClientHandler::StartDragging(CefRefPtr<CefBrowser> browser,
     CefRenderHandler::DragOperationsMask allowed_ops,
     int x, int y) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return false;
-  return osr_handler_->StartDragging(browser, drag_data, allowed_ops, x, y);
+  return osr_handler->StartDragging(browser, drag_data, allowed_ops, x, y);
 }
 
 void ClientHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser,
     CefRenderHandler::DragOperation operation) {
   CEF_REQUIRE_UI_THREAD();
-  if (!osr_handler_.get())
+  CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
+  if (!osr_handler.get())
     return;
-  osr_handler_->UpdateDragCursor(browser, operation);
+  osr_handler->UpdateDragCursor(browser, operation);
 }
 
 void ClientHandler::SetMainWindowHandle(ClientWindowHandle handle) {
@@ -1090,12 +1106,12 @@ void ClientHandler::SetOSRHandler(CefRefPtr<RenderHandler> handler) {
     return;
   }
 
-  osr_handler_ = handler;
+  //osr_handler_ = handler;
 }
 
-CefRefPtr<ClientHandler::RenderHandler> ClientHandler::GetOSRHandler() const {
+/*CefRefPtr<ClientHandler::RenderHandler> ClientHandler::GetOSRHandler() const {
   return osr_handler_; 
-}
+}*/
 
 CefRefPtr<CefBrowser> ClientHandler::GetBrowser() const {
   base::AutoLock lock_scope(lock_);
@@ -1472,11 +1488,7 @@ CefRefPtr<CefBrowser> ClientHandler::GetBrowserByWnd(HWND hWnd)
 {
 	base::AutoLock lock_scope(lock_);
 	CefRefPtr<CefBrowser> browser;
-	if ( !browser_.get() )
-	{
-		return NULL;
-	}
-	if ( browser_->GetHost()->GetWindowHandle() == hWnd )
+	if (browser_.get() && browser_->GetHost()->GetWindowHandle() == hWnd)
 	{
 		browser = browser_;
 		return browser;
@@ -1485,6 +1497,28 @@ CefRefPtr<CefBrowser> ClientHandler::GetBrowserByWnd(HWND hWnd)
 	for (; it != popup_browsers_.end(); ++it)
 	{
 		if ( (*it)->GetHost()->GetWindowHandle() == hWnd )
+		{
+			browser = *it;
+			break;
+		}
+	}
+
+	return browser;
+}
+
+CefRefPtr<CefBrowser> ClientHandler::GetBrowserByID(const int& id)
+{
+	base::AutoLock lock_scope(lock_);
+	CefRefPtr<CefBrowser> browser;
+	if (browser_.get() && browser_->GetIdentifier() == id)
+	{
+		browser = browser_;
+		return browser;
+	}
+	BrowserList::iterator it = popup_browsers_.begin();
+	for (; it != popup_browsers_.end(); ++it)
+	{
+		if ((*it)->GetIdentifier() == id)
 		{
 			browser = *it;
 			break;

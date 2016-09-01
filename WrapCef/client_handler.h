@@ -277,7 +277,7 @@ class ClientHandler : public CefClient,
                               ClientWindowHandle stopHandle);
 
   void SetOSRHandler(CefRefPtr<RenderHandler> handler);
-  CefRefPtr<RenderHandler> GetOSRHandler() const;
+  //CefRefPtr<RenderHandler> GetOSRHandler() const;
 
   CefRefPtr<CefBrowser> GetBrowser() const;
   int GetBrowserId() const;
@@ -336,7 +336,10 @@ class ClientHandler : public CefClient,
   //一个handler可以容纳很多browser
   CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd);
 
+  CefRefPtr<CefBrowser> GetBrowserByID(const int& id);
+
  private:
+	 
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);
 
@@ -406,7 +409,7 @@ class ClientHandler : public CefClient,
   ClientWindowHandle reload_handle_;
 
   // The handler for off-screen rendering, if any.
-  CefRefPtr<RenderHandler> osr_handler_;
+  //CefRefPtr<RenderHandler> osr_handler_;
 
   // Support for logging.
   std::string log_file_;
