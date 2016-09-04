@@ -465,8 +465,14 @@ namespace wrapQweb{
 
 	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans)
 	{
-		return WebViewFactory::getInstance().GetWebView(g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
+		return WebViewFactory::getInstance().GetWebView(NULL, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
 	}
+
+	HWND CreateInheritWebView(const HWND& hSameProcessWnd, const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans)
+	{
+		return WebViewFactory::getInstance().GetWebView(hSameProcessWnd, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
+	}
+
 
 	void InitQWeb(FunMap* map){
 		ResponseUI::SetFunMap(map);
@@ -584,7 +590,7 @@ namespace wrapQweb{
 		}
 	}
 
-	bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox)
+	/*bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox)
 	{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if (item)
@@ -603,7 +609,7 @@ namespace wrapQweb{
 			item->m_provider->GetBrowser()->RegPlugin(std::wstring(szVal), bPPapi);
 		}
 		return true;
-	}
+	}*/
 
 	void CloseAllWebView()
 	{

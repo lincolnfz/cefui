@@ -105,6 +105,8 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans);
 
+	SHARED_EXPORT_API HWND CreateInheritWebView(const HWND&, const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans);
+
 	SHARED_EXPORT_API bool QueryNodeAttrib(const HWND&, const int& x, const int& y, char* name, WCHAR* outVal, const int& len);
 
 	SHARED_EXPORT_API void SetFouceWebView(const HWND& hWnd, const bool& fouce);
@@ -128,7 +130,7 @@ namespace wrapQweb {
 	SHARED_EXPORT_API bool freeMem(HGLOBAL hMem);
 
 	//×¢²áä¯ÀÀÆ÷²å¼þ
-	SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
+	//SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
 
 //---------------------------------------------------------------------------------------------------------------------
 //Àà·Ö¸îÏß
