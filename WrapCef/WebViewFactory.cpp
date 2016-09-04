@@ -34,7 +34,7 @@ static void SetFocusBrowser(CefRefPtr<CefBrowser> browser) {
 	browser->GetHost()->SetFocus(true);
 }
 
-HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
+HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
 	const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
@@ -43,6 +43,18 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	sprintf_s(szTmp, "------GetWebView   %s", url.ToString().c_str() );
 	OutputDebugStringA(szTmp);
 #endif
+	CefRefPtr<CefBrowser> browser;
+	{
+		if (hSameProcessWnd && IsWindow(hSameProcessWnd))
+		{
+			CefRefPtr<WebItem> item = FindItem(hSameProcessWnd);
+			if ( item.get() )
+			{
+				browser = item->getBrowserByHwnd(hSameProcessWnd);
+			}
+		}
+	}
+
 	CefRefPtr<WebItem> item = new  WebItem;
 	item->m_handle = new ClientHandler();
 	item->m_handle->SetMainWindowHandle(NULL);
@@ -92,8 +104,15 @@ HWND WebViewFactory::GetWebView(const HINSTANCE& hInstance, const int& x, const 
 	// Creat the new child browser window
 
 	m_viewList.push_back(item);
-	CefBrowserHost::CreateBrowser(info, item->m_handle,
-		url, browser_settings, NULL);
+	if ( browser.get() )
+	{
+		CefBrowserHost::CreateInheritBrowser(browser, info, item->m_handle,
+			url, browser_settings, NULL);
+	}
+	else{
+		CefBrowserHost::CreateBrowser(info, item->m_handle,
+			url, browser_settings, NULL);
+	}
 	//WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
 	//item->m_provider->GetBrowser()->RegPlugin(szBuf, true);
 	return window->hwnd();
