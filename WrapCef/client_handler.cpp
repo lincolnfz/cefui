@@ -626,7 +626,7 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
 		 WebkitEcho::getFunMap()->webkitAfterCreate(hParent, hWnd, hWidget, browserID);
   }
 
-  browser_count_++;
+  ++browser_count_;
 }
 
 bool ClientHandler::DoClose(CefRefPtr<CefBrowser> browser) {
