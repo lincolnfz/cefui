@@ -723,8 +723,8 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
   const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
   HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
   if (fun && IsWindow(hWnd))
-  {
-	  fun->loadError(hWnd, errorCode, failedUrl.ToWString().c_str());
+  {	  
+	  fun->loadError(hWnd, errorCode, frame->GetName().ToWString().c_str(), failedUrl.ToWString().c_str());
 	  return;
   }
 

@@ -67,7 +67,7 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_InertMenu)(const HWND&, const WCHAR* attribName, WRAP_CEF_MENU_COMMAND[]);
 
-	typedef void(__stdcall *call_LoadError)(const HWND&, const int& errcode, const WCHAR* url);
+	typedef void(__stdcall *call_LoadError)(const HWND&, const int& errcode, const WCHAR* frameName, const WCHAR* url);
 
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
