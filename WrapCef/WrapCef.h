@@ -136,10 +136,10 @@ namespace wrapQweb {
 	//SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
 
 	//改变dns解析
-	SHARED_EXPORT_API void setResolveHost(const char* host, const char* ip);
+	//SHARED_EXPORT_API void setResolveHost(const char* host, const char* ip);
 
 	//清理解析
-	SHARED_EXPORT_API void clearResolveHost();
+	//SHARED_EXPORT_API void clearResolveHost();
 
 //---------------------------------------------------------------------------------------------------------------------
 //类分割线

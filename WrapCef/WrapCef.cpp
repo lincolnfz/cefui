@@ -585,7 +585,7 @@ namespace wrapQweb{
 		return GlobalFree(hMem) == NULL;
 	}
 
-	typedef void(*cb_ModiNewResolveHost)(const char* host, const char* ip);
+	/*typedef void(*cb_ModiNewResolveHost)(const char* host, const char* ip);
 	void setResolveHost(const char* host, const char* ip)
 	{
 		cb_ModiNewResolveHost fun = (cb_ModiNewResolveHost)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "SetResolveHost");
@@ -603,7 +603,7 @@ namespace wrapQweb{
 		{
 			fun();
 		}
-	}
+	}*/
 
 	void CloseWebview(const HWND& hWnd)
 	{
