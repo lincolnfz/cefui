@@ -407,12 +407,14 @@ namespace wrapQweb{
 	static bool g_multi_thread = false;
 	CefRefPtr<ClientApp> g_app;
 	HINSTANCE g_hInstance = 0;
-	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender)
+
+	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender, WCHAR* szLocal)
 	{
 		g_hInstance = hInstance;
 #if defined(CEF_USE_SANDBOX)
 		g_sandbox_info = scoped_sandbox.sandbox_info();
 #endif
+
 		//HINSTANCE hInstance = GetModuleHandle(NULL);
 		CefMainArgs main_args(g_hInstance);
 		g_app = new ClientApp;
@@ -433,7 +435,7 @@ namespace wrapQweb{
 			cachePath.append(L"cache");
 			cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
 		}
-		WCHAR szLocal[] = L"zh-CN";
+		//WCHAR szLocal[] = L"zh-CN";
 		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);
 
 		WCHAR szLogFile[512] = { 0 };
@@ -581,6 +583,26 @@ namespace wrapQweb{
 	bool freeMem(HGLOBAL hMem)
 	{
 		return GlobalFree(hMem) == NULL;
+	}
+
+	typedef void(*cb_ModiNewResolveHost)(const char* host, const char* ip);
+	void setResolveHost(const char* host, const char* ip)
+	{
+		cb_ModiNewResolveHost fun = (cb_ModiNewResolveHost)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "SetResolveHost");
+		if (fun && host)
+		{
+			fun(host, ip);
+		}
+	}
+
+	typedef void(*cb_ClearResolveHostMap)();
+	void clearResolveHost()
+	{
+		cb_ClearResolveHostMap fun = (cb_ClearResolveHostMap)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "ClearResolveHostMap");
+		if ( fun )
+		{
+			fun();
+		}
 	}
 
 	void CloseWebview(const HWND& hWnd)

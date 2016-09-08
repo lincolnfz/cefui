@@ -67,6 +67,8 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_InertMenu)(const HWND&, const WCHAR* attribName, WRAP_CEF_MENU_COMMAND[]);
 
+	typedef void(__stdcall *call_LoadError)(const HWND&, const int& errcode, const WCHAR* url);
+
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
 		call_setWindowPos setWindowPos;
@@ -87,9 +89,10 @@ namespace wrapQweb {
 		call_doMenuCommand doMenuCommand;
 		call_InjectJS injectJS;
 		call_InertMenu insertMenu;
+		call_LoadError loadError;
 	}FunMap;
 
-	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL);
+	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL, WCHAR* szLocal = L"zh-CN");
 
 	SHARED_EXPORT_API void FreeLibrary();
 
@@ -131,6 +134,12 @@ namespace wrapQweb {
 
 	//注册浏览器插件
 	//SHARED_EXPORT_API bool RegPlugin(const HWND& hWnd, const WCHAR* szVal, const bool bPPapi, const bool bSandBox);
+
+	//改变dns解析
+	SHARED_EXPORT_API void setResolveHost(const char* host, const char* ip);
+
+	//清理解析
+	SHARED_EXPORT_API void clearResolveHost();
 
 //---------------------------------------------------------------------------------------------------------------------
 //类分割线

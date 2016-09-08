@@ -720,6 +720,14 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 const CefString& failedUrl) {
   CEF_REQUIRE_UI_THREAD();
 
+  const wrapQweb::FunMap* fun = ResponseUI::getFunMap();
+  HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+  if (fun && IsWindow(hWnd))
+  {
+	  fun->loadError(hWnd, errorCode, failedUrl.ToWString().c_str());
+	  return;
+  }
+
   // Don't display an error for downloaded files.
   if (errorCode == ERR_ABORTED)
     return;
