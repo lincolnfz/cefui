@@ -593,17 +593,17 @@ namespace wrapQweb{
 		{
 			fun(host, ip);
 		}
-	}
+	}*/
 
-	typedef void(*cb_ClearResolveHostMap)();
+	typedef void(*cb_ClearResolveHostCache)();
 	void clearResolveHost()
 	{
-		cb_ClearResolveHostMap fun = (cb_ClearResolveHostMap)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "ClearResolveHostMap");
+		cb_ClearResolveHostCache fun = (cb_ClearResolveHostCache)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "ClearResolveHostCache");
 		if ( fun )
 		{
 			fun();
 		}
-	}*/
+	}
 
 	void CloseWebview(const HWND& hWnd)
 	{
