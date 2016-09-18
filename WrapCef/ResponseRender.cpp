@@ -351,6 +351,15 @@ bool ResponseRender::rsp_asyncInvokedJSMethod(const CefRefPtr<CefBrowser> browse
 		ret = bEval;
 	}
 
+	if ( !ret )
+	{
+#ifdef _DEBUG1
+		char szTmp[512] = { 0 };
+		sprintf_s(szTmp, "------async invokejs Fail! render  %d ", GetCurrentThreadId());
+		OutputDebugStringA(szTmp);
+#endif
+	}
+
 #ifdef _DEBUG1
 	char szTmp[256] = { 0 };
 	sprintf_s(szTmp, "------async js invoke finish!!!  %d ; ", GetCurrentThreadId());

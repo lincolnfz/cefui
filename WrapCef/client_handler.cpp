@@ -1368,20 +1368,25 @@ bool ClientHandler::asyncInvokedJSMethod(const char* utf8_module, const char* ut
 	bool bNoticeJSTrans2JSON)
 {
 	bool ret = false;
-	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
+	cyjh::Instruct parm;
+	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.getList().AppendVal(std::string(utf8_module));
+	parm.getList().AppendVal(std::string(utf8_method));
+	parm.getList().AppendVal(std::string(utf8_parm));
+	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
+	parm.getList().AppendVal(bNoticeJSTrans2JSON);
+	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	ipc->AsyncRequest(browser_, parm);
+	ret = true;
+
+	/*CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
 	if (control.get() && browser_.get())
 	{
 		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-		cyjh::Instruct parm;
-		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
-		parm.getList().AppendVal(std::string(utf8_module));
-		parm.getList().AppendVal(std::string(utf8_method));
-		parm.getList().AppendVal(std::string(utf8_parm));
-		parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
-		parm.getList().AppendVal(bNoticeJSTrans2JSON);
+		
 		ipc->AsyncRequest(browser_, parm);
 		ret = true;
-	}
+	}*/
 	return ret;
 }
 
