@@ -76,7 +76,7 @@ CefRefPtr<CefCookieManager> RequestContextHandler::GetCookieManager()
 ////
 
 
-HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const WCHAR* cookie_context)
+HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const WCHAR* cookie_context, const bool skipcache)
 {
 	if (!IsWindow(hParent))
 	{
@@ -88,7 +88,7 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 
 	// Populate the browser settings based on command line arguments.
 	//AppGetBrowserSettings(browser_settings);
-	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
+	//browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
 	//browser_settings.Set()
 
 	RECT rect;
@@ -102,11 +102,16 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 		request_context = CefRequestContext::CreateContext(m_requestContextHandler);
 	}
 	CefBrowserHost::CreateBrowser(info, m_handler.get(),
-		url, browser_settings, request_context.get() ? request_context : NULL );
+		skipcache ? L"about:blank" : url, browser_settings, request_context.get() ? request_context : NULL);
 
 	HWND hWnd = NULL;
 	if (m_handler->GetBrowser() && m_handler->GetBrowser()->GetHost()){
 		hWnd = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+		//loadUrl(url);
+		if ( skipcache )
+		{
+			m_strInitUrl = url;
+		}
 	}
 	return hWnd;
 }
@@ -139,13 +144,19 @@ void ChromeiumBrowserControl::handle_SetForce()
 
 }
 
-bool ChromeiumBrowserControl::loadUrl(const WCHAR* url)
+bool ChromeiumBrowserControl::loadUrl(const WCHAR* url, const bool skipCache /*= false*/)
 {
 	bool ret = false;
 	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetMainFrame().get() )
 	{
 		//m_handler->GetBrowser()->GetMainFrame()->LoadURL(CefString(url));
 		CefRefPtr<CefRequest> request = CefRequest::Create();
+		if ( !skipCache )
+		{
+			int flag = request->GetFlags();
+			flag |= UR_FLAG_SKIP_CACHE;
+			request->SetFlags(flag);
+		}
 		request->SetURL(CefString(std::wstring(url)));
 		m_handler->GetBrowser()->GetMainFrame()->LoadRequest(request);
 		ret = true;
@@ -196,6 +207,14 @@ void ChromeiumBrowserControl::reloadIgnoreCache()
 	if (m_handler->GetBrowser().get())
 	{
 		m_handler->GetBrowser()->ReloadIgnoreCache();
+	}
+}
+
+void ChromeiumBrowserControl::InitLoadUrl()
+{
+	if (!m_strInitUrl.empty()){
+		loadUrl(m_strInitUrl.c_str(), true);
+		m_strInitUrl.clear();
 	}
 }
 
@@ -263,7 +282,7 @@ WebkitControl::~WebkitControl()
 {
 }
 
-HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* cookie_context)
+HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* cookie_context, const bool skipcache)
 {
 #if defined _M_AMD64 || defined _WIN64
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
@@ -275,7 +294,7 @@ HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* c
 	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG>(HostWndProc));
 	//::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
 #endif
-	return m_browser->AttachHwnd(hParentWnd, url, cookie_context);
+	return m_browser->AttachHwnd(hParentWnd, url, cookie_context, skipcache);
 }
 
 void WebkitControl::handle_size(HWND hWnd)
@@ -286,6 +305,11 @@ void WebkitControl::handle_size(HWND hWnd)
 void WebkitControl::handle_SetForce()
 {
 	m_browser->handle_SetForce();
+}
+
+void WebkitControl::InitLoadUrl()
+{
+	m_browser->InitLoadUrl();
 }
 
 LRESULT WebkitControl::HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

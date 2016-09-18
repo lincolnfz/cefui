@@ -668,7 +668,7 @@ namespace wrapQweb{
 
 	void CreateWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie/* = NULL*/)
 	{
-		NormalWebFactory::getInstance().CreateNewWebControl(hwnd, url, cookie);
+		NormalWebFactory::getInstance().CreateNewWebControl(hwnd, url, cookie, false);
 	}
 
 	bool CloseWebControl(const HWND& hwnd)

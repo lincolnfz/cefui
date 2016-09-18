@@ -18,7 +18,7 @@ public:
 		return s_inst;
 	}
 
-	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx);
+	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx, const bool skipcache);
 
 	bool CloseWebControl(const HWND& hwnd);
 

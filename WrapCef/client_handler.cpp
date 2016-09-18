@@ -832,6 +832,11 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		{
 			WebkitEcho::getFunMap()->webkitEndLoad(browser->GetIdentifier());
 		}
+		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
+		if (control.get())
+		{
+			control->InitLoadUrl();
+		}
 	}
 	
 }

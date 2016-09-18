@@ -13,11 +13,11 @@ NormalWebFactory::~NormalWebFactory()
 {
 }
 
-void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx)
+void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx, const bool skipcache)
 {
 	CefRefPtr<WebkitControl> item = new  WebkitControl;
 	m_map.insert(std::make_pair(hwnd, item));
-	item->AttachHwnd(hwnd, url, cookie_ctx);	
+	item->AttachHwnd(hwnd, url, cookie_ctx, skipcache);	
 }
 
 bool NormalWebFactory::CloseWebControl(const HWND& hwnd)

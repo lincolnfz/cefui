@@ -24,7 +24,7 @@ public:
 		m_bClose = false;
 	}
 	virtual ~ChromeiumBrowserControl(){}
-	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context);
+	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context, const bool skipcache);
 	void handle_size(HWND);
 	void handle_SetForce();
 	CefRefPtr<ClientHandler> getClientHandler(){
@@ -32,7 +32,7 @@ public:
 	}
 
 	bool close();
-	bool loadUrl(const WCHAR* url);
+	bool loadUrl(const WCHAR* url, const bool skipCache = false);
 	void back();
 	void forward();
 	void reload();
@@ -45,11 +45,13 @@ public:
 		const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 	void AdjustRenderSpeed( const double& dbSpeed);
 	void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
+	void InitLoadUrl();
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;
 	bool m_bClose;
 	CefRefPtr<RequestContextHandler> m_requestContextHandler;
+	std::wstring m_strInitUrl;
 
 };
 
@@ -59,7 +61,7 @@ public:
 	WebkitControl();
 	virtual ~WebkitControl();
 
-	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context);
+	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context, const bool skipcache);
 	void handle_size(HWND);
 	void handle_SetForce();
 	CefRefPtr<ChromeiumBrowserControl> getBrowser(){
@@ -72,6 +74,7 @@ public:
 	void setIpcID(const int& id){
 		m_ipc_id = id;
 	}
+	void InitLoadUrl();
 	IMPLEMENT_REFCOUNTING(WebkitControl);
 protected:
 	static LRESULT __stdcall HostWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
