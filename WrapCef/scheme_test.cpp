@@ -58,10 +58,51 @@ namespace {
 		return val;
 	}
 
+	static const WCHAR* getMimeType(const WCHAR* ext){
+		typedef struct _mime_table{
+			WCHAR mime_val[64];
+			WCHAR ext_val[10][8];
+		}mime_table;
+		const WCHAR *val = L"";
+		static mime_table table[] = {
+			{ L"text/html", { L".html", L".htm" } }
+			, { L"application/x-javascript;", { L".js" } }
+			, { L"text/css;", { L".css" } }
+			, { L"image/gif;", { L".gif" } }
+			, { L"image/png;", { L".png" } }
+			, { L"image/jpeg;", { L".jpeg", L".jpg" } }
+		};
+		static int len = sizeof(table) / sizeof(mime_table);
+		bool bfind = false;
+		for (int i = 0; i < len; ++i){
+			for (int j = 0; j < 10; ++j){
+				if (_wcsicmp(table[i].ext_val[j], ext) == 0){
+					val = table[i].mime_val;
+					bfind = true;
+					break;
+				}
+			}
+			if (bfind)
+				break;
+		}
+
+		return val;
+	}
+
 	std::string&   replace_all_distinct(std::string&   str, const   std::string&   old_value, const   std::string&   new_value)
 	{
 		for (std::string::size_type pos(0); pos != std::string::npos; pos += new_value.length())   {
 			if ((pos = str.find(old_value, pos)) != std::string::npos)
+				str.replace(pos, old_value.length(), new_value);
+			else   break;
+		}
+		return   str;
+	}
+
+	std::wstring&   replace_all_distinct(std::wstring&   str, const   std::wstring&   old_value, const   std::wstring&   new_value)
+	{
+		for (std::wstring::size_type pos(0); pos != std::wstring::npos; pos += new_value.length())   {
+			if ((pos = str.find(old_value, pos)) != std::wstring::npos)
 				str.replace(pos, old_value.length(), new_value);
 			else   break;
 		}
@@ -77,6 +118,15 @@ namespace {
 		return str;
 	}
 
+	std::wstring& removeUrlParm(std::wstring& str){
+		int idx = str.find(L"?");
+		if (idx > 0)
+		{
+			str.erase(str.begin() + idx, str.end());
+		}
+		return str;
+	}
+
 // Implementation of the schema handler for client:// requests.
 class ClientSchemeHandler : public CefResourceHandler {
  public:
@@ -86,7 +136,7 @@ class ClientSchemeHandler : public CefResourceHandler {
   ~ClientSchemeHandler(){
   }
 
-  BOOL UrlDecode(const char* szSrc, char* pBuf, int cbBufLen, BOOL bUTF8)
+  BOOL UrlDecode(const char* szSrc, WCHAR* pBuf, int cbBufLen)
   {
 	  if (szSrc == NULL || pBuf == NULL || cbBufLen <= 0)
 		  return FALSE;
@@ -145,7 +195,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 	  *pDest = '\0';
 	  ++cbDest;
 
-	  if (bUTF8)
+	  //if (bUTF8)
 	  {
 		  int cchWideChar = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pUTF8, cbDest, NULL, 0);
 		  LPWSTR pUnicode = (LPWSTR)malloc(cchWideChar * sizeof(WCHAR));
@@ -155,12 +205,13 @@ class ClientSchemeHandler : public CefResourceHandler {
 			  return FALSE;
 		  }
 		  MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)pUTF8, cbDest, pUnicode, cchWideChar);
-		  WideCharToMultiByte(CP_ACP, 0, pUnicode, cchWideChar, pBuf, cbBufLen, NULL, NULL);
+		  //WideCharToMultiByte(CP_ACP, 0, pUnicode, cchWideChar, pBuf, cbBufLen, NULL, NULL);
+		  wcscpy_s(pBuf, cbBufLen, pUnicode);
 		  free(pUnicode);
 	  }
-	  else{
-		  strcpy_s(pBuf, cbBufLen, pUTF8);
-	  }
+	  //else{
+	//	  strcpy_s(pBuf, cbBufLen, pUTF8);
+	 // }
 
 
 	  free(pUTF8);
@@ -179,6 +230,18 @@ class ClientSchemeHandler : public CefResourceHandler {
 	  return strText;
   }
 
+  std::wstring utf82wchar(const std::string& str)
+  {
+	  int iTextLen = 0;
+	  iTextLen = ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+	  WCHAR* wsz = new WCHAR[iTextLen + 1];
+	  memset((void*)wsz, 0, sizeof(WCHAR) * (iTextLen + 1));
+	  ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wsz, iTextLen);
+	  std::wstring strText(wsz);
+	  delete[]wsz;
+	  return strText;
+  }
+
   virtual bool ProcessRequest(CefRefPtr<CefRequest> request,
                               CefRefPtr<CefCallback> callback)
                               OVERRIDE {
@@ -186,10 +249,10 @@ class ClientSchemeHandler : public CefResourceHandler {
 
     bool handled = false;
 	
-    std::string url = request->GetURL();
-	char url_buf[8192] = {0};
-	UrlDecode(url.c_str(), url_buf, 8192, TRUE);
-	url = url_buf;
+    std::string path = request->GetURL();
+	WCHAR url_buf[8192] = {0};
+	UrlDecode(path.c_str(), url_buf, 8192);
+	std::wstring url = url_buf;
     /*if (strstr(url.c_str(), "index.html") != NULL) {
       // Build the response html
       data_ = "<html><head><title>Client Scheme Handler</title></head>"
@@ -225,22 +288,22 @@ class ClientSchemeHandler : public CefResourceHandler {
       }
     }*/
 
-	url = replace_all_distinct(url, "/", "\\");
-	int idx = url.rfind(".pack");
+	url = replace_all_distinct(url, L"/", L"\\");
+	int idx = url.rfind(L".pack");
 	if (idx > 0){
-		std::string file = url.substr(0, idx + 5);
+		std::wstring file = url.substr(0, idx + 5);
 		file.erase(0, 9);
-		std::string resource = removeUrlParm(url.substr(idx + 5));
+		std::wstring resource = removeUrlParm(url.substr(idx + 5));
 		//std::string win_standfile = replace_all_distinct(file, "/", "\\");
 		unsigned char* data = 0;
 		unsigned long data_len = 0;
 
 		//开始是两个\\,删除掉一个
-		if ( resource.find("\\\\") == 0 )
+		if ( resource.find(L"\\\\") == 0 )
 		{
 			resource.erase(resource.begin());
 		}
-		if (exZipFile(char2wchar(file).c_str(), char2wchar(resource).c_str(), &data, &data_len)){
+		if (exZipFile(file.c_str(), resource.c_str(), &data, &data_len)){
 			handled = true;
 			data_ = std::string(reinterpret_cast<char*>(data), data_len);
 			freeBuf(data);
@@ -249,8 +312,8 @@ class ClientSchemeHandler : public CefResourceHandler {
 		else{
 			int i = 0;
 		}
-		char ext[64] = { 0 };
-		_splitpath_s(resource.c_str(), NULL, 0, NULL, 0, NULL, 0, ext, 64);
+		WCHAR ext[64] = { 0 };
+		_wsplitpath_s(resource.c_str(), NULL, 0, NULL, 0, NULL, 0, ext, 64);
 		mime_type_ = getMimeType(ext);
 		if (mime_type_.empty())
 		{
@@ -312,7 +375,7 @@ class ClientSchemeHandler : public CefResourceHandler {
 
  private:
   std::string data_;
-  std::string mime_type_;
+  std::wstring mime_type_;
   size_t offset_;
 
   IMPLEMENT_REFCOUNTING(ClientSchemeHandler);
