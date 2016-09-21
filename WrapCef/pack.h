@@ -5,7 +5,7 @@
 extern "C" {
 #endif 
 
-extern bool __stdcall zipFile2PackFile( const char* , const char* );
+extern bool __stdcall zipFile2PackFile( const WCHAR* , const WCHAR* );
 
 extern bool __stdcall exZipFile( const WCHAR* , const WCHAR* , unsigned char ** , unsigned long *);
 
