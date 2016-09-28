@@ -957,44 +957,6 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		mouse_event.modifiers = GetCefMouseModifiers(wParam);
 		browserhost->SendMouseClickEvent(mouse_event, btnType, false,
                                      gLastClickCount);
-		//test by lincoln
-		/*{
-			static int i = 0;
-			if ( i == 0 )
-			{
-				WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
-				browser->GetBrowser()->RegPlugin(szBuf, true);
-				++i;
-			}			
-		}*/
-		/*{
-		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if (item)
-		{
-		DWORD d = item->m_provider->GetBrowser()->GetIdentifier();
-		d = 0;
-		}
-		}*/
-		/*CefString vv("data-nc");
-		browser->SendQueryElement(x, y, vv);
-		int i = 0;
-		CefRefPtr<CefProcessMessage> message =
-			CefProcessMessage::Create("invokeMethod");
-		message->GetArgumentList()->SetString(0, CefString(L"invokee"));
-		browser->GetBrowser()->SendProcessMessageEx(PID_RENDERER, message, true, -1, 666, true);*/
-
-		/*CefRefPtr<CefProcessMessage> message =
-			CefProcessMessage::Create("invokedMethod");
-		message->GetArgumentList()->SetString(0, CefString(L"invokee"));
-		CefRefPtr<CefListValue>  val;
-		BridageRender::getInst().SendRequest(browser->GetBrowser(), message, val, 60000);
-		CefString ss = val->GetString(0);
-		int i = 0;*/
-		
-		//CefString fun("fun11");
-		//CefString parm("ppaarm");
-		//browser->GetBrowser()->SendProcessDoneFunction(PID_RENDERER, fun, parm, false, false);
-		//end test by lincoln
       }
     }
     break;

@@ -824,6 +824,31 @@ private:
 	IMPLEMENT_REFCOUNTING(NativeappHandler);
 };
 
+class MyExternal : public CefV8Accessor {
+public:
+	MyExternal(CefRefPtr<CefBrowser>& browser, CefRefPtr<CefFrame>& frame) :browser_(browser), frame_(frame){}
+	virtual bool Get(const CefString& name,
+		const CefRefPtr<CefV8Value> object,
+		CefRefPtr<CefV8Value>& retval,
+		CefString& exception) OVERRIDE
+	{
+		return false;
+	}
+		virtual bool Set(const CefString& name,
+		const CefRefPtr<CefV8Value> object,
+		const CefRefPtr<CefV8Value> value,
+		CefString& exception) OVERRIDE
+	{
+		return true;
+	}
+
+private:
+	CefRefPtr<CefBrowser> browser_;
+	CefRefPtr<CefFrame> frame_;
+	ProtyMap m_map;
+	IMPLEMENT_REFCOUNTING(MyExternal);
+};
+
 class Nativeapp : public CefV8Accessor {
 public:
 	Nativeapp(CefRefPtr<CefBrowser>& browser, CefRefPtr<CefFrame>& frame) :browser_(browser), frame_(frame){}
@@ -1209,6 +1234,24 @@ public:
 					std::string url = frame->GetURL().ToString();
 					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 				}
+
+				CefRefPtr<CefV8Value> retVal;
+				CefRefPtr<CefV8Exception> excp;
+				if (frame->GetV8Context().get() && frame->GetV8Context()->Eval(CefString(L"document.title"), retVal, excp)){
+					if (retVal.get() && retVal.get()->IsString()){
+						std::wstring title = retVal->GetStringValue().ToWString();
+						std::wstring name = frame->GetName().ToWString();
+						if ( name.find(L"tabbar_f_") == 0 )
+						{
+							boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
+							val % name % title;
+							CefRefPtr<CefV8Value> retVal_tmp;
+							CefRefPtr<CefV8Exception> excp_tmp;
+							parent->GetV8Context()->CallInvokeMethod(CefString(L"invokeMethod"), CefString(L"TabBar"),
+								CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
+						}
+					}
+				}
 			}
 		}
 
@@ -1379,6 +1422,16 @@ public:
 
 		//DCHECK_EQ(context->GetGlobal()->SetValue(myfuname, myFun, attributes), true);
 		//context->GetGlobal()->SetValue(myfuname, myFun, attributes);
+
+		//增加扩展external
+		char external[] = { "external" };
+		if (!window->HasValue(CefString(external))){
+			CefRefPtr<CefV8Accessor> myExternal = new MyExternal(browser, frame);
+			//CefRefPtr<CefV8Value> Val_ext = CefV8Value::CreateString(external);
+			CefString cefException_ext;
+			CefRefPtr<CefV8Value> pObjApp_ext = CefV8Value::CreateObject(myExternal);
+			window->SetValue(external, pObjApp_ext, V8_PROPERTY_ATTRIBUTE_NONE);
+		}
 	}
 
 		//下面三个函数集中处里从主线程发送的消息
