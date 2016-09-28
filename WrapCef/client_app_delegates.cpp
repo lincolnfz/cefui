@@ -3,6 +3,7 @@
 // can be found in the LICENSE file.
 
 #include "stdafx.h"
+#include "resource.h"
 #include "client_app.h"
 #include "client_renderer.h"
 //#include "performance_test.h"
@@ -25,6 +26,7 @@
 #include "ResponseRender.h"
 #include "ShareHelper.h"
 #include "BrowserIdentifier.h"
+#include "globalTools.h"
 
 #define BROWSER_UI 0x01 
 #define BROWSER_WEB 0x02
@@ -1235,13 +1237,14 @@ public:
 					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 				}
 
+				/*
 				CefRefPtr<CefV8Value> retVal;
 				CefRefPtr<CefV8Exception> excp;
 				if (frame->GetV8Context().get() && frame->GetV8Context()->Eval(CefString(L"document.title"), retVal, excp)){
 					if (retVal.get() && retVal.get()->IsString()){
 						std::wstring title = retVal->GetStringValue().ToWString();
 						std::wstring name = frame->GetName().ToWString();
-						if ( name.find(L"tabbar_f_") == 0 )
+						if (name.find(L"tabbar_f_") == 0)
 						{
 							boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
 							val % name % title;
@@ -1251,7 +1254,49 @@ public:
 								CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
 						}
 					}
-				}
+				}*/
+
+				std::wstring name = frame->GetName().ToWString();
+				if (name.find(L"tabbar_f_") == 0)
+				{
+					//inject js
+#ifdef _DEBUG
+					WCHAR dll_name[] = { L"wrapcef_d.dll" };
+#else
+					WCHAR dll_name[] = { L"wrapcef.dll" };
+#endif
+					HRSRC   hrsc = FindResource(GetModuleHandle(dll_name), MAKEINTRESOURCE(IDR_INJECT_JS), _T("TXT"));
+					HGLOBAL hG = LoadResource(GetModuleHandle(dll_name), hrsc);
+					DWORD   dwSize = SizeofResource(NULL, hrsc);
+					char* ptr = (char*)LockResource(hG);
+					std::wstring inject_js;
+					if ( ptr )
+					{
+						inject_js = Utf82Unicode(std::string(ptr));
+						UnlockResource(hrsc);
+					}
+					if ( !inject_js.empty() )
+					{
+						inject_js.append(L";document.title");
+					}
+					else{
+						inject_js = L"document.title";
+					}
+
+					CefRefPtr<CefV8Value> retVal;
+					CefRefPtr<CefV8Exception> excp;
+					if (frame->GetV8Context().get() && frame->GetV8Context()->Eval(CefString(inject_js.c_str()), retVal, excp)){
+						if (retVal.get() && retVal.get()->IsString()){
+							std::wstring title = retVal->GetStringValue().ToWString();
+							boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
+							val % name % title;
+							CefRefPtr<CefV8Value> retVal_tmp;
+							CefRefPtr<CefV8Exception> excp_tmp;
+							parent->GetV8Context()->CallInvokeMethod(CefString(L"invokeMethod"), CefString(L"TabBar"),
+								CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
+						}
+					}
+				}//"tabbar_f_"
 			}
 		}
 

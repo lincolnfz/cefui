@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="inject.min.js" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -106,6 +107,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SpeedBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="globalTools.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -224,5 +231,13 @@
     <ClCompile Include="SpeedBox.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="globalTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WrapCef.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

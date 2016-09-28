@@ -90,6 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="inject.min.js" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -105,9 +106,11 @@
     <ClInclude Include="client_renderer.h" />
     <ClInclude Include="client_switches.h" />
     <ClInclude Include="detectProcess.h" />
+    <ClInclude Include="globalTools.h" />
     <ClInclude Include="MainProcQueue.h" />
     <ClInclude Include="NormalWebFactory.h" />
     <ClInclude Include="osrenderer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="ResponseHandle.h" />
     <ClInclude Include="ResponseRender.h" />
     <ClInclude Include="ResponseUI.h" />
@@ -155,6 +158,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="globalTools.cpp" />
     <ClCompile Include="IPC.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -191,6 +195,9 @@
     <ClCompile Include="WebkitEcho.cpp" />
     <ClCompile Include="WebViewFactory.cpp" />
     <ClCompile Include="WrapCef.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WrapCef.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
