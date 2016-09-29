@@ -1237,6 +1237,25 @@ public:
 					call_FrameStateChanged(parent, frameNam.c_str(), url.c_str(), httpStatusCode, false);
 				}
 
+				/*
+				CefRefPtr<CefV8Value> retVal;
+				CefRefPtr<CefV8Exception> excp;
+				if (frame->GetV8Context().get() && frame->GetV8Context()->Eval(CefString(L"document.title"), retVal, excp)){
+					if (retVal.get() && retVal.get()->IsString()){
+						std::wstring title = retVal->GetStringValue().ToWString();
+						std::wstring name = frame->GetName().ToWString();
+						if (name.find(L"tabbar_f_") == 0)
+						{
+							boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
+							val % name % title;
+							CefRefPtr<CefV8Value> retVal_tmp;
+							CefRefPtr<CefV8Exception> excp_tmp;
+							parent->GetV8Context()->CallInvokeMethod(CefString(L"invokeMethod"), CefString(L"TabBar"),
+								CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
+						}
+					}
+				}*/
+
 				std::wstring name = frame->GetName().ToWString();
 				if (name.find(L"tabbar_f_") == 0)
 				{
@@ -1281,6 +1300,7 @@ public:
 		}
 
 
+		/*
 		//inject js
 		std::wstring name = frame->GetName().ToWString();
 		std::wstring url = frame->GetURL().ToWString();
@@ -1302,6 +1322,7 @@ public:
 
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		ipc->AsyncRequest(browser, parm);//异步请求注入
+		*/
 		
 		/*
 		//同步请求注入,如果要在OnDocumentLoadedInFrame注入js，不建议使用同步
