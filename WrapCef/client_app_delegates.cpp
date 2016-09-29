@@ -1267,7 +1267,6 @@ public:
 #endif
 					HRSRC   hrsc = FindResource(GetModuleHandle(dll_name), MAKEINTRESOURCE(IDR_INJECT_JS), _T("TXT"));
 					HGLOBAL hG = LoadResource(GetModuleHandle(dll_name), hrsc);
-					DWORD   dwSize = SizeofResource(NULL, hrsc);
 					char* ptr = (char*)LockResource(hG);
 					std::wstring inject_js;
 					if ( ptr )
