@@ -1420,6 +1420,17 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 	return ret;
 }
 
+bool ClientHandler::initiativeInjectJS(const WCHAR* js)
+{
+	int ret = true;
+	cyjh::Instruct parm;
+	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+	parm.getList().AppendVal(std::wstring(js));
+	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+	ipc->AsyncRequest(this->browser_, parm);
+	return ret;
+}
+
 bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstring& val)
 {
 	bool ret = false;

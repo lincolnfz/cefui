@@ -46,6 +46,7 @@ public:
 	void AdjustRenderSpeed( const double& dbSpeed);
 	void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
 	void InitLoadUrl();
+	bool InjectJS(const WCHAR* js);
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;

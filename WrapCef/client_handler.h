@@ -333,6 +333,8 @@ class ClientHandler : public CefClient,
 
   void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
 
+  bool initiativeInjectJS(const WCHAR* js);
+
   //一个handler可以容纳很多browser
   CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd);
 

@@ -54,6 +54,8 @@ public:
 
 	void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp);
 
+	bool InjectJS(const HWND& hwnd, const WCHAR* js);
+
 protected:
 	NormalWebFactory();
 	static NormalWebFactory s_inst;

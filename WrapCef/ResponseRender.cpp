@@ -62,6 +62,7 @@ ResponseRender::ResponseRender()
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_injectJS);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_asyncInvokedJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_AdjustRenderSpeed);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_initiativeInjectJS);
 }
 
 
@@ -393,4 +394,26 @@ bool ResponseRender::rsp_AdjustRenderSpeed(const CefRefPtr<CefBrowser> browser,
 		//OutputDebugString(_T("------------------ClientResponse::rsp_AdjustFlashSpeed enable "));
 	}
 	return true;
+}
+
+bool ResponseRender::rsp_initiativeInjectJS(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool ret = true;
+	CefString cefjs(req_parm->getList().GetWStrVal(0));
+	std::vector<int64> ids;
+	browser->GetFrameIdentifiers(ids);
+	int size = ids.size();
+	for (int i = 0; i < size; ++i)
+	{
+		CefRefPtr<CefFrame> frame = browser->GetFrame(ids[i]);
+		CefRefPtr<CefV8Value> retVal;
+		CefRefPtr<CefV8Exception> excp;
+		if ( frame.get() && frame->GetV8Context().get() )
+		{
+			frame->GetV8Context()->Eval(cefjs, retVal, excp);
+		}
+	}
+
+	return ret;
 }

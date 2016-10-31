@@ -217,7 +217,10 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void ClearBrowserData(int combType);
 
-	SHARED_EXPORT_API void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp);	
+	SHARED_EXPORT_API void SendMouseClickEvent(const HWND& hWnd, const unsigned int& msg, const long& wp, const long& lp);
+
+	//×¢Èë½Å±¾
+	SHARED_EXPORT_API void InjectJS(const HWND& hwnd, const WCHAR* js);
 
 	class CChromeiumBrowserControl;
 

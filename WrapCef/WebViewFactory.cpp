@@ -240,6 +240,18 @@ void WebViewFactory::ClearData(int compType)
 
 }
 
+bool WebViewFactory::InjectJS(const HWND& hwnd, const WCHAR* js)
+{
+	bool bret = false;
+	CefRefPtr<WebItem> item = FindItem(hwnd);
+	if ( item.get() )
+	{
+		item->m_handle->initiativeInjectJS(js);
+		bret = true;
+	}
+	return bret;
+}
+
 CefRefPtr<CefBrowser> WebViewFactory::GetBrowserByHwnd(const HWND& hWnd)
 {
 	CefRefPtr<CefBrowser> ptr;

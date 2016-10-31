@@ -253,6 +253,16 @@ bool ChromeiumBrowserControl::asyncInvokedJSMethod(const char* utf8_module, cons
 	return ret;
 }
 
+bool ChromeiumBrowserControl::InjectJS(const WCHAR* js)
+{
+	bool ret = false;
+	if (m_handler.get() && m_handler->GetBrowser().get())
+	{
+		ret = m_handler->initiativeInjectJS(js);
+	}
+	return ret;
+}
+
 void ChromeiumBrowserControl::AdjustRenderSpeed(const double& dbSpeed)
 {
 	if (m_handler.get() && m_handler->GetBrowser().get())

@@ -202,6 +202,8 @@ public:
 
 	void ClearData(int compType);
 
+	bool InjectJS(const HWND& hwnd, const WCHAR* js);
+
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;

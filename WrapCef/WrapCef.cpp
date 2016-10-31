@@ -740,6 +740,22 @@ namespace wrapQweb{
 		NormalWebFactory::getInstance().SendMouseClickEvent(hWnd, msg, wp, lp);
 	}
 
+	void InjectJavaScriptHelp(HWND hWnd, std::shared_ptr<std::wstring> jsPtr)
+	{
+		if ( !WebViewFactory::getInstance().InjectJS(hWnd, jsPtr->c_str() ) )
+		{
+			NormalWebFactory::getInstance().InjectJS(hWnd, jsPtr->c_str());
+		}
+	}
+
+	void InjectJS(const HWND& hwnd, const WCHAR* js)
+	{
+		//if (!CefCurrentlyOn(TID_UI)){
+		//}
+		std::shared_ptr<std::wstring> jsPtr(new std::wstring(js));
+		CefPostTask(TID_UI, base::Bind(&InjectJavaScriptHelp, hwnd, jsPtr));
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

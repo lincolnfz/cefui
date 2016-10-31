@@ -252,3 +252,18 @@ void NormalWebFactory::SendMouseClickEvent(const HWND& hWnd, const unsigned int&
 		}
 	}
 }
+
+bool NormalWebFactory::InjectJS(const HWND& hwnd, const WCHAR* js)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get())
+		{
+			it->second->getBrowser()->InjectJS(js);
+		}
+		bret = true;
+	}
+	return bret;
+}
