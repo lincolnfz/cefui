@@ -61,7 +61,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WRAPCEF_EXPORTS;_DEBUG1;_WITH_DEV_CONTROL_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WRAPCEF_EXPORTS;_DEBUG1;_WITH_DEV_CONTROL_;CEF_USE_ATL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -78,7 +78,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WRAPCEF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;WRAPCEF_EXPORTS;CEF_USE_ATL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -99,7 +99,9 @@
     <ClInclude Include="BridageHost.h" />
     <ClInclude Include="BridageRender.h" />
     <ClInclude Include="BrowserIdentifier.h" />
+    <ClInclude Include="bytes_write_handler.h" />
     <ClInclude Include="cefclient.h" />
+    <ClInclude Include="cefclient_osr_dragdrop_win.h" />
     <ClInclude Include="cefclient_osr_widget_win.h" />
     <ClInclude Include="client_app.h" />
     <ClInclude Include="client_handler.h" />
@@ -133,7 +135,15 @@
     <ClCompile Include="BridageHost.cpp" />
     <ClCompile Include="BridageRender.cpp" />
     <ClCompile Include="BrowserIdentifier.cpp" />
+    <ClCompile Include="bytes_write_handler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="cefclient.cpp" />
+    <ClCompile Include="cefclient_osr_dragdrop_win.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="cefclient_osr_widget_win.cpp" />
     <ClCompile Include="cjpickle.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>

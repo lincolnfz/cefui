@@ -7,7 +7,7 @@
 #pragma once
 
 #include "include/cef_render_handler.h"
-//#include "cefclient/cefclient_osr_dragdrop_win.h" //modi by lincoln
+#include "cefclient_osr_dragdrop_win.h" //modi by lincoln
 #include "client_handler.h"
 #include "osrenderer.h"
 #include "TipWin.h"

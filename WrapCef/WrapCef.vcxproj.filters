@@ -115,6 +115,12 @@
     <ClInclude Include="globalTools.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cefclient_osr_dragdrop_win.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="bytes_write_handler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -232,6 +238,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="globalTools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cefclient_osr_dragdrop_win.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="bytes_write_handler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
