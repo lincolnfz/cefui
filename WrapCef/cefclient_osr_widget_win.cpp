@@ -517,6 +517,11 @@ void OSRWindow::OnCursorChange(CefRefPtr<CefBrowser> browser,
 
 bool OSRWindow::StartDragging(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefDragData> drag_data,
+							   void* hbitmap,
+							   int imgcx,
+							   int imgcy,
+							   int imgx,
+							   int imgy,
                                CefRenderHandler::DragOperationsMask allowed_ops,
                                int x, int y) {
 #if defined(CEF_USE_ATL)
@@ -524,7 +529,7 @@ bool OSRWindow::StartDragging(CefRefPtr<CefBrowser> browser,
     return false;
   current_drag_op_ = DRAG_OPERATION_NONE;
   CefBrowserHost::DragOperationsMask result =
-      drop_target_->StartDragging(browser, drag_data, allowed_ops, x, y);
+      drop_target_->StartDragging(browser, drag_data, hbitmap, imgcx, imgcy, imgx, imgy, allowed_ops, x, y);
   current_drag_op_ = DRAG_OPERATION_NONE;
   POINT pt = {};
   GetCursorPos(&pt);

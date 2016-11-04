@@ -17,6 +17,8 @@
 #include <atlcomcli.h>
 #include <objidl.h>
 #include <stdio.h>
+//#include <ShlObj.h>			// Shell data objects
+//#include <ShObjIdl.h>		// IDragSourceHelper2 interface
 
 #include "dragdrop_events.h"
 
@@ -51,6 +53,8 @@
 
 // Windows interface.
 struct IDropTargetHelper;
+struct IDragSourceHelper;
+
 
 class DropTargetWin : public IDropTarget {
  public:
@@ -59,6 +63,11 @@ class DropTargetWin : public IDropTarget {
   CefBrowserHost::DragOperationsMask StartDragging(
       CefRefPtr<CefBrowser> browser,
       CefRefPtr<CefDragData> drag_data,
+	  void* hbitmap,
+	  int imgcx,
+	  int imgcy,
+	  int imgx,
+	  int imgy,
       CefRenderHandler::DragOperationsMask allowed_ops,
       int x, int y);
 
@@ -97,6 +106,9 @@ class DropTargetWin : public IDropTarget {
 
   static IDropTargetHelper* DropHelper();
   static IDropTargetHelper* cached_drop_target_helper_;
+
+  static IDragSourceHelper* DragHelper();
+  static IDragSourceHelper* cached_drag_source_helper_;
 };
 
 class DropSourceWin : public IDropSource {
@@ -175,6 +187,32 @@ class DataObjectWin : public IDataObject {
 
   DEFAULT_QUERY_INTERFACE(IDataObject)
   IUNKNOWN_IMPLEMENTATION()
+
+protected:
+
+	// Our internal representation of stored data & type info.
+	struct StoredDataInfo
+	{
+		FORMATETC format_etc;
+		STGMEDIUM* medium;
+		bool owns_medium;
+
+		StoredDataInfo(const FORMATETC& format_etc, STGMEDIUM* medium)
+			: format_etc(format_etc), medium(medium), owns_medium(true) {}
+
+		~StoredDataInfo() {
+			if (owns_medium) {
+				ReleaseStgMedium(medium);
+				delete medium;
+			}
+		}
+	};
+
+	typedef std::vector<StoredDataInfo*> StoredData;
+	StoredData contents_;
+
+	// Removes from contents_ the first data that matches |format|.
+	void RemoveData(const FORMATETC& format);
 
  protected:
   int m_nNumFormats;

@@ -1048,13 +1048,18 @@ void ClientHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
 
 bool ClientHandler::StartDragging(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefDragData> drag_data,
+	void* hbitmap,
+	int imgcx,
+	int imgcy,
+	int imgx,
+	int imgy,
     CefRenderHandler::DragOperationsMask allowed_ops,
     int x, int y) {
   CEF_REQUIRE_UI_THREAD();
   CefRefPtr<OSRWindow> osr_handler = WebViewFactory::getInstance().getWindowByID(browser->GetIdentifier());
   if (!osr_handler.get())
     return false;
-  return osr_handler->StartDragging(browser, drag_data, allowed_ops, x, y);
+  return osr_handler->StartDragging(browser, drag_data, hbitmap, imgcx, imgcy, imgx, imgy, allowed_ops, x, y);
 }
 
 void ClientHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser,

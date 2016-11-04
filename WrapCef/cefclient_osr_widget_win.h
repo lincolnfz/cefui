@@ -84,6 +84,11 @@ class OSRWindow : public ClientHandler::RenderHandler
                               const CefCursorInfo& custom_cursor_info) OVERRIDE;
   virtual bool StartDragging(CefRefPtr<CefBrowser> browser,
                              CefRefPtr<CefDragData> drag_data,
+							 void* hbitmap,
+							 int imgcx,
+							 int imgcy,
+							 int imgx,
+							 int imgy,
                              CefRenderHandler::DragOperationsMask allowed_ops,
                              int x, int y) OVERRIDE;
 

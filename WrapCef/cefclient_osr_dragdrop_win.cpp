@@ -358,6 +358,7 @@ CefRefPtr<CefDragData> DataObjectToDragData(IDataObject* data_object) {
 }  // namespace
 
 IDropTargetHelper* DropTargetWin::cached_drop_target_helper_ = NULL;
+IDragSourceHelper* DropTargetWin::cached_drag_source_helper_ = NULL;
 
 // static
 IDropTargetHelper* DropTargetWin::DropHelper() {
@@ -367,6 +368,18 @@ IDropTargetHelper* DropTargetWin::DropHelper() {
 			reinterpret_cast<void**>(&cached_drop_target_helper_));
 	}
 	return cached_drop_target_helper_;
+}
+
+//static
+IDragSourceHelper* DropTargetWin::DragHelper()
+{
+	HRESULT hr;
+	if (!cached_drag_source_helper_) {
+		hr = CoCreateInstance(CLSID_DragDropHelper, 0, CLSCTX_INPROC_SERVER,
+			IID_IDragSourceHelper,
+			reinterpret_cast<void**>(&cached_drag_source_helper_));
+	}
+	return cached_drag_source_helper_;
 }
 
 CComPtr<DropTargetWin> DropTargetWin::Create(DragEvents* callback, HWND hWnd) {
@@ -402,11 +415,29 @@ HRESULT DropTargetWin::DragEnter(IDataObject* data_object,
 CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefDragData> drag_data,
+	void* hbitmap,
+	int imgcx,
+	int imgcy,
+	int imgx,
+	int imgy,
     CefRenderHandler::DragOperationsMask allowed_ops,
     int x, int y) {
   CComPtr<IDataObject> dataObject;
   DWORD resEffect = DROPEFFECT_NONE;
   if (DragDataToDataObject(drag_data, &dataObject)) {
+	  IDragSourceHelper* sourceHelper = DragHelper();
+	HRESULT hr;
+	if (sourceHelper)
+	{
+		SHDRAGIMAGE sdi;
+		SIZE img_size{ imgcx, imgcy };
+		sdi.sizeDragImage = img_size;
+		sdi.crColorKey = 0xFFFFFFFF;
+		sdi.hbmpDragImage = (HBITMAP)hbitmap;
+		POINT img_pt{imgx, imgy};
+		sdi.ptOffset = img_pt;
+		hr = sourceHelper->InitializeFromBitmap(&sdi, dataObject);
+	}
     CComPtr<IDropSource> dropSource = DropSourceWin::Create();
     DWORD effect = DragOperationToDropEffect(allowed_ops);
     current_drag_data_ = drag_data->Clone();
@@ -578,6 +609,69 @@ void DragEnumFormatEtc::DeepCopyFormatEtc(FORMATETC* dest, FORMATETC* source) {
   }
 }
 
+
+static void DuplicateMedium(CLIPFORMAT source_clipformat,
+	STGMEDIUM* source,
+	STGMEDIUM* destination) {
+	switch (source->tymed) {
+	case TYMED_HGLOBAL:
+		destination->hGlobal =
+			static_cast<HGLOBAL>(OleDuplicateData(
+			source->hGlobal, source_clipformat, 0));
+		break;
+	case TYMED_MFPICT:
+		destination->hMetaFilePict =
+			static_cast<HMETAFILEPICT>(OleDuplicateData(
+			source->hMetaFilePict, source_clipformat, 0));
+		break;
+	case TYMED_GDI:
+		destination->hBitmap =
+			static_cast<HBITMAP>(OleDuplicateData(
+			source->hBitmap, source_clipformat, 0));
+		break;
+	case TYMED_ENHMF:
+		destination->hEnhMetaFile =
+			static_cast<HENHMETAFILE>(OleDuplicateData(
+			source->hEnhMetaFile, source_clipformat, 0));
+		break;
+	case TYMED_FILE:
+		destination->lpszFileName =
+			static_cast<LPOLESTR>(OleDuplicateData(
+			source->lpszFileName, source_clipformat, 0));
+		break;
+	case TYMED_ISTREAM:
+		destination->pstm = source->pstm;
+		destination->pstm->AddRef();
+		break;
+	case TYMED_ISTORAGE:
+		destination->pstg = source->pstg;
+		destination->pstg->AddRef();
+		break;
+	}
+
+	destination->tymed = source->tymed;
+	destination->pUnkForRelease = source->pUnkForRelease;
+	if (destination->pUnkForRelease)
+		destination->pUnkForRelease->AddRef();
+}
+
+
+void DataObjectWin::RemoveData(const FORMATETC& format) {
+	if (format.ptd)
+		return;  // Don't attempt to compare target devices.
+
+	for (StoredData::iterator i = contents_.begin(); i != contents_.end(); ++i) {
+		if (!(*i)->format_etc.ptd &&
+			format.cfFormat == (*i)->format_etc.cfFormat &&
+			format.dwAspect == (*i)->format_etc.dwAspect &&
+			format.lindex == (*i)->format_etc.lindex &&
+			format.tymed == (*i)->format_etc.tymed) {
+			contents_.erase(i);
+			return;
+		}
+	}
+}
+
 CComPtr<DataObjectWin> DataObjectWin::Create(FORMATETC* fmtetc,
                                              STGMEDIUM* stgmed,
                                              int count) {
@@ -601,7 +695,27 @@ HRESULT DataObjectWin::GetCanonicalFormatEtc(FORMATETC* pFormatEct,
 HRESULT DataObjectWin::SetData(FORMATETC* pFormatEtc,
                                STGMEDIUM* pMedium,
                                BOOL fRelease) {
-  return E_NOTIMPL;
+
+	RemoveData(*pFormatEtc);
+
+	STGMEDIUM* local_medium = new STGMEDIUM;
+	if (fRelease) {
+		*local_medium = *pMedium;
+	}
+	else {
+		DuplicateMedium(pFormatEtc->cfFormat, pMedium, local_medium);
+	}
+
+	StoredDataInfo* info =
+		new StoredDataInfo(*pFormatEtc, local_medium);
+	info->medium->tymed = pFormatEtc->tymed;
+	info->owns_medium = !!fRelease;
+	// Make newly added data appear first.
+	// TODO(dcheng): Make various setters agree whether elements should be
+	// prioritized from front to back or back to front.
+	contents_.insert(contents_.begin(), info);
+	return S_OK;
+  //return E_NOTIMPL;
 }
 
 HRESULT DataObjectWin::DAdvise(FORMATETC* pFormatEtc,
