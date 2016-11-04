@@ -49,6 +49,8 @@
   protected: \
   ULONG ref_count_;
 
+// Windows interface.
+struct IDropTargetHelper;
 
 class DropTargetWin : public IDropTarget {
  public:
@@ -92,6 +94,9 @@ class DropTargetWin : public IDropTarget {
   HWND hWnd_;
 
   CefRefPtr<CefDragData> current_drag_data_;
+
+  static IDropTargetHelper* DropHelper();
+  static IDropTargetHelper* cached_drop_target_helper_;
 };
 
 class DropSourceWin : public IDropSource {

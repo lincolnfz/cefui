@@ -357,6 +357,17 @@ CefRefPtr<CefDragData> DataObjectToDragData(IDataObject* data_object) {
 
 }  // namespace
 
+IDropTargetHelper* DropTargetWin::cached_drop_target_helper_ = NULL;
+
+// static
+IDropTargetHelper* DropTargetWin::DropHelper() {
+	if (!cached_drop_target_helper_) {
+		CoCreateInstance(CLSID_DragDropHelper, 0, CLSCTX_INPROC_SERVER,
+			IID_IDropTargetHelper,
+			reinterpret_cast<void**>(&cached_drop_target_helper_));
+	}
+	return cached_drop_target_helper_;
+}
 
 CComPtr<DropTargetWin> DropTargetWin::Create(DragEvents* callback, HWND hWnd) {
   return CComPtr<DropTargetWin>(new DropTargetWin(callback, hWnd));
@@ -369,10 +380,18 @@ HRESULT DropTargetWin::DragEnter(IDataObject* data_object,
   if (!callback_)
     return E_UNEXPECTED;
 
+  HRESULT hr;
+  IDropTargetHelper* drop_helper = DropHelper();
+  if (drop_helper) {
+	  hr = drop_helper->DragEnter(hWnd_, data_object,
+		  reinterpret_cast<POINT*>(&cursor_position), *effect);
+  }
+
   CefRefPtr<CefDragData> drag_data = current_drag_data_;
   if (!drag_data) {
     drag_data = DataObjectToDragData(data_object);
   }
+
   CefMouseEvent ev = ToMouseEvent(cursor_position, key_state, hWnd_);
   CefBrowserHost::DragOperationsMask mask = DropEffectToDragOperation(*effect);
   mask = callback_->OnDragEnter(drag_data, ev, mask);
@@ -405,6 +424,12 @@ HRESULT DropTargetWin::DragOver(DWORD key_state,
                                 DWORD* effect) {
   if (!callback_)
     return E_UNEXPECTED;
+
+  // Tell the helper that we moved over it so it can update the drag image.
+  IDropTargetHelper* drop_helper = DropHelper();
+  if (drop_helper)
+	  drop_helper->DragOver(reinterpret_cast<POINT*>(&cursor_position), *effect);
+
   CefMouseEvent ev = ToMouseEvent(cursor_position, key_state, hWnd_);
   CefBrowserHost::DragOperationsMask mask = DropEffectToDragOperation(*effect);
   mask = callback_->OnDragOver(ev, mask);
@@ -415,6 +440,11 @@ HRESULT DropTargetWin::DragOver(DWORD key_state,
 HRESULT DropTargetWin::DragLeave() {
   if (!callback_)
     return E_UNEXPECTED;
+
+  IDropTargetHelper* drop_helper = DropHelper();
+  if (drop_helper)
+	  drop_helper->DragLeave();
+
   callback_->OnDragLeave();
   return S_OK;
 }
@@ -425,6 +455,13 @@ HRESULT DropTargetWin::Drop(IDataObject* data_object,
                             DWORD* effect) {
   if (!callback_)
     return E_UNEXPECTED;
+
+  IDropTargetHelper* drop_helper = DropHelper();
+  if (drop_helper) {
+	  drop_helper->Drop(data_object,
+		  reinterpret_cast<POINT*>(&cursor_position), *effect);
+  }
+
   CefMouseEvent ev = ToMouseEvent(cursor_position, key_state, hWnd_);
   CefBrowserHost::DragOperationsMask mask = DropEffectToDragOperation(*effect);
   mask = callback_->OnDrop(ev, mask);
