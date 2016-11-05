@@ -408,7 +408,9 @@ namespace wrapQweb{
 	CefRefPtr<ClientApp> g_app;
 	HINSTANCE g_hInstance = 0;
 
-	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender, WCHAR* szLocal)
+	typedef void(*cb_SetSharePluginModule)(bool);
+
+	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender, WCHAR* szLocal, bool bShareNPPlugin)
 	{
 		g_hInstance = hInstance;
 #if defined(CEF_USE_SANDBOX)
@@ -465,6 +467,12 @@ namespace wrapQweb{
 
 		// Register the scheme handler.
 		scheme_test::InitTest();
+
+		cb_SetSharePluginModule fun = (cb_SetSharePluginModule)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "SetSharePluginModule");
+		if (fun)
+		{
+			fun(bShareNPPlugin);
+		}
 
 		return exit_code;
 	}
