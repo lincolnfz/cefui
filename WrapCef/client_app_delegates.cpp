@@ -1300,8 +1300,8 @@ public:
 		}
 
 
-		
-		//inject js
+		/*
+		//get inject js
 		std::wstring name = frame->GetName().ToWString();
 		std::wstring url = frame->GetURL().ToWString();
 		std::wstring mainurl;
@@ -1322,7 +1322,7 @@ public:
 
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
 		ipc->AsyncRequest(browser, parm);//异步请求注入
-		
+		*/
 		
 		/*
 		//同步请求注入,如果要在OnDocumentLoadedInFrame注入js，不建议使用同步

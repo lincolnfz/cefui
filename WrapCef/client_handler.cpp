@@ -777,7 +777,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		mainUrl = browser->GetMainFrame()->GetURL().ToWString();
 	}
 	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
-	/*if (fun && IsWindow(hWnd))
+	if (fun && IsWindow(hWnd))
 	{
 		bCallInjectJS = true;
 		fun->nativeFrameComplate(hWnd, url.c_str(), name.c_str());
@@ -819,7 +819,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 				}
 			}
 		}
-	}*/
+	}
 
 
 	if (frame->IsMain()){
