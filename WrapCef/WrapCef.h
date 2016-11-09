@@ -22,6 +22,17 @@ struct WRAP_CEF_MENU_COMMAND
 
 namespace wrapQweb {
 
+	#define REMOVE_DATA_MASK_APPCACHE  1 << 0
+	#define REMOVE_DATA_MASK_COOKIES 1 << 1
+	#define REMOVE_DATA_MASK_FILE_SYSTEMS 1 << 2
+	#define REMOVE_DATA_MASK_INDEXEDDB  1 << 3
+	#define REMOVE_DATA_MASK_LOCAL_STORAGE 1 << 4
+	#define REMOVE_DATA_MASK_SHADER_CACHE 1 << 5
+	#define REMOVE_DATA_MASK_WEBSQL 1 << 6
+	#define REMOVE_DATA_MASK_WEBRTC_IDENTITY 1 << 7
+	#define REMOVE_DATA_MASK_SERVICE_WORKERS 1 << 8
+	#define REMOVE_DATA_MASK_ALL  0xFFFFFFFF
+
 	typedef long(__stdcall *call_closeWindow)(HWND hWnd);
 
 	typedef long(__stdcall *call_setWindowPos)(HWND hWnd, long order, long x, long y, long cx, long cy , long flag);
