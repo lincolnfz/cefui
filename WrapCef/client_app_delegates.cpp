@@ -10,6 +10,7 @@
 #include "scheme_test.h"
 #include "BridageHost.h"
 
+#include <regex>
 #include <boost/functional/hash.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
@@ -1299,6 +1300,58 @@ public:
 			}
 		}
 
+		if (browserType == BROWSER_WEB){
+			if (frame->IsMain()){
+				std::wstring shout_icon;
+				CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+				if (v8.get())
+				{
+					//»ñÈ¡ÍøÕ¾Í¼±ê
+					std::string strJS = "document.head.innerHTML";
+					CefRefPtr<CefV8Value> retVal;
+					CefRefPtr<CefV8Exception> excp;
+					v8->Eval(CefString(strJS.c_str()), retVal, excp);
+					std::wstring html = retVal->GetStringValue().ToWString();
+
+					WCHAR szPat[] = L"<link\\s*\\S*\\s*rel=\"\\s*\\S*\\s*icon\\s*\\S*\\s*\"\\s*\\S*[\\s*$]";
+					WCHAR szHref[] = L"href=\"\\s*\\S+\\s*\"";
+					WCHAR szVal[] = L"\"\\s*\\S+\\s*\"";
+					std::tr1::wregex pattern(szPat, std::regex::icase);
+					std::wsmatch result;
+					if (std::regex_search(html, result, pattern)){
+						std::wssub_match base_sub_match = result[0];
+						std::wstring temp = base_sub_match.str();
+						std::tr1::wregex pattern2(szHref, std::regex::icase);
+						std::wsmatch result2;
+						if ( std::regex_search(temp, result2, pattern2) )
+						{
+							std::wssub_match base_sub_match = result2[0];
+							std::wstring temp3 = base_sub_match.str();
+							std::tr1::wregex pattern3(szVal, std::regex::icase);
+							std::wsmatch result3;
+							if (std::regex_search(temp3, result3, pattern3))
+							{
+								std::wssub_match base_sub_match = result3[0];
+								shout_icon = base_sub_match.str();
+								if ( shout_icon.size() > 2 )
+								{
+									shout_icon.erase(shout_icon.size()-1);
+									shout_icon.erase(shout_icon.begin());
+								}
+								else{
+									shout_icon.clear();
+								}
+							}
+						}
+					}
+					
+				}
+				cyjh::Instruct parm;
+				parm.setName("siteicon");
+				CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+				//ipc->AsyncRequest(browser, parm);
+			}
+		}
 
 		/*
 		//get inject js
