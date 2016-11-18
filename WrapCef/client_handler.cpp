@@ -784,7 +784,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 
 		//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入,
 		//OnDocumentLoadedInFrame注入暂不用
-		const WCHAR* js = fun->injectJS(hWnd, url.c_str(), mainUrl.c_str(), name.c_str());
+		/*const WCHAR* js = fun->injectJS(hWnd, url.c_str(), mainUrl.c_str(), name.c_str());
 		if (js && wcslen(js) > 0)
 		{
 			cyjh::Instruct parm;
@@ -794,12 +794,12 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 
 			CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 			ipc->AsyncRequest(browser, parm);
-		}
+		}*/
 	}
 
 	//脚本统一放在 渲染模块 OnDocumentLoadedInFrame 注入
 	//OnDocumentLoadedInFrame注入暂不用
-	if (!bCallInjectJS)
+	/*if (!bCallInjectJS)
 	{
 		CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 		if (control.get())
@@ -819,7 +819,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 				}
 			}
 		}
-	}
+	}*/
 
 
 	if (frame->IsMain()){

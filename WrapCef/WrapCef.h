@@ -80,6 +80,8 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_LoadError)(const HWND&, const int& errcode, const WCHAR* frameName, const WCHAR* url);
 
+	typedef void(__stdcall *call_onDocLoaded)(const HWND&, const WCHAR* url, const WCHAR* frameName, const bool& bMainFrame);
+
 	typedef struct _FunMap{
 		call_closeWindow closeWindow;
 		call_setWindowPos setWindowPos;
@@ -181,6 +183,10 @@ namespace wrapQweb {
 
 	typedef void(__stdcall *call_WebkitBeforeClose)(const int& id);
 
+	typedef void(__stdcall *call_WebkitDocLoaded)(const int& id, const WCHAR* url, const WCHAR* frameName, const bool& bMainFrame);
+
+	typedef void(__stdcall *call_WebkitSiteIcon)(const int& id, const WCHAR* main_url, const WCHAR* icon_url);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -195,6 +201,8 @@ namespace wrapQweb {
 		call_WebkitAsyncCallMethod webkitAsyncCallMethod;
 		call_WebkitPluginCrash webkitPluginCrash;
 		call_WebkitBeforeClose webkitBeforeClose;
+		call_WebkitDocLoaded webkitDocLoaded;
+		call_WebkitSiteIcon webkitSiteIcon;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

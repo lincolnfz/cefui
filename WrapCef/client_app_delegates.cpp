@@ -1215,11 +1215,16 @@ public:
 	virtual void OnDocumentLoadedInFrame(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, int httpStatusCode){
 
+		std::wstring mainurl;
+		if (browser.get() && browser->GetMainFrame().get()){
+			mainurl = browser->GetMainFrame()->GetURL().ToWString();
+		}
+
 		int browserType = BrowserIdentifier::GetInst().GetType(browser->GetIdentifier());
 		if (browserType == BROWSER_UI)
 		{
 			//if (BrowserIdentifier::GetInst().GetType(browser->GetIdentifier()) != 1){
-				//只注入主ui界面
+			//只注入主ui界面
 			//	return;
 			//}
 
@@ -1242,19 +1247,19 @@ public:
 				CefRefPtr<CefV8Value> retVal;
 				CefRefPtr<CefV8Exception> excp;
 				if (frame->GetV8Context().get() && frame->GetV8Context()->Eval(CefString(L"document.title"), retVal, excp)){
-					if (retVal.get() && retVal.get()->IsString()){
-						std::wstring title = retVal->GetStringValue().ToWString();
-						std::wstring name = frame->GetName().ToWString();
-						if (name.find(L"tabbar_f_") == 0)
-						{
-							boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
-							val % name % title;
-							CefRefPtr<CefV8Value> retVal_tmp;
-							CefRefPtr<CefV8Exception> excp_tmp;
-							parent->GetV8Context()->CallInvokeMethod(CefString(L"invokeMethod"), CefString(L"TabBar"),
-								CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
-						}
-					}
+				if (retVal.get() && retVal.get()->IsString()){
+				std::wstring title = retVal->GetStringValue().ToWString();
+				std::wstring name = frame->GetName().ToWString();
+				if (name.find(L"tabbar_f_") == 0)
+				{
+				boost::wformat val(L"{\"frameid\":\"%1%\", \"title\":\"%2%\"}");
+				val % name % title;
+				CefRefPtr<CefV8Value> retVal_tmp;
+				CefRefPtr<CefV8Exception> excp_tmp;
+				parent->GetV8Context()->CallInvokeMethod(CefString(L"invokeMethod"), CefString(L"TabBar"),
+				CefString(L"TitleChanged"), CefString(std::wstring(val.str())), true, retVal_tmp, excp_tmp);
+				}
+				}
 				}*/
 
 				std::wstring name = frame->GetName().ToWString();
@@ -1270,12 +1275,12 @@ public:
 					HGLOBAL hG = LoadResource(GetModuleHandle(dll_name), hrsc);
 					char* ptr = (char*)LockResource(hG);
 					std::wstring inject_js;
-					if ( ptr )
+					if (ptr)
 					{
 						inject_js = Utf82Unicode(std::string(ptr));
 						UnlockResource(hrsc);
 					}
-					if ( !inject_js.empty() )
+					if (!inject_js.empty())
 					{
 						inject_js.append(L";document.title");
 					}
@@ -1300,9 +1305,11 @@ public:
 			}
 		}
 
-		if (browserType == BROWSER_WEB){
+		std::wstring shout_icon;
+		if (browserType == BROWSER_WEB)
+		{
 			if (frame->IsMain()){
-				std::wstring shout_icon;
+				//std::wstring shout_icon;
 				CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
 				if (v8.get())
 				{
@@ -1323,7 +1330,7 @@ public:
 						std::wstring temp = base_sub_match.str();
 						std::tr1::wregex pattern2(szHref, std::regex::icase);
 						std::wsmatch result2;
-						if ( std::regex_search(temp, result2, pattern2) )
+						if (std::regex_search(temp, result2, pattern2))
 						{
 							std::wssub_match base_sub_match = result2[0];
 							std::wstring temp3 = base_sub_match.str();
@@ -1333,9 +1340,9 @@ public:
 							{
 								std::wssub_match base_sub_match = result3[0];
 								shout_icon = base_sub_match.str();
-								if ( shout_icon.size() > 2 )
+								if (shout_icon.size() > 2)
 								{
-									shout_icon.erase(shout_icon.size()-1);
+									shout_icon.erase(shout_icon.size() - 1);
 									shout_icon.erase(shout_icon.begin());
 								}
 								else{
@@ -1344,62 +1351,70 @@ public:
 							}
 						}
 					}
-					
+
 				}
-				cyjh::Instruct parm;
-				parm.setName("siteicon");
-				CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
-				//ipc->AsyncRequest(browser, parm);
+				/*{
+					cyjh::Instruct parm;
+					parm.setName("siteicon");
+					parm.getList().AppendVal(shout_icon);
+					parm.getList().AppendVal(mainurl);
+					//CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+					//ipc->AsyncRequest(browser, parm);
+				}*/
 			}
 		}
 
-		/*
+
 		//get inject js
 		std::wstring name = frame->GetName().ToWString();
 		std::wstring url = frame->GetURL().ToWString();
-		std::wstring mainurl;
-		if (browser->GetMainFrame().get()){
-			mainurl = browser->GetMainFrame()->GetURL().ToWString();
-		}
+
 #ifdef _DEBUG1
 		WCHAR szBuf[2048] = { 0 };
 		wsprintf(szBuf, L"-----[1 inject_js name: %s url: %s", name.c_str(), url.c_str());
 		OutputDebugStringW(szBuf);
 #endif
+
 		cyjh::Instruct parm;
-		parm.setName("getInjectJS");
+		parm.setName("onDocLoaded");
 		parm.getList().AppendVal(url);
 		parm.getList().AppendVal(name);
 		parm.getList().AppendVal(mainurl);
 		parm.getList().AppendVal(frame->GetIdentifier());
+		parm.getList().AppendVal(frame->IsMain());
+		parm.getList().AppendVal(shout_icon);
 
 		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
-		ipc->AsyncRequest(browser, parm);//异步请求注入
-		*/
 		
-		/*
-		//同步请求注入,如果要在OnDocumentLoadedInFrame注入js，不建议使用同步
-		std::shared_ptr<cyjh::Instruct> outVal;
-		ipc->Request(browser, parm, outVal);		
-		if (outVal.get() && outVal->getSucc())
 		{
-			std::wstring js = outVal->getList().GetWStrVal(0);
-			//std::wstring js = L"alert('00');";
-			if (!js.empty())
-			{
-#ifdef _DEBUG1
-				WCHAR szBuf[2048] = { 0 };
-				wnsprintf(szBuf, 2040, L"-----[1 inject_js js: %s", js.c_str());
-				OutputDebugStringW(szBuf);
-#endif
-				CefString cefjs(outVal->getList().GetWStrVal(0));
-				CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
-				CefRefPtr<CefV8Value> retVal;
-				CefRefPtr<CefV8Exception> excp;
-				v8->Eval(cefjs, retVal, excp);
-			}
+			//异步请求注入
+			ipc->AsyncRequest(browser, parm);
 		}
-		*/
+
+		/*{////同步注入
+			std::shared_ptr<cyjh::Instruct> outVal;
+			//同步请求注入,如果要在OnDocumentLoadedInFrame注入js，不建议使用同步
+			ipc->Request(browser, parm, outVal);
+			if (outVal.get() && outVal->getSucc())
+			{
+				std::wstring js = outVal->getList().GetWStrVal(0);
+				//std::wstring js = L"alert('00');";
+				if (!js.empty())
+				{
+	#ifdef _DEBUG1
+					WCHAR szBuf[2048] = { 0 };
+					wnsprintf(szBuf, 2040, L"-----[1 inject_js js: %s", js.c_str());
+					OutputDebugStringW(szBuf);
+	#endif
+					CefString cefjs(outVal->getList().GetWStrVal(0));
+					CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+					CefRefPtr<CefV8Value> retVal;
+					CefRefPtr<CefV8Exception> excp;
+					v8->Eval(cefjs, retVal, excp);
+				}
+			}
+		}*/
+		
 	}
 protected:
 private:
