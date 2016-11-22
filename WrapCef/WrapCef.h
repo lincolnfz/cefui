@@ -33,6 +33,10 @@ namespace wrapQweb {
 	#define REMOVE_DATA_MASK_SERVICE_WORKERS 1 << 8
 	#define REMOVE_DATA_MASK_ALL  0xFFFFFFFF
 
+#define WIDGET_NORMAL_SIZE 1 << 0
+#define WIDGET_MIN_SIZE 1 << 1
+#define WIDGET_MAX_SIZE 1 << 2
+
 	typedef long(__stdcall *call_closeWindow)(HWND hWnd);
 
 	typedef long(__stdcall *call_setWindowPos)(HWND hWnd, long order, long x, long y, long cx, long cy , long flag);
@@ -119,9 +123,9 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void CloseAllWebView();
 
-	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans);
+	SHARED_EXPORT_API HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype);
 
-	SHARED_EXPORT_API HWND CreateInheritWebView(const HWND&, const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans);
+	SHARED_EXPORT_API HWND CreateInheritWebView(const HWND&, const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype);
 
 	SHARED_EXPORT_API bool QueryNodeAttrib(const HWND&, const int& x, const int& y, char* name, WCHAR* outVal, const int& len);
 

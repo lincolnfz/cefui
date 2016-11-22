@@ -35,7 +35,7 @@ static void SetFocusBrowser(CefRefPtr<CefBrowser> browser) {
 }
 
 HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
-	const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans)
+	const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype)
 {
 	//std::unique_lock<std::mutex> lock(factoryMutex_);
 #ifdef _DEBUG
@@ -74,7 +74,7 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 	rect.top = y;
 	rect.right = x + width;
 	rect.bottom = y + height;
-	window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans);
+	window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, trans, sizetype);
 	assert(IsWindow(window->hwnd()));
 	bool bTest = item->m_window_map.insert(std::make_pair(window->hwnd(), window)).second;
 	assert(bTest == true);

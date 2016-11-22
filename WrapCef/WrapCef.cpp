@@ -220,7 +220,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 		rect.top = y;
 		rect.right = width;
 		rect.bottom = height;
-		osr_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, true);
+		osr_window->CreateWidget(NULL, rect, hInstance, szOSRWindowClass, true, WIDGET_NORMAL_SIZE);
 		info.SetAsWindowless(osr_window->hwnd(), transparent);
 		info.transparent_painting_enabled = true;
 		info.windowless_rendering_enabled = true;
@@ -477,14 +477,16 @@ namespace wrapQweb{
 		return exit_code;
 	}
 
-	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans)
+	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height,
+		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype)
 	{
-		return WebViewFactory::getInstance().GetWebView(NULL, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
+		return WebViewFactory::getInstance().GetWebView(NULL, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, sizetype);
 	}
 
-	HWND CreateInheritWebView(const HWND& hSameProcessWnd, const int& x, const int& y, const int& width, const int& height, const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans)
+	HWND CreateInheritWebView(const HWND& hSameProcessWnd, const int& x, const int& y, const int& width, const int& height,
+		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype)
 	{
-		return WebViewFactory::getInstance().GetWebView(hSameProcessWnd, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans);
+		return WebViewFactory::getInstance().GetWebView(hSameProcessWnd, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, sizetype);
 	}
 
 	void InitQWeb(FunMap* map){

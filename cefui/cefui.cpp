@@ -197,7 +197,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
 	if (wrapQweb::InitLibrary(hInstance, L"render.exe") < 0){
-		wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true);
+		wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true, WIDGET_NORMAL_SIZE);
 		wrapQweb::RunLoop();
 		wrapQweb::FreeLibrary();
 	}

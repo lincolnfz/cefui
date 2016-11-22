@@ -46,7 +46,7 @@ class OSRWindow : public ClientHandler::RenderHandler
 
   // Create the underlying window.
   bool CreateWidget(HWND hWndParent, const RECT& rect,
-                    HINSTANCE hInst, LPCTSTR className, const bool& trans);
+		HINSTANCE hInst, LPCTSTR className, const bool& trans, const int& sizetype);
 
   // Destroy the underlying window.
   void DestroyWidget();

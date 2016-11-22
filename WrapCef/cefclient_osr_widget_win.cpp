@@ -69,7 +69,7 @@ CefRefPtr<OSRWindow> OSRWindow::From(
 }
 
 bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
-                             HINSTANCE hInst, LPCTSTR className, const bool& trans) {
+		HINSTANCE hInst, LPCTSTR className, const bool& trans, const int& sizetype) {
   DCHECK(hWnd_ == NULL && hDC_ == NULL && hRC_ == NULL);
 
   WNDCLASSEXW wndClass;
@@ -91,9 +91,19 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 	  //dwExStyle = WS_EX_APPWINDOW;
 	 // dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
   }
+  if ( sizetype == WIDGET_MIN_SIZE )
+  {
+	  dwStyle |= WS_MINIMIZE;
+  }else if ( sizetype == WIDGET_MAX_SIZE )
+  {
+	  dwStyle |= WS_MAXIMIZE;
+  }
   hWnd_ = ::CreateWindowEx(dwExStyle/*WS_EX_LAYERED*/ /*|WS_EX_APPWINDOW*/, className, 0,
 	  dwStyle /*WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX*/,
-      rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,
+	  rect.left,
+	  rect.top,
+	  rect.right - rect.left,
+	  rect.bottom - rect.top,
       hWndParent, 0, hInst, 0);
 
 
@@ -1113,7 +1123,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 #endif
 		  if ( window )
 		  {
-			  window->tipinfo_.DestroyTipWin();
+			//window->tipinfo_.DestroyTipWin();
 		  }		  
 		  browserhost->SendFocusEvent(message == WM_SETFOCUS);
 	  }
@@ -1174,6 +1184,18 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
   case WM_ERASEBKGND:
     return 0;
 
+  case WM_GETMINMAXINFO:
+  {
+	  RECT rcScr;
+	  SystemParametersInfo(SPI_GETWORKAREA, 0, &rcScr, 0);
+	  MINMAXINFO *pmmi = (MINMAXINFO*)lParam;
+	  pmmi->ptMaxSize.x = rcScr.right - rcScr.left;
+	  pmmi->ptMaxSize.y = rcScr.bottom - rcScr.top;
+	  pmmi->ptMaxPosition.x = rcScr.left;
+	  pmmi->ptMaxPosition.y = rcScr.top;
+	  return 0;
+  }
+  break;
   case WM_CLOSE:
   {
 #ifdef _DEBUG1
