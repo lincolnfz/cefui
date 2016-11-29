@@ -565,7 +565,7 @@ struct NewTabContext
 void helpNewTab(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr<NewTabContext> ctx)
 {
 	if (WebkitEcho::getFunMap()){
-		ctx->_cancle = WebkitEcho::getFunMap()->webkitNewTab(id, url->c_str(), &ctx->_parent);
+		ctx->_cancle = !WebkitEcho::getFunMap()->webkitNewTab(id, url->c_str(), &ctx->_parent);
 	}
 	SetEvent(ctx->_event);
 }
