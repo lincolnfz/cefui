@@ -538,12 +538,36 @@ void helpNewUrl(CefRefPtr<CefBrowser> browser, std::shared_ptr<std::wstring> fra
 	}
 }
 
-void helpOppenUrl(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr<std::wstring> cookie_ctx)
+void helpOpenUrl(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr<std::wstring> cookie_ctx)
 {
 	if (WebkitEcho::getFunMap()){
 		WebkitEcho::getFunMap()->webkitOpenNewUrl(id, url->c_str(),
 			cookie_ctx->empty() ? NULL : cookie_ctx->c_str());
 	}
+}
+
+struct NewTabContext 
+{
+	bool _cancle;
+	HWND _parent;
+	HANDLE _event;
+	NewTabContext(){
+		_cancle = true;
+		_parent = NULL;
+		_event = (HANDLE)CreateEvent(NULL, FALSE, FALSE, NULL);
+	}
+	~NewTabContext()
+	{
+		CloseHandle(_event);
+	}
+};
+
+void helpNewTab(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr<NewTabContext> ctx)
+{
+	if (WebkitEcho::getFunMap()){
+		ctx->_cancle = WebkitEcho::getFunMap()->webkitNewTab(id, url->c_str(), &ctx->_parent);
+	}
+	SetEvent(ctx->_event);
 }
 
 bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
@@ -572,8 +596,21 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
   else{
 	  int id = browser->GetIdentifier();
 	  if (!CefCurrentlyOn(TID_UI)){
+		  std::shared_ptr<NewTabContext> ctx(new NewTabContext);
+		  CefPostTask(TID_UI, base::Bind(&helpNewTab, id, url, ctx));
+		  WaitForSingleObject(ctx->_event, INFINITE);
+		  if ( ctx->_cancle == false && IsWindow(ctx->_parent) )
+		  {
+			  RECT rect;
+			  GetClientRect(ctx->_parent, &rect);
+			  windowInfo.SetAsChild(ctx->_parent, rect);
+			  return false;
+		  }
+	  }
+
+	  if (!CefCurrentlyOn(TID_UI)){
 		  std::shared_ptr<std::wstring> cookie_ctx(new std::wstring(cookie_context_));
-		  CefPostTask(TID_UI, base::Bind(&helpOppenUrl, id, url, cookie_ctx));
+		  CefPostTask(TID_UI, base::Bind(&helpOpenUrl, id, url, cookie_ctx));
 	  }
 	  return true;
   }
@@ -821,7 +858,7 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		}
 	}*/
 
-
+	static bool disable_clean_memory = true;
 	if (frame->IsMain()){
 		if (fun && IsWindow(hWnd))
 		{
@@ -836,6 +873,12 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		if (control.get())
 		{
 			control->InitLoadUrl();
+		}
+
+		if (!disable_clean_memory)
+		{
+			SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
+			disable_clean_memory = true;
 		}
 	}
 	
