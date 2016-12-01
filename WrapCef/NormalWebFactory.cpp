@@ -20,6 +20,17 @@ void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, const WCHAR* url, c
 	item->AttachHwnd(hwnd, url, cookie_ctx, skipcache);	
 }
 
+void NormalWebFactory::CreateNewWebControl(const HWND& hwnd, CefRefPtr<ClientHandler> clientHandle)
+{
+	CefRefPtr<WebkitControl> item = new  WebkitControl;
+	if ( item->getBrowser().get() )
+	{
+		item->getBrowser()->setClientHandler(clientHandle);
+	}
+	m_map.insert(std::make_pair(hwnd, item));
+	item->SubWindow_Proc(hwnd);
+}
+
 bool NormalWebFactory::CloseWebControl(const HWND& hwnd)
 {
 	bool ret = false;
@@ -44,7 +55,7 @@ CefRefPtr<CefBrowser> NormalWebFactory::GetBrowser(int browserID)
 	NormalWebMap::iterator it = m_map.begin();
 	for (; it != m_map.end(); ++it)
 	{
-		CefRefPtr<CefBrowser> visit = it->second->getBrowser()->getClientHandler()->GetBrowser();
+		CefRefPtr<CefBrowser> visit = it->second->getBrowser()->getBrowser();
 		if ( visit && visit->GetIdentifier() == browserID )
 		{
 			browser = visit;
@@ -60,7 +71,7 @@ CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControlByID(int browserID)
 	NormalWebMap::iterator it = m_map.begin();
 	for (; it != m_map.end(); ++it)
 	{
-		CefRefPtr<CefBrowser> visit = it->second->getBrowser()->getClientHandler()->GetBrowser();
+		CefRefPtr<CefBrowser> visit = it->second->getBrowser()->getBrowser();
 		if (visit && visit->GetIdentifier() == browserID)
 		{
 			control = it->second;
@@ -79,6 +90,17 @@ CefRefPtr<WebkitControl> NormalWebFactory::GetWebkitControlByHostHwnd(HWND hWnd)
 		control = it->second;
 	}
 	return control;
+}
+
+bool NormalWebFactory::SetBrowser(HWND hWnd, CefRefPtr<CefBrowser> browser)
+{
+	bool ret = false;
+	CefRefPtr<WebkitControl> control = GetWebkitControlByHostHwnd(hWnd);
+	if (control.get() && control->getBrowser().get() )
+	{
+		ret = control->getBrowser()->setBrowser(browser);
+	}
+	return ret;
 }
 
 void NormalWebFactory::CloseAll()

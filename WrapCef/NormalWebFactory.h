@@ -20,6 +20,8 @@ public:
 
 	void CreateNewWebControl(const HWND& hwnd, const WCHAR* url, const WCHAR* cookie_ctx, const bool skipcache);
 
+	void CreateNewWebControl(const HWND& hwnd, CefRefPtr<ClientHandler> clientHandle);
+
 	bool CloseWebControl(const HWND& hwnd);
 
 	CefRefPtr<CefBrowser> GetBrowser(int browserID);
@@ -27,6 +29,8 @@ public:
 	CefRefPtr<WebkitControl> GetWebkitControlByID(int browserID);
 
 	CefRefPtr<WebkitControl> GetWebkitControlByHostHwnd(HWND hWnd);
+
+	bool SetBrowser(HWND hWnd, CefRefPtr<CefBrowser> browser);
 
 	bool Loadurl(const HWND& hwnd, const WCHAR* url);
 

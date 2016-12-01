@@ -321,28 +321,29 @@ class ClientHandler : public CefClient,
 
   bool Save(const std::string& path, const std::string& data);
 
-  bool invokedJSMethod(const char* utf8_module, const char* utf8_method,
+  bool invokedJSMethod(CefRefPtr<CefBrowser> browser, const char* utf8_module, const char* utf8_method,
 	  const char* utf8_parm, CStringW* outstr,
 	  const char* utf8_frame_name, bool bNoticeJSTrans2JSON);
 
-  bool asyncInvokedJSMethod(const char* utf8_module, const char* utf8_method,
+  bool asyncInvokedJSMethod(CefRefPtr<CefBrowser> browser, const char* utf8_module, const char* utf8_method,
 	  const char* utf8_parm,  const char* utf8_frame_name,
 	  bool bNoticeJSTrans2JSON);
 
-  bool callJSMethod(const char* fun_name, const char* utf8_parm,
+  bool callJSMethod(CefRefPtr<CefBrowser> browser, const char* fun_name, const char* utf8_parm,
 	  const char* utf8_frame_name, CStringW* outstr);
 
-  bool queryElementAttrib( int x, int y , int g_x, int g_y, std::wstring& val );
+  bool queryElementAttrib(CefRefPtr<CefBrowser> browser, int x, int y, int g_x, int g_y, std::wstring& val);
 
-  void AdjustRenderSpeed(const double& dbSpeed);
+  void AdjustRenderSpeed(CefRefPtr<CefBrowser> browser, const double& dbSpeed);
 
-  void SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp);
+  void SendMouseClickEvent(CefRefPtr<CefBrowser> browser, const unsigned int& msg, const long& wp, const long& lp);
 
-  bool initiativeInjectJS(const WCHAR* js);
+  bool initiativeInjectJS(CefRefPtr<CefBrowser> browser, const WCHAR* js);
 
   //一个handler可以容纳很多browser
   CefRefPtr<CefBrowser> GetBrowserByWnd(HWND hWnd);
 
+  //一个handler可以容纳很多browser
   CefRefPtr<CefBrowser> GetBrowserByID(const int& id);
 
  private:

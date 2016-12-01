@@ -244,9 +244,9 @@ bool WebViewFactory::InjectJS(const HWND& hwnd, const WCHAR* js)
 {
 	bool bret = false;
 	CefRefPtr<WebItem> item = FindItem(hwnd);
-	if ( item.get() )
+	if ( item.get() && item->m_handle.get() )
 	{
-		item->m_handle->initiativeInjectJS(js);
+		item->m_handle->initiativeInjectJS(item->m_handle->GetBrowser(), js);
 		bret = true;
 	}
 	return bret;

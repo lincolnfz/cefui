@@ -25,11 +25,17 @@ public:
 	}
 	virtual ~ChromeiumBrowserControl(){}
 	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context, const bool skipcache);
+
 	void handle_size(HWND);
 	void handle_SetForce();
-	CefRefPtr<ClientHandler> getClientHandler(){
-		return m_handler;
+
+	CefRefPtr<CefBrowser> getBrowser(){
+		return m_browser;
 	}
+
+	bool setBrowser(CefRefPtr<CefBrowser> browser);
+
+	bool setClientHandler(CefRefPtr<ClientHandler> clientHandler);
 
 	bool close();
 	bool loadUrl(const WCHAR* url, const bool skipCache = false);
@@ -50,6 +56,7 @@ public:
 	IMPLEMENT_REFCOUNTING(ChromeiumBrowserControl);
 private:
 	CefRefPtr<ClientHandler> m_handler;
+	CefRefPtr<CefBrowser> m_browser;
 	bool m_bClose;
 	CefRefPtr<RequestContextHandler> m_requestContextHandler;
 	std::wstring m_strInitUrl;
@@ -62,7 +69,8 @@ public:
 	WebkitControl();
 	virtual ~WebkitControl();
 
-	HWND AttachHwnd(HWND, const WCHAR*, const WCHAR* cookie_context, const bool skipcache);
+	void SubWindow_Proc(const HWND&);
+	HWND AttachHwnd(const HWND&, const WCHAR*, const WCHAR* cookie_context, const bool skipcache);
 	void handle_size(HWND);
 	void handle_SetForce();
 	CefRefPtr<ChromeiumBrowserControl> getBrowser(){

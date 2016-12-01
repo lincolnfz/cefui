@@ -521,7 +521,7 @@ namespace wrapQweb{
 	{
 		bool bret = false;
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if ( item )
+		if (item.get() && item->m_handle.get())
 		{
 			//CefString val(L"data-nc");
 			//item->m_provider->GetBrowser()->GetHost()->SendQueryElement(x, y, val);
@@ -532,7 +532,7 @@ namespace wrapQweb{
 			int g_x = pt.x;
 			int g_y = pt.y;
 			std::wstring val;
-			item->m_handle->queryElementAttrib(x, y, g_x, g_y, val);
+			item->m_handle->queryElementAttrib(item->m_handle->GetBrowser(), x, y, g_x, g_y, val);
 			if ( len > 0 )
 			{
 				//wcscpy_s(outVal, len, val.ToWString().c_str());
@@ -549,9 +549,9 @@ namespace wrapQweb{
 	{
 		bool bret = false;
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
-		if ( item )
+		if (item.get() && item->m_handle.get() )
 		{
-			bret = item->m_handle->callJSMethod(fun_name, utf8_parm, utf8_frame_name, outstr);
+			bret = item->m_handle->callJSMethod(item->m_handle->GetBrowser(), fun_name, utf8_parm, utf8_frame_name, outstr);
 		}
 
 		return bret;
@@ -565,7 +565,7 @@ namespace wrapQweb{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if ( item.get() && item->m_handle.get() )
 		{
-			bret = item->m_handle->invokedJSMethod(utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
+			bret = item->m_handle->invokedJSMethod(item->m_handle->GetBrowser(), utf8_module, utf8_method, utf8_parm, outstr, utf8_frame_name, bNoticeJSTrans2JSON);
 		}
 
 		return bret;
@@ -579,7 +579,7 @@ namespace wrapQweb{
 		CefRefPtr<WebItem> item = WebViewFactory::getInstance().FindItem(hWnd);
 		if (item.get() && item->m_handle.get())
 		{
-			bret = item->m_handle->asyncInvokedJSMethod(utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
+			bret = item->m_handle->asyncInvokedJSMethod(item->m_handle->GetBrowser(), utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
 		}
 		else{
 			bret = NormalWebFactory::getInstance().asyncInvokedJSMethod(hWnd, utf8_module,

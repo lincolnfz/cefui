@@ -75,6 +75,27 @@ CefRefPtr<CefCookieManager> RequestContextHandler::GetCookieManager()
 
 ////
 
+bool ChromeiumBrowserControl::setBrowser(CefRefPtr<CefBrowser> browser)
+{
+	if (m_browser.get())
+	{
+		assert(m_browser.get() == nullptr);
+		return false;
+	}
+	m_browser = browser;
+	return true;
+}
+
+bool ChromeiumBrowserControl::setClientHandler(CefRefPtr<ClientHandler> clientHandler)
+{
+	if (m_handler.get())
+	{
+		assert(m_handler.get() == nullptr);
+		return false;
+	}
+	m_handler = clientHandler;
+	return true;
+}
 
 HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const WCHAR* cookie_context, const bool skipcache)
 {
@@ -105,8 +126,8 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 		skipcache ? L"about:blank" : url, browser_settings, request_context.get() ? request_context : NULL);
 
 	HWND hWnd = NULL;
-	if (m_handler->GetBrowser() && m_handler->GetBrowser()->GetHost()){
-		hWnd = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+	if (m_browser.get() && m_browser->GetHost()){
+		hWnd = m_browser->GetHost()->GetWindowHandle();
 		//loadUrl(url);
 		if ( skipcache )
 		{
@@ -120,9 +141,9 @@ void ChromeiumBrowserControl::handle_size(HWND hWnd)
 {
 	RECT rect;
 	GetClientRect(hWnd, &rect);
-	if (m_handler.get())
+	if (m_browser.get())
 	{
-		CefWindowHandle hBrowser = m_handler->GetBrowser()->GetHost()->GetWindowHandle();
+		CefWindowHandle hBrowser = m_browser->GetHost()->GetWindowHandle();
 		HDWP hdwp = BeginDeferWindowPos(1);
 		hdwp = DeferWindowPos(hdwp, hBrowser, NULL,
 			rect.left, rect.top, rect.right - rect.left,
@@ -147,9 +168,9 @@ void ChromeiumBrowserControl::handle_SetForce()
 bool ChromeiumBrowserControl::loadUrl(const WCHAR* url, const bool skipCache /*= false*/)
 {
 	bool ret = false;
-	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetMainFrame().get() )
+	if (m_browser.get() && m_browser->GetMainFrame().get())
 	{
-		//m_handler->GetBrowser()->GetMainFrame()->LoadURL(CefString(url));
+		//m_browser->GetMainFrame()->LoadURL(CefString(url));
 		CefRefPtr<CefRequest> request = CefRequest::Create();
 		if ( !skipCache )
 		{
@@ -158,7 +179,7 @@ bool ChromeiumBrowserControl::loadUrl(const WCHAR* url, const bool skipCache /*=
 			request->SetFlags(flag);
 		}
 		request->SetURL(CefString(std::wstring(url)));
-		m_handler->GetBrowser()->GetMainFrame()->LoadRequest(request);
+		m_browser->GetMainFrame()->LoadRequest(request);
 		ret = true;
 	}
 	return ret;
@@ -166,17 +187,17 @@ bool ChromeiumBrowserControl::loadUrl(const WCHAR* url, const bool skipCache /*=
 
 void ChromeiumBrowserControl::back()
 {
-	if (m_handler->GetBrowser().get())
+	if (m_browser.get())
 	{
-		m_handler->GetBrowser()->GoBack();
+		m_browser->GoBack();
 	}
 }
 
 void ChromeiumBrowserControl::forward()
 {
-	if (m_handler->GetBrowser().get())
+	if (m_browser.get())
 	{
-		m_handler->GetBrowser()->GoForward();
+		m_browser->GoForward();
 	}
 }
 
@@ -186,9 +207,9 @@ bool ChromeiumBrowserControl::close()
 	{
 		return true;
 	}
-	if (!m_handler->IsClosing() && m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get() )
+	if (!m_handler->IsClosing() && m_browser.get() && m_browser->GetHost().get())
 	{
-		m_handler->GetBrowser()->GetHost()->CloseBrowser(true);
+		m_browser->GetHost()->CloseBrowser(true);
 		m_bClose = true;
 	}
 	return m_bClose;
@@ -196,17 +217,17 @@ bool ChromeiumBrowserControl::close()
 
 void ChromeiumBrowserControl::reload()
 {
-	if ( m_handler->GetBrowser().get() )
+	if (m_browser.get())
 	{
-		m_handler->GetBrowser()->Reload();
+		m_browser->Reload();
 	}
 }
 
 void ChromeiumBrowserControl::reloadIgnoreCache()
 {
-	if (m_handler->GetBrowser().get())
+	if (m_browser.get())
 	{
-		m_handler->GetBrowser()->ReloadIgnoreCache();
+		m_browser->ReloadIgnoreCache();
 	}
 }
 
@@ -220,24 +241,24 @@ void ChromeiumBrowserControl::InitLoadUrl()
 
 bool ChromeiumBrowserControl::IsAudioMuted()
 {
-	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get()){
-		return m_handler->GetBrowser()->GetHost()->IsAudioMuted();
+	if (m_browser.get() && m_browser->GetHost().get()){
+		return m_browser->GetHost()->IsAudioMuted();
 	}
 	return false;
 }
 
 void ChromeiumBrowserControl::SetAudioMuted(const bool& bEnable)
 {
-	if (m_handler->GetBrowser().get() && m_handler->GetBrowser()->GetHost().get()){
-		m_handler->GetBrowser()->GetHost()->SetAudioMuted(bEnable);
+	if (m_browser.get() && m_browser->GetHost().get()){
+		m_browser->GetHost()->SetAudioMuted(bEnable);
 	}
 }
 
 void ChromeiumBrowserControl::Stop()
 {
-	if (m_handler->GetBrowser().get())
+	if (m_browser.get())
 	{
-		m_handler->GetBrowser()->StopLoad();
+		m_browser->StopLoad();
 	}
 }
 
@@ -246,9 +267,9 @@ bool ChromeiumBrowserControl::asyncInvokedJSMethod(const char* utf8_module, cons
 	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
 {
 	bool ret = false;
-	if (m_handler.get() && m_handler->GetBrowser().get())
+	if (m_handler.get() && m_browser.get())
 	{
-		ret = m_handler->asyncInvokedJSMethod(utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
+		ret = m_handler->asyncInvokedJSMethod(m_browser, utf8_module, utf8_method, utf8_parm, utf8_frame_name, bNoticeJSTrans2JSON);
 	}
 	return ret;
 }
@@ -256,26 +277,26 @@ bool ChromeiumBrowserControl::asyncInvokedJSMethod(const char* utf8_module, cons
 bool ChromeiumBrowserControl::InjectJS(const WCHAR* js)
 {
 	bool ret = false;
-	if (m_handler.get() && m_handler->GetBrowser().get())
+	if (m_handler.get() && m_browser.get())
 	{
-		ret = m_handler->initiativeInjectJS(js);
+		ret = m_handler->initiativeInjectJS(m_browser, js);
 	}
 	return ret;
 }
 
 void ChromeiumBrowserControl::AdjustRenderSpeed(const double& dbSpeed)
 {
-	if (m_handler.get() && m_handler->GetBrowser().get())
+	if (m_handler.get() && m_browser.get())
 	{
-		m_handler->AdjustRenderSpeed(dbSpeed);
+		m_handler->AdjustRenderSpeed(m_browser, dbSpeed);
 	}
 }
 
 void ChromeiumBrowserControl::SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp)
 {
-	if (m_handler.get() && m_handler->GetBrowser().get())
+	if (m_handler.get() && m_browser.get())
 	{
-		m_handler->SendMouseClickEvent(msg, wp, lp);
+		m_handler->SendMouseClickEvent(m_browser, msg, wp, lp);
 	}
 }
 
@@ -285,14 +306,14 @@ WebkitControl::WebkitControl()
 {
 	m_ipc_id = 0;
 	m_defWinProc = NULL;
-	m_browser = new ChromeiumBrowserControl;
+	m_browser = new ChromeiumBrowserControl();
 }
 
 WebkitControl::~WebkitControl()
 {
 }
 
-HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* cookie_context, const bool skipcache)
+void WebkitControl::SubWindow_Proc(const HWND& hParentWnd)
 {
 #if defined _M_AMD64 || defined _WIN64
 	m_defWinProc = reinterpret_cast<WNDPROC>(::GetWindowLongPtr(hParentWnd, GWLP_WNDPROC));
@@ -304,6 +325,11 @@ HWND WebkitControl::AttachHwnd(HWND hParentWnd, const WCHAR* url, const WCHAR* c
 	::SetWindowLong(hParentWnd, GWL_WNDPROC, reinterpret_cast<LONG>(HostWndProc));
 	//::SetWindowLong(hParentWnd, GWL_USERDATA, reinterpret_cast<LONG>(this));
 #endif
+}
+
+HWND WebkitControl::AttachHwnd(const HWND& hParentWnd, const WCHAR* url, const WCHAR* cookie_context, const bool skipcache)
+{
+	SubWindow_Proc(hParentWnd);
 	return m_browser->AttachHwnd(hParentWnd, url, cookie_context, skipcache);
 }
 

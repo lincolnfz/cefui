@@ -263,7 +263,7 @@ void ClientHandler::OnBeforeContextMenu(
 		  POINT pt = { x, y };
 		  ClientToScreen(hwnd, &pt);
 		  std::wstring val;
-		  queryElementAttrib(x, y, pt.x, pt.y, val);		  
+		  queryElementAttrib(browser, x, y, pt.x, pt.y, val);		  
 		  /*if ( val.compare(L"inputUrl") == 0 )
 		  {
 			  bool bEnable = false;
@@ -599,11 +599,18 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 		  std::shared_ptr<NewTabContext> ctx(new NewTabContext);
 		  CefPostTask(TID_UI, base::Bind(&helpNewTab, id, url, ctx));
 		  WaitForSingleObject(ctx->_event, INFINITE);
-		  if ( ctx->_cancle == false && IsWindow(ctx->_parent) )
+#ifdef _DEBUG
+		  if ( !ctx->_cancle )
+		  {
+			  assert(IsWindow(ctx->_parent));
+		  }
+#endif
+		  if (!ctx->_cancle && IsWindow(ctx->_parent))
 		  {
 			  RECT rect;
 			  GetClientRect(ctx->_parent, &rect);
 			  windowInfo.SetAsChild(ctx->_parent, rect);
+			  NormalWebFactory::getInstance().CreateNewWebControl(ctx->_parent, this);
 			  return false;
 		  }
 	  }
@@ -663,6 +670,8 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
 	  //HWND hView = browser->GetHost()->GetViewWindowHandle();
 	  HWND hParent = GetParent(hWnd);
 	  int browserID = browser->GetIdentifier();
+	  bool isPop = browser->IsPopup();
+	  NormalWebFactory::getInstance().SetBrowser(hParent, browser);
 	  if(WebkitEcho::getFunMap())
 		 WebkitEcho::getFunMap()->webkitAfterCreate(hParent, hWnd, hWidget, browserID);
   }
@@ -1378,7 +1387,7 @@ bool ClientHandler::ExecuteTestMenu(int command_id) {
   return false;
 }
 
-bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_method,
+bool  ClientHandler::invokedJSMethod(CefRefPtr<CefBrowser> browser, const char* utf8_module, const char* utf8_method,
 	const char* utf8_parm, CStringW* outstr,
 	const char* utf8_frame_name, bool bNoticeJSTrans2JSON)
 {
@@ -1392,7 +1401,7 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 	parm.getList().AppendVal(bNoticeJSTrans2JSON);
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 	std::shared_ptr<cyjh::Instruct> outVal;
-	ipc->Request(this->browser_, parm, outVal);
+	ipc->Request(browser, parm, outVal);
 	if ( outVal.get() )
 	{
 		if ( outstr && outVal->getList().GetSize() > 0 )
@@ -1411,7 +1420,7 @@ bool  ClientHandler::invokedJSMethod(const char* utf8_module, const char* utf8_m
 	return ret;
 }
 
-bool ClientHandler::asyncInvokedJSMethod(const char* utf8_module, const char* utf8_method,
+bool ClientHandler::asyncInvokedJSMethod(CefRefPtr<CefBrowser> browser, const char* utf8_module, const char* utf8_method,
 	const char* utf8_parm, const char* utf8_frame_name,
 	bool bNoticeJSTrans2JSON)
 {
@@ -1424,7 +1433,7 @@ bool ClientHandler::asyncInvokedJSMethod(const char* utf8_module, const char* ut
 	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
 	parm.getList().AppendVal(bNoticeJSTrans2JSON);
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-	ipc->AsyncRequest(browser_, parm);
+	ipc->AsyncRequest(browser, parm);
 	ret = true;
 
 	/*CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
@@ -1438,7 +1447,7 @@ bool ClientHandler::asyncInvokedJSMethod(const char* utf8_module, const char* ut
 	return ret;
 }
 
-bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
+bool ClientHandler::callJSMethod(CefRefPtr<CefBrowser> browser, const char* fun_name, const char* utf8_parm,
 	const char* utf8_frame_name, CStringW* outstr)
 {
 	bool ret = false;
@@ -1449,7 +1458,7 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 	parm.getList().AppendVal(std::string(utf8_frame_name == NULL ? "" : utf8_frame_name));
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 	std::shared_ptr<cyjh::Instruct> outVal;
-	ipc->Request(this->browser_, parm, outVal);
+	ipc->Request(browser, parm, outVal);
 	if (outVal.get())
 	{
 		if (outstr && outVal->getList().GetSize() > 0)
@@ -1468,18 +1477,18 @@ bool ClientHandler::callJSMethod(const char* fun_name, const char* utf8_parm,
 	return ret;
 }
 
-bool ClientHandler::initiativeInjectJS(const WCHAR* js)
+bool ClientHandler::initiativeInjectJS(CefRefPtr<CefBrowser> browser, const WCHAR* js)
 {
 	int ret = true;
 	cyjh::Instruct parm;
 	parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 	parm.getList().AppendVal(std::wstring(js));
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
-	ipc->AsyncRequest(this->browser_, parm);
+	ipc->AsyncRequest(browser, parm);
 	return ret;
 }
 
-bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstring& val)
+bool ClientHandler::queryElementAttrib(CefRefPtr<CefBrowser> browser, int x, int y, int g_x, int g_y, std::wstring& val)
 {
 	bool ret = false;
 	cyjh::Instruct parm;
@@ -1492,7 +1501,7 @@ bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstr
 	parm.getList().AppendVal(dt);
 	CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 	std::shared_ptr<cyjh::Instruct> outVal;
-	ipc->Request(this->browser_, parm, outVal);
+	ipc->Request(browser, parm, outVal);
 	if (outVal.get())
 	{
 		if (outVal->getList().GetSize() > 0)
@@ -1504,23 +1513,23 @@ bool ClientHandler::queryElementAttrib(int x, int y, int g_x, int g_y, std::wstr
 	return ret;
 }
 
-void ClientHandler::AdjustRenderSpeed(const double& dbSpeed)
+void ClientHandler::AdjustRenderSpeed(CefRefPtr<CefBrowser> browser, const double& dbSpeed)
 {
 	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
-	if (control.get() && browser_.get())
+	if (control.get() && browser.get())
 	{
 		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
 		cyjh::Instruct parm;
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		parm.getList().AppendVal(dbSpeed);
-		ipc->AsyncRequest(browser_, parm);
+		ipc->AsyncRequest(browser, parm);
 	}
 }
 
-void ClientHandler::SendMouseClickEvent(const unsigned int& msg, const long& wp, const long& lp)
+void ClientHandler::SendMouseClickEvent(CefRefPtr<CefBrowser> browser, const unsigned int& msg, const long& wp, const long& lp)
 {
 	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
-	if (control.get() && browser_.get() && browser_->GetHost().get())
+	if (control.get() && browser.get() && browser->GetHost().get())
 	{
 		int x = LOWORD(lp);
 		int y = HIWORD(wp);
@@ -1557,7 +1566,7 @@ void ClientHandler::SendMouseClickEvent(const unsigned int& msg, const long& wp,
 			break;
 		}
 
-		browser_->GetHost()->SendMouseClickEvent(mouse_event, btnType, mouseup ,1);
+		browser->GetHost()->SendMouseClickEvent(mouse_event, btnType, mouseup ,1);
 	}
 }
 
