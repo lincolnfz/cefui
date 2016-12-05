@@ -285,6 +285,32 @@ bool WebViewFactory::QueryPluginsProcessID(const HWND& hwnd, std::vector<DWORD>&
 	return bret;
 }
 
+bool WebViewFactory::GetViewZoomLevel(const HWND& hwnd, double& level)
+{
+	bool bret = false;
+	CefRefPtr<WebItem> item = FindItem(hwnd);
+	if (item.get() && item->m_handle.get() && item->m_handle->GetBrowser().get()
+		&& item->m_handle->GetBrowser()->GetHost().get())
+	{
+		level = item->m_handle->GetBrowser()->GetHost()->GetZoomLevel();
+		bret = true;
+	}
+	return bret;
+}
+
+bool WebViewFactory::SetViewZoomLevel(const HWND& hwnd, const double& level)
+{
+	bool bret = false;
+	CefRefPtr<WebItem> item = FindItem(hwnd);
+	if (item.get() && item->m_handle.get() && item->m_handle->GetBrowser().get()
+		&& item->m_handle->GetBrowser()->GetHost().get())
+	{
+		item->m_handle->GetBrowser()->GetHost()->SetZoomLevel(level);
+		bret = true;
+	}
+	return bret;
+}
+
 CefRefPtr<CefBrowser> WebViewFactory::GetBrowserByHwnd(const HWND& hWnd)
 {
 	CefRefPtr<CefBrowser> ptr;

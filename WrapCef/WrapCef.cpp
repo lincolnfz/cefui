@@ -786,6 +786,26 @@ namespace wrapQweb{
 		return ret;
 	}
 
+	bool GetViewZoomLevel(const HWND& hwnd, double& level)
+	{
+		bool ret = WebViewFactory::getInstance().GetViewZoomLevel(hwnd, level);
+		if (!ret)
+		{
+			ret = NormalWebFactory::getInstance().GetViewZoomLevel(hwnd, level);
+		}
+		return ret;
+	}
+
+	bool SetViewZoomLevel(const HWND& hwnd, const double& level)
+	{
+		bool ret = WebViewFactory::getInstance().SetViewZoomLevel(hwnd, level);
+		if (!ret)
+		{
+			ret = NormalWebFactory::getInstance().SetViewZoomLevel(hwnd, level);
+		}
+		return ret;
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

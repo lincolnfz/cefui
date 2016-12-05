@@ -326,3 +326,35 @@ bool NormalWebFactory::QueryPluginsProcessID(const HWND& hwnd, std::vector<DWORD
 	}
 	return bret;
 }
+
+bool NormalWebFactory::GetViewZoomLevel(const HWND& hwnd, double& level)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get() && it->second->getBrowser()->getBrowser().get()
+			&& it->second->getBrowser()->getBrowser()->GetHost().get())
+		{
+			level = it->second->getBrowser()->getBrowser()->GetHost()->GetZoomLevel();
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+bool NormalWebFactory::SetViewZoomLevel(const HWND& hwnd, const double& level)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get() && it->second->getBrowser()->getBrowser().get()
+			&& it->second->getBrowser()->getBrowser()->GetHost().get())
+		{
+			it->second->getBrowser()->getBrowser()->GetHost()->SetZoomLevel(level);
+			bret = true;
+		}
+	}
+	return bret;
+}

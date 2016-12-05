@@ -164,6 +164,10 @@ namespace wrapQweb {
 	//
 	SHARED_EXPORT_API bool QueryPluginsProcessID(const HWND&, std::vector<DWORD>& plugins_process_ids);
 
+	SHARED_EXPORT_API bool GetViewZoomLevel(const HWND&, double& level);
+
+	SHARED_EXPORT_API bool SetViewZoomLevel(const HWND&, const double& level);
+
 //---------------------------------------------------------------------------------------------------------------------
 //¿‡∑÷∏Óœﬂ
 

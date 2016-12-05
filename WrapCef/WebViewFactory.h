@@ -208,6 +208,10 @@ public:
 
 	bool QueryPluginsProcessID(const HWND&, std::vector<DWORD>& plugins_process_ids);
 
+	bool GetViewZoomLevel(const HWND&, double& level);
+
+	bool SetViewZoomLevel(const HWND&, const double& level);
+
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;
