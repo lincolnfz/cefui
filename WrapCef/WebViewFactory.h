@@ -204,6 +204,10 @@ public:
 
 	bool InjectJS(const HWND& hwnd, const WCHAR* js);
 
+	bool QueryRenderProcessID(const HWND&, int& pid);
+
+	bool QueryPluginsProcessID(const HWND&, std::vector<DWORD>& plugins_process_ids);
+
 protected:
 	WebViewFactory();
 	static WebViewFactory s_inst;

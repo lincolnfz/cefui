@@ -16,6 +16,8 @@
 #include "MainProcQueue.h"
 #include "detectProcess.h"
 
+typedef void(*fn_GetRenderPluginProcessIDs)(const int&, std::vector<DWORD>&);
+
 class ClientApp : public CefApp,
                   public CefBrowserProcessHandler,
                   public CefRenderProcessHandler {

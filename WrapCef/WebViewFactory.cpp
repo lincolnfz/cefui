@@ -252,6 +252,39 @@ bool WebViewFactory::InjectJS(const HWND& hwnd, const WCHAR* js)
 	return bret;
 }
 
+bool WebViewFactory::QueryRenderProcessID(const HWND& hwnd, int& pid)
+{
+	bool bret = false;
+	CefRefPtr<WebItem> item = FindItem(hwnd);
+	if (item.get() && item->m_handle.get() && item->m_handle->GetBrowser().get()
+		&& item->m_handle->GetBrowser()->GetHost().get())
+	{
+		CefRefPtr<CefBrowser>browser = item->m_handle->GetBrowser();
+		pid = browser->GetHost()->GetRenderSystemProcessID();
+		bret = true;
+	}
+	return bret;
+}
+
+bool WebViewFactory::QueryPluginsProcessID(const HWND& hwnd, std::vector<DWORD>& plugins_process_ids)
+{
+	bool bret = false;
+	CefRefPtr<WebItem> item = FindItem(hwnd);
+	if (item.get() && item->m_handle.get() && item->m_handle->GetBrowser().get()
+		&& item->m_handle->GetBrowser()->GetHost().get() )
+	{
+		CefRefPtr<CefBrowser>browser = item->m_handle->GetBrowser();
+		int render_process_id = browser->GetHost()->GetRenderProcessID();
+		fn_GetRenderPluginProcessIDs fun = (fn_GetRenderPluginProcessIDs)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "GetRenderPluginProcessIDs");
+		if ( fun )
+		{
+			fun(render_process_id, plugins_process_ids);
+			bret = true;
+		}
+	}
+	return bret;
+}
+
 CefRefPtr<CefBrowser> WebViewFactory::GetBrowserByHwnd(const HWND& hWnd)
 {
 	CefRefPtr<CefBrowser> ptr;

@@ -289,3 +289,40 @@ bool NormalWebFactory::InjectJS(const HWND& hwnd, const WCHAR* js)
 	}
 	return bret;
 }
+
+bool NormalWebFactory::QueryRenderProcessID(const HWND& hwnd, int& pid)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get() && it->second->getBrowser()->getBrowser().get()
+			&& it->second->getBrowser()->getBrowser()->GetHost().get() )
+		{
+			pid = it->second->getBrowser()->getBrowser()->GetHost()->GetRenderSystemProcessID();
+			bret = true;
+		}
+	}
+	return bret;
+}
+
+bool NormalWebFactory::QueryPluginsProcessID(const HWND& hwnd, std::vector<DWORD>& plugins_process_ids)
+{
+	bool bret = false;
+	NormalWebMap::iterator it = m_map.find(hwnd);
+	if (it != m_map.end())
+	{
+		if (it->second->getBrowser().get() && it->second->getBrowser()->getBrowser().get()
+			&& it->second->getBrowser()->getBrowser()->GetHost().get())
+		{
+			int render_process_id = it->second->getBrowser()->getBrowser()->GetHost()->GetRenderProcessID();
+			fn_GetRenderPluginProcessIDs fun = (fn_GetRenderPluginProcessIDs)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "GetRenderPluginProcessIDs");
+			if ( fun )
+			{
+				fun(render_process_id, plugins_process_ids);
+				bret = true;
+			}
+		}
+	}
+	return bret;
+}

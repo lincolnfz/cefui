@@ -766,6 +766,26 @@ namespace wrapQweb{
 		CefPostTask(TID_UI, base::Bind(&InjectJavaScriptHelp, hwnd, jsPtr));
 	}
 
+	bool QueryRenderProcessID(const HWND& hwnd, int& pid)
+	{
+		bool ret = WebViewFactory::getInstance().QueryRenderProcessID(hwnd, pid);
+		if ( !ret )
+		{
+			ret = NormalWebFactory::getInstance().QueryRenderProcessID(hwnd, pid);
+		}
+		return ret;
+	}
+
+	bool QueryPluginsProcessID(const HWND& hwnd, std::vector<DWORD>& plugins_process_ids)
+	{
+		bool ret = WebViewFactory::getInstance().QueryPluginsProcessID(hwnd, plugins_process_ids);
+		if (!ret)
+		{
+			ret = NormalWebFactory::getInstance().QueryPluginsProcessID(hwnd, plugins_process_ids);
+		}
+		return ret;
+	}
+
 	////
 	class CChromeiumBrowserControl
 	{

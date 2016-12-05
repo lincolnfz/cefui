@@ -18,5 +18,8 @@ public:
 
 	bool rsp_UnProtectWindow(const int id,
 		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
+
+	bool rsp_QueryDllLoad(const int id,
+		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
 };
 

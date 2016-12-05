@@ -4,6 +4,7 @@
 #include <string>
 #include "cefexprot.h"
 #include <atlstr.h>
+#include <vector>
 
 
 SHARED_EXPORT_API int InitCef(HINSTANCE hInstance, HACCEL hAccelTable);
@@ -157,6 +158,11 @@ namespace wrapQweb {
 
 	//清理解析
 	SHARED_EXPORT_API void clearResolveHost();
+
+	SHARED_EXPORT_API bool QueryRenderProcessID(const HWND&, int& pid);
+
+	//
+	SHARED_EXPORT_API bool QueryPluginsProcessID(const HWND&, std::vector<DWORD>& plugins_process_ids);
 
 //---------------------------------------------------------------------------------------------------------------------
 //类分割线

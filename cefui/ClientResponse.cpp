@@ -11,6 +11,7 @@ ClientResponse::ClientResponse()
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_AudioMuted);
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_ProtectWindow);
 	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_UnProtectWindow);
+	REGISTER_RESPONSE_FUNCTION(ClientResponse, rsp_QueryDllLoad);
 }
 
 
@@ -76,5 +77,15 @@ bool ClientResponse::rsp_UnProtectWindow(const int id,
 {
 	HWND hWnd = (HWND)req_parm->getList().GetIntVal(0);
 	SubClassWindow::GetInst().UnSubWIndow(hWnd);
+	return true;
+}
+
+bool ClientResponse::rsp_QueryDllLoad(const int id,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	std::wstring dll_name = req_parm->getList().GetWStrVal(0);
+	HANDLE hMod = GetModuleHandle(dll_name.c_str());
+	bool bLoad = hMod ? true : false;
+	outVal->getList().AppendVal(bLoad);
 	return true;
 }
