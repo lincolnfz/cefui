@@ -1129,10 +1129,11 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  if ( message == WM_KILLFOCUS )
 		  {
 			  CefMouseEvent mouse_event;
-			  mouse_event.x = 0;
-			  mouse_event.y = 0;
+			  mouse_event.x = -100;
+			  mouse_event.y = -100;
 			  mouse_event.modifiers = 0;
 			  browserhost->SendMouseMoveEvent(mouse_event, true);
+			  //SetCursor(LoadCursor(NULL, MAKEINTRESOURCE(IDC_ARROW)));
 		  }
 	  }
 	  else{
