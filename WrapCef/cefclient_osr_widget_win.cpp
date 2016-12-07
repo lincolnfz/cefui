@@ -1126,6 +1126,14 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 			//window->tipinfo_.DestroyTipWin();
 		  }		  
 		  browserhost->SendFocusEvent(message == WM_SETFOCUS);
+		  if ( message == WM_KILLFOCUS )
+		  {
+			  CefMouseEvent mouse_event;
+			  mouse_event.x = 0;
+			  mouse_event.y = 0;
+			  mouse_event.modifiers = 0;
+			  browserhost->SendMouseMoveEvent(mouse_event, true);
+		  }
 	  }
 	  else{
 #ifdef _DEBUG1
