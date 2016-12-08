@@ -1317,8 +1317,9 @@ public:
 					std::string strJS = "document.head.innerHTML";
 					CefRefPtr<CefV8Value> retVal;
 					CefRefPtr<CefV8Exception> excp;
-					v8->Eval(CefString(strJS.c_str()), retVal, excp);
-					std::wstring html = retVal->GetStringValue().ToWString();
+					std::wstring html;
+					if (v8->Eval(CefString(strJS.c_str()), retVal, excp) && retVal.get())
+						html = retVal->GetStringValue().ToWString();
 
 					WCHAR szPat[] = L"<link\\s*\\S*\\s*rel=\"\\s*\\S*\\s*icon\\s*\\S*\\s*\"\\s*\\S*[\\s*$]";
 					WCHAR szHref[] = L"href=\"\\s*\\S+\\s*\"";
