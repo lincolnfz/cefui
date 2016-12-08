@@ -755,7 +755,7 @@ void ClientHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
   SetLoading(isLoading);
   SetNavState(canGoBack, canGoForward);
   if (WebkitEcho::getFunMap()){
-	  WebkitEcho::getFunMap()->webkitLoadingStateChange(browser_id_, isLoading, canGoBack, canGoForward);
+	  WebkitEcho::getFunMap()->webkitLoadingStateChange(browser->GetIdentifier(), isLoading, canGoBack, canGoForward);
   }
 }
 
@@ -1515,7 +1515,7 @@ bool ClientHandler::queryElementAttrib(CefRefPtr<CefBrowser> browser, int x, int
 
 void ClientHandler::AdjustRenderSpeed(CefRefPtr<CefBrowser> browser, const double& dbSpeed)
 {
-	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 	if (control.get() && browser.get())
 	{
 		CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
@@ -1528,7 +1528,7 @@ void ClientHandler::AdjustRenderSpeed(CefRefPtr<CefBrowser> browser, const doubl
 
 void ClientHandler::SendMouseClickEvent(CefRefPtr<CefBrowser> browser, const unsigned int& msg, const long& wp, const long& lp)
 {
-	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser_id_);
+	CefRefPtr<WebkitControl> control = NormalWebFactory::getInstance().GetWebkitControlByID(browser->GetIdentifier());
 	if (control.get() && browser.get() && browser->GetHost().get())
 	{
 		int x = LOWORD(lp);

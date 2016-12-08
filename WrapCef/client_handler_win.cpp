@@ -21,7 +21,7 @@ void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
   CEF_REQUIRE_UI_THREAD();
 
   std::wstring strUrl(url);
-  if (GetBrowserId() == browser->GetIdentifier() && frame->IsMain()) {
+  if ( frame->IsMain()) {
     // Set the edit window text
     //SetWindowText(edit_handle_, std::wstring(url).c_str());
 	  if (WebkitEcho::getFunMap())
