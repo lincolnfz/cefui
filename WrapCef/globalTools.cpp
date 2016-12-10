@@ -99,14 +99,14 @@ bool TransValue2Wstr(CefRefPtr<CefV8Value> val, std::wstring& trans)
 	}
 	else if (val->IsInt())
 	{
-		WCHAR buf[256] = {0};
+		WCHAR buf[64] = {0};
 		swprintf_s(buf, L"%d", val->GetIntValue());
 		trans = buf;
 		ret = true;
 	}
 	else if (val->IsDouble())
 	{
-		WCHAR buf[256] = {0};
+		WCHAR buf[64] = {0};
 		swprintf_s(buf, L"%f", val->GetDoubleValue() );
 		trans = buf;
 		ret = true;
