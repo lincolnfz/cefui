@@ -465,7 +465,8 @@ public:
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring modulename = list[0]->GetStringValue().ToWString();
 		std::wstring methodname = list[1]->GetStringValue().ToWString();
-		std::wstring strparm = list[2]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[2], strparm);
 		if (methodname.compare(L"getCurrentSkinName") == 0 && modulename.compare(L"CUI") == 0 )
 		{
 			//过滤getCurrentSkinName，用来解决4399网站使用这个方法引起ui进程卡死
@@ -495,7 +496,8 @@ public:
 		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
 		std::wstring modulename = list[0]->GetStringValue().ToWString();
 		std::wstring methodname = list[1]->GetStringValue().ToWString();
-		std::wstring strparm = list[2]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[2], strparm);
 		int extra = list[3]->GetIntValue();
 		parm.getList().AppendVal(modulename);
 		parm.getList().AppendVal(methodname);
@@ -636,7 +638,8 @@ public:
 		int sign = list[0]->GetIntValue();
 		std::wstring modulename = list[1]->GetStringValue().ToWString();
 		std::wstring methodname = list[2]->GetStringValue().ToWString();
-		std::wstring strparm = list[3]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[3], strparm);
 		bool bjson = list[4]->GetBoolValue();
 		parm.getList().AppendVal(sign);
 		parm.getList().AppendVal(modulename);
@@ -662,7 +665,8 @@ public:
 		std::wstring framename = list[1]->GetStringValue().ToWString();
 		std::wstring modulename = list[2]->GetStringValue().ToWString();
 		std::wstring methodname = list[3]->GetStringValue().ToWString();
-		std::wstring strparm = list[4]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[4], strparm);
 		bool bjson = list[5]->GetBoolValue();
 		parm.getList().AppendVal(sign);
 		parm.getList().AppendVal(framename);
@@ -688,7 +692,8 @@ public:
 		int sign = list[0]->GetIntValue();
 		std::wstring modulename = list[1]->GetStringValue().ToWString();
 		std::wstring methodname = list[2]->GetStringValue().ToWString();
-		std::wstring strparm = list[3]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[3], strparm);
 		bool bjson = list[4]->GetBoolValue();
 		parm.getList().AppendVal(sign);
 		parm.getList().AppendVal(modulename);
@@ -706,7 +711,8 @@ public:
 		std::wstring framename = list[1]->GetStringValue().ToWString();
 		std::wstring modulename = list[2]->GetStringValue().ToWString();
 		std::wstring methodname = list[3]->GetStringValue().ToWString();
-		std::wstring strparm = list[4]->GetStringValue().ToWString();
+		std::wstring strparm;
+		TransValue2Wstr(list[4], strparm);
 		bool bjson = list[5]->GetBoolValue();
 		parm.getList().AppendVal(sign);
 		parm.getList().AppendVal(framename);
