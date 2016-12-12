@@ -737,7 +737,7 @@ bool ResponseUI::rsp_asyncCallMethod(const CefRefPtr<CefBrowser> browser, const 
 	if (IsWindow(hWnd))
 	{
 		if (s_fnMap){
-			
+			s_fnMap->invokeMethod(hWnd, module, method, parm, extra);
 			ret = true;
 		}
 	}
