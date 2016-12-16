@@ -218,6 +218,8 @@ private:
 };
 RecordFrameName RecordFrameName::s_inst_record_name;
 
+typedef void(*cb_collectAllGarbage)();
+
 //这是一个响应js的c++ 函数(类)
 class NativeappHandler : public CefV8Handler {
 public:
@@ -811,6 +813,13 @@ public:
 		val = CefV8Value::CreateString(CefString(L"cyjh"));
 	}
 
+	void collectAllGarbage(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cb_collectAllGarbage fun = (cb_collectAllGarbage)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "collectAllGarbage");
+		if ( fun )
+		{
+			fun();
+		}
+	}
 protected:
 	bool callfn(const unsigned long& id, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval){
 		bool ret = false;
@@ -1498,6 +1507,7 @@ public:
 		REG_JS_FUN(addFrameStateChanged, 1);
 		REG_JS_FUN(removeFrameStateChanged, 1);
 		REG_JS_FUN(queryProduct, 2);
+		REG_JS_FUN(collectAllGarbage, 1);
 
 #undef REG_JS_FUN
 		/*const char proty[][16] = { "appname", "appDir", "appDataPath", "screen_w", "screen_h", "desktop_w", "desktop_h",
