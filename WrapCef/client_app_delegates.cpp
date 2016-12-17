@@ -29,10 +29,6 @@
 #include "BrowserIdentifier.h"
 #include "globalTools.h"
 
-#define BROWSER_UI 0x01 
-#define BROWSER_WEB 0x02
-#define BROWSER_ALL (BROWSER_UI|BROWSER_WEB)
-
 // static
 void ClientApp::CreateBrowserDelegates(BrowserDelegateSet& delegates) {
 }

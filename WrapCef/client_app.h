@@ -16,6 +16,10 @@
 #include "MainProcQueue.h"
 #include "detectProcess.h"
 
+#define BROWSER_UI 0x01 
+#define BROWSER_WEB 0x02
+#define BROWSER_ALL (BROWSER_UI|BROWSER_WEB)
+
 typedef void(*fn_GetRenderPluginProcessIDs)(const int&, std::vector<DWORD>&);
 typedef void(*cb_collectAllGarbage)();
 

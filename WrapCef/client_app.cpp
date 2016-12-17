@@ -178,6 +178,7 @@ void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser) {
 
 void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {
 	DWORD Id = browser->GetIdentifier();
+	int browserType = BrowserIdentifier::GetInst().GetType(Id);
 	BrowserIdentifier::GetInst().RemoveBrowser(Id);
 	RenderThreadSync_->DetchBrowserIpc();
 #ifdef _DEBUG1
@@ -187,7 +188,10 @@ void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {
   for (; it != render_delegates_.end(); ++it){
 	  (*it)->OnBrowserDestroyed(this, browser);
   }
-  js_collectAllGarbage();
+  if (browserType == BROWSER_UI)
+  {
+	  js_collectAllGarbage();
+  }  
 }
 
 CefRefPtr<CefLoadHandler> ClientApp::GetLoadHandler() {
