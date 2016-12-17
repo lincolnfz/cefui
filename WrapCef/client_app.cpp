@@ -20,6 +20,14 @@
 ClientApp* ClientApp::s_app = NULL;
 extern WCHAR g_szLocalPath[MAX_PATH];
 
+void js_collectAllGarbage(){
+	cb_collectAllGarbage fun = (cb_collectAllGarbage)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "collectAllGarbage");
+	if (fun)
+	{
+		fun();
+	}
+}
+
 ClientApp::ClientApp() {
 	s_app = this;
 	UIThreadSync_ = new cyjh::UIThreadCombin;
@@ -176,8 +184,10 @@ void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) {
 	OutputDebugStringA("-----[ OnBrowserDestroyed");
 #endif
   RenderDelegateSet::iterator it = render_delegates_.begin();
-  for (; it != render_delegates_.end(); ++it)
-    (*it)->OnBrowserDestroyed(this, browser);
+  for (; it != render_delegates_.end(); ++it){
+	  (*it)->OnBrowserDestroyed(this, browser);
+  }
+  js_collectAllGarbage();
 }
 
 CefRefPtr<CefLoadHandler> ClientApp::GetLoadHandler() {

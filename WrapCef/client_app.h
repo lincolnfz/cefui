@@ -17,6 +17,9 @@
 #include "detectProcess.h"
 
 typedef void(*fn_GetRenderPluginProcessIDs)(const int&, std::vector<DWORD>&);
+typedef void(*cb_collectAllGarbage)();
+
+void js_collectAllGarbage();
 
 class ClientApp : public CefApp,
                   public CefBrowserProcessHandler,
