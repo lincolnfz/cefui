@@ -1243,8 +1243,15 @@ public:
 			//	return;
 			//}
 
-			if (frame->IsMain())
+			static bool disable_clean_memory = true;
+			if (frame->IsMain()){
 				DocComplate::getInst().setBrowsr(browser->GetIdentifier(), true);
+				if (!disable_clean_memory)
+				{
+					SetProcessWorkingSetSize(GetCurrentProcess(), -1, -1);
+					disable_clean_memory = true;
+				}
+			}
 
 			CefRefPtr<CefFrame> parent = frame->GetParent();
 			if (parent.get())
