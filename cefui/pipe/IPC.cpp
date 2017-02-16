@@ -455,7 +455,6 @@ namespace cyjh{
 	bool IPCPipeClient::Close(){
 		//SetEvent(hEvents_[1]);
 		//WaitForSingleObject(hFin_, INFINITE);
-		//this->
 		return true;
 	}
 
@@ -594,18 +593,31 @@ namespace cyjh{
 		delete cli_;
 	}
 
+	void IPCUnit::MakeUnitCreated()
+	{
+		if ( !srv_ )
+		{
+			srv_ = new IPCPipeSrv(m_szSrvName, this);
+		}
+		if ( !cli_ )
+		{
+			cli_ = new IPCPipeClient(m_szCliName, this);
+		}
+	}
+
 	void IPCUnit::Launch()
 	{
 		//id_ = InterlockedIncrement((long*)&ipc_unit_id);
-		srv_ = new IPCPipeSrv(m_szSrvName, this);
-		cli_ = new IPCPipeClient(m_szCliName, this);
+		//srv_ = new IPCPipeSrv(m_szSrvName, this);
+		//cli_ = new IPCPipeClient(m_szCliName, this);
+		MakeUnitCreated();
 		cli_->BindDisconstCallback(&IPCUnit::NotifyDisconst, this);
 	}
 
 	void IPCUnit::Close()
 	{
 		close_ = true;
-		this->cli_->Close();
+		//cli_.Close();
 	}
 
 	bool IPCUnit::Send(const unsigned char* data, DWORD len, DWORD nTimeout)

@@ -252,6 +252,7 @@ namespace cyjh{
 		template<typename T>
 		bool BindRecvCallback(void (T::*function)(const unsigned char*, DWORD), T* obj){
 			bool ret = false;
+			MakeUnitCreated();
 			if ( cli_ )
 			{
 				recv_cb cb = std::bind(function, obj, std::placeholders::_1, std::placeholders::_2);
@@ -289,6 +290,9 @@ namespace cyjh{
 		void Close();
 
 		void Launch();
+
+	protected:
+		void MakeUnitCreated();
 
 	private:
 		IPCPipeSrv* srv_;

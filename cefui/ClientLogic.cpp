@@ -108,7 +108,10 @@ BOOL ClientLogic::ProcDataPack(std::shared_ptr<cyjh::Instruct> spInst)
 
 void ClientLogic::Response(const std::shared_ptr<cyjh::Instruct> spOut)
 {
-	
+	spOut->setSender(GetCurrentProcessId());
+	cyjh::Pickle pick;
+	cyjh::Instruct::SerializationInstruct(spOut.get(), pick);
+	m_ipcUnit->Send(static_cast<const unsigned char*>(pick.data()), pick.size(), 0);
 }
 
 void ClientLogic::PipeStateChange(int state)
