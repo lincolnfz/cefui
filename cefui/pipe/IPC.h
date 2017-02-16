@@ -10,6 +10,7 @@
 #include <map>
 //#include <boost/thread/mutex.hpp>
 #include <mutex>
+#include <boost/serialization/singleton.hpp>
 
 #define BUF_SIZE 8192
 #define IPC_STATE_SEND_RDY 0x01
@@ -306,23 +307,16 @@ namespace cyjh{
 		WCHAR m_szCliName[128];
 	};
 
-	class IPC_Manager
+	class IPC_Manager : public boost::serialization::singleton<IPC_Manager>
 	{
 	public:
+		IPC_Manager(){}
 		virtual ~IPC_Manager();// {}
-		static IPC_Manager* getInstance(){
-			if (s_inst == NULL){
-				s_inst = new IPC_Manager;
-			}				  
-			return s_inst;
-		}
 		std::shared_ptr<IPCUnit> GenerateIPC(const WCHAR* srv, const WCHAR* client);
 		std::shared_ptr<IPCUnit> GetIpc(const int& id);
 		int MatchIpc(const WCHAR*, const WCHAR*);
 		void Destruct(int id);
-		static IPC_Manager* s_inst;
 	protected:
-		IPC_Manager(){}
 		//std::vector<std::shared_ptr<IPCUnit>> ipcs_;
 		std::map<int, std::shared_ptr<IPCUnit>> ipcs_;
 
@@ -330,6 +324,9 @@ namespace cyjh{
 		static volatile int id_;
  	private:
 	};
+
+#define sIPC_Manager IPC_Manager::get_mutable_instance() // ·ÇconstÊµÀý  
+#define sIPC_Manager_const IPC_Manager::get_const_instance() // constÊµÀý  
 
 }
 #endif

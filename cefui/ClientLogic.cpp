@@ -34,7 +34,7 @@ void ClientLogic::RecvSockData(const unsigned char* data, const int len)
 
 	std::wstring srv = spInstruct->getList().GetWStrVal(0);
 	std::wstring client = spInstruct->getList().GetWStrVal(1);
-	m_ipcUnit = cyjh::IPC_Manager::getInstance()->GenerateIPC(srv.c_str(), client.c_str());
+	m_ipcUnit = cyjh::sIPC_Manager.GenerateIPC(srv.c_str(), client.c_str());
 	m_ipcUnit->BindStateCallback(&ClientLogic::PipeStateChange, this);
 	m_ipcUnit->Launch();
 	m_ipcUnit->BindRecvCallback(&ClientLogic::RecvPipeData, this);

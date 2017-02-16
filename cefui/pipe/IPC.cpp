@@ -631,7 +631,7 @@ namespace cyjh{
 
 	void IPCUnit::NotifyDisconst()
 	{
-		IPC_Manager::getInstance()->Destruct(id_);
+		sIPC_Manager.Destruct(id_);
 	}
 
 	void IPCUnit::StateChange(const int state){
@@ -653,7 +653,6 @@ namespace cyjh{
 	////////////////////////////////////
 	/////IPC_Manager
 	//////////////////////////////////////////////////////////////////////////
-	IPC_Manager* IPC_Manager::s_inst = NULL;
 	volatile int IPC_Manager::id_ = 0;
 
 	IPC_Manager::~IPC_Manager()
