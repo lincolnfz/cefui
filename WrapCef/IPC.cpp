@@ -307,9 +307,32 @@ namespace cyjh{
 	unsigned int __stdcall IPCPipeSrv::WorkThread(void* parm)
 	{
 		IPCPipeSrv* inst = reinterpret_cast<IPCPipeSrv*>(parm);
+
+		// Prepare the security attributes  
+		// If lpSecurityAttributes of CreateNamedPipe is NULL, the named pipe   
+		// gets a default security descriptor and the handle cannot be inherited.   
+		// The ACLs in the default security descriptor for a named pipe grant   
+		// full control to the LocalSystem account, administrators, and the   
+		// creator owner. They also grant read access to members of the Everyone   
+		// group and the anonymous account. In other words, with NULL as the   
+		// security attributes, the named pipe cannot be connected with the   
+		// WRITE permission across the network, or from a local client running   
+		// as a lower integiry level. Here, we fill the security attributes to   
+		// grant EVERYONE all access (not just the connect access) to the server   
+		// This solves the cross-network and cross-IL issues, but it creates   
+		// a security hole right there: the clients have WRITE_OWNER access and   
+		// then the server just lose the control of the pipe object. 
+		SECURITY_ATTRIBUTES sa;
+		sa.lpSecurityDescriptor = (PSECURITY_DESCRIPTOR)malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+		InitializeSecurityDescriptor(sa.lpSecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
+		// ACL is set as NULL in order to allow all access to the object.  
+		SetSecurityDescriptorDacl(sa.lpSecurityDescriptor, TRUE, NULL, FALSE);
+		sa.nLength = sizeof(sa);
+		sa.bInheritHandle = TRUE;
+
 		inst->srvpipe_ = CreateNamedPipe(inst->name_, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
 			PIPE_WAIT | PIPE_READMODE_MESSAGE | PIPE_TYPE_MESSAGE,
-			1, BUF_SIZE, BUF_SIZE, 0, NULL);
+			1, BUF_SIZE, BUF_SIZE, 0, &sa);
 
 		if (inst->srvpipe_ != INVALID_HANDLE_VALUE)
 		{
