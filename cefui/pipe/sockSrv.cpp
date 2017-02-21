@@ -43,7 +43,7 @@ bool SockSrv::Init(const int port, int& outPort)
 
 	int iResult = SOCKET_ERROR;
 	while( iResult == SOCKET_ERROR){
-		iResult = bind(m_sock, (struct sockaddr*)&my_addr, sizeof(struct sockaddr));		
+		iResult = ::bind(m_sock, (struct sockaddr*)&my_addr, sizeof(struct sockaddr));		
 		if ( !iResult )
 		{
 			break;
