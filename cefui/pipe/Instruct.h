@@ -128,6 +128,18 @@ namespace cyjh{
 			list_.push_back(item);
 		}
 
+		void AppendVal(const char* val){
+			cyjh_value item;
+			item.SetStringVal(std::string(val));
+			list_.push_back(item);
+		}
+
+		void AppendVal(const WCHAR* val){
+			cyjh_value item;
+			item.SetWStringVal(std::wstring(val));
+			list_.push_back(item);
+		}
+
 		const cyjh_value::Type& GetType(const unsigned int& idx) const{
 			return list_[idx].GetType();
 		}
