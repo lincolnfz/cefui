@@ -141,26 +141,56 @@ namespace cyjh{
 		}
 
 		const cyjh_value::Type& GetType(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static cyjh_value::Type val = cyjh_value::TYPE_NULL;
+				return val;
+			}
 			return list_[idx].GetType();
 		}
 
 		const bool& GetBooleanVal(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static bool val = false;
+				return val;
+			}
 			return list_[idx].GetBooleanVal();
 		}
 
 		const int& GetIntVal(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static int val = 0;
+				return val;
+			}
 			return list_[idx].GetIntVal();
 		}
 
 		const double& GetDoubleVal(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static double val = 0.0f;
+				return val;
+			}
 			return list_[idx].GetDoubleVal();
 		}
 
 		const std::string& GetStrVal(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static std::string val;
+				return val;
+			}
 			return list_[idx].GetStrVal();
 		}
 
 		const std::wstring& GetWStrVal(const unsigned int& idx) const{
+			if ( idx + 1 > list_.size() )
+			{
+				static std::wstring val;
+				return val;
+			}
 			return list_[idx].GetWStrVal();
 		}
 
