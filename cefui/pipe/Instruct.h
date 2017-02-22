@@ -134,7 +134,7 @@ namespace cyjh{
 			list_.push_back(item);
 		}
 
-		void AppendVal(const WCHAR* val){
+		void AppendVal(const wchar_t* val){
 			cyjh_value item;
 			item.SetWStringVal(std::wstring(val));
 			list_.push_back(item);
