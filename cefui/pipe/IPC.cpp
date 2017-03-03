@@ -6,6 +6,26 @@
 
 namespace cyjh{
 
+	class SignEventHelper
+	{
+	public:
+		SignEventHelper(HANDLE hEvent){
+			//m_hEvent = hEvent;
+			DuplicateHandle(GetCurrentProcess(), hEvent,
+				GetCurrentProcess(), &m_hEvent,
+				0, FALSE, DUPLICATE_SAME_ACCESS);
+		}
+
+		~SignEventHelper(){
+			SetEvent(m_hEvent);
+			CloseHandle(m_hEvent);
+		}
+
+	private:
+		HANDLE m_hEvent;
+	};
+
+
 	static volatile int  ipc_unit_id = 0;
 	void _IPC_MESSAGE_ITEM::Append(const unsigned char* data, const DWORD len)
 	{
@@ -45,6 +65,11 @@ namespace cyjh{
 		if (CHECK_HANDLE(srvpipe_))
 		{
 			CloseHandle(srvpipe_);
+		}
+
+		if (CHECK_HANDLE(remotepipe_))
+		{
+			CloseHandle(remotepipe_);
 		}
 
 		if (CHECK_HANDLE(hEvents_[0]))
@@ -302,13 +327,15 @@ namespace cyjh{
 
 	bool IPCPipeSrv::Close(){
 		//DisconnectNamedPipe(srvpipe_);
+		SetEvent(hEvents_[1]);
+		WaitForSingleObject(hFin_, INFINITE);
 		return true;
 	}
 
 	unsigned int __stdcall IPCPipeSrv::WorkThread(void* parm)
 	{
 		IPCPipeSrv* inst = reinterpret_cast<IPCPipeSrv*>(parm);
-
+		SignEventHelper evnetHelp(inst->hFin_);
 		// Prepare the security attributes  
 		// If lpSecurityAttributes of CreateNamedPipe is NULL, the named pipe   
 		// gets a default security descriptor and the handle cannot be inherited.   
@@ -425,7 +452,8 @@ namespace cyjh{
 				break;
 			}
 			else{
-				//结束工作线程				
+				//结束工作线程
+				DisconnectNamedPipe(inst->srvpipe_);
 				break;
 			}
 		}
@@ -472,7 +500,7 @@ namespace cyjh{
 	IPCPipeClient::~IPCPipeClient()
 	{
 		//SetEvent(hEvents_[1]);
-		//WaitForSingleObject(hFin_, INFINITE);
+		WaitForSingleObject(hFin_, INFINITE);
 	}
 
 	bool IPCPipeClient::Close(){
@@ -484,6 +512,8 @@ namespace cyjh{
 	unsigned int __stdcall IPCPipeClient::WorkThread(void* parm)
 	{
 		IPCPipeClient* inst = reinterpret_cast<IPCPipeClient*>(parm);
+		SignEventHelper evnetHelp(inst->hFin_);
+
 		//去连接另一个进程，线程创建的命名管道
 		while (true)
 		{
@@ -640,7 +670,8 @@ namespace cyjh{
 	void IPCUnit::Close()
 	{
 		close_ = true;
-		//cli_.Close();
+		srv_->Close();
+		cli_->Close();
 	}
 
 	bool IPCUnit::Send(const unsigned char* data, DWORD len, DWORD nTimeout)
@@ -736,6 +767,7 @@ namespace cyjh{
 		std::map<int, std::shared_ptr<IPCUnit>>::iterator it = ipcs_.find(id);
 		if (it != ipcs_.end())
 		{
+			it->second->Close();
 			ipcs_.erase(it);
 		}
 	}
