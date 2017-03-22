@@ -583,7 +583,8 @@ namespace cyjh{
 			else{
 				break;
 			}
-		}		
+		}
+		inst->unit_->StateChange(0);
 		if (inst->disconstCB_)
 		{
 			inst->disconstCB_();

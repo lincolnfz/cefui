@@ -949,13 +949,15 @@ public:
 	}
 
 	void desktop_w(CefRefPtr<CefV8Value>& value){
-		int val = GetSystemMetrics(SM_CXFULLSCREEN);
-		value = CefV8Value::CreateInt(val);
+		RECT rcScr;
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &rcScr, 0);
+		value = CefV8Value::CreateInt(rcScr.right - rcScr.left);
 	}
 
 	void desktop_h(CefRefPtr<CefV8Value>& value){
-		int val = GetSystemMetrics(SM_CYFULLSCREEN);
-		value = CefV8Value::CreateInt(val);
+		RECT rcScr;
+		SystemParametersInfo(SPI_GETWORKAREA, 0, &rcScr, 0);
+		value = CefV8Value::CreateInt(rcScr.bottom - rcScr.top);
 	}
 
 	void window_x(CefRefPtr<CefV8Value>& value){
