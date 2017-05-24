@@ -111,31 +111,6 @@ class ClientApp : public CefApp,
       return false;
     }
 
-	virtual bool OnProcessMessageReceived2(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) {
-
-		return false;
-	}
-
-	virtual bool OnProcessResponseReceived(
-		CefRefPtr<ClientApp> app,
-		CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		int request_id,
-		bool succ,
-		CefRefPtr<CefListValue> response){
-		return false;
-	}
-
-	virtual bool OnProcessResponseAckReceived(
-		CefRefPtr<ClientApp> app,
-		CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		int request_id){
-		return false;
-	}
-
   private:
 	  CefRefPtr<CefLoadHandler> loadHandler_;
   };
@@ -226,18 +201,6 @@ class ClientApp : public CefApp,
       CefRefPtr<CefBrowser> browser,
       CefProcessId source_process,
       CefRefPtr<CefProcessMessage> message) OVERRIDE;
-
-  virtual bool OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process,
-	  CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) OVERRIDE;
-
-  virtual bool OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id,
-	  bool succ,
-	  CefRefPtr<CefListValue> response) OVERRIDE;
-
-  virtual bool OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id) OVERRIDE;
 
   // Set of supported BrowserDelegates. Only used in the browser process.
   BrowserDelegateSet browser_delegates_;

@@ -11,7 +11,7 @@
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
-#include "BridageRender.h"
+#include "client_app.h"
 #include "WebViewFactory.h"
 #include "IPC.h"
 

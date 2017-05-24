@@ -42,7 +42,7 @@ public:
 			item = it->second;
 		}
 		else{
-			item = CefCookieManager::CreateManager(CefString(path), false);
+			item = CefCookieManager::CreateManager(CefString(path), false, NULL);
 			map_.insert(std::make_pair(hash, item));
 		}
 
@@ -120,7 +120,9 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 	CefRefPtr<CefRequestContext> request_context;
 	if (cookie_context && wcslen(cookie_context) > 0){
 		m_requestContextHandler = new RequestContextHandler(cookie_context);
-		request_context = CefRequestContext::CreateContext(m_requestContextHandler);
+		CefRequestContextSettings settings;
+		CefString(&settings.cache_path) = CefString(cookie_context);
+		request_context = CefRequestContext::CreateContext(settings, m_requestContextHandler);
 	}
 	CefBrowserHost::CreateBrowser(info, m_handler.get(),
 		skipcache ? L"about:blank" : url, browser_settings, request_context.get() ? request_context : NULL);

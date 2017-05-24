@@ -58,15 +58,6 @@
     <ClInclude Include="WebViewFactory.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Bridage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="BridageRender.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="BridageHost.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ResponseHandle.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -166,15 +157,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="WebViewFactory.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Bridage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="BridageRender.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="BridageHost.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CombinThreadComit.cpp">

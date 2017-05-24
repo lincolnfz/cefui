@@ -218,6 +218,8 @@ protected:
 	WebViewList m_viewList;
 	//std::mutex factoryMutex_;
 
+	CefRefPtr<CefRequestContext> shared_request_context_;
+
 	IMPLEMENT_REFCOUNTING(WebViewFactory);
 };
 

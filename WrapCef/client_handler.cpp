@@ -18,7 +18,7 @@
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_trace.h"
-#include "include/cef_url.h"
+#include "include/cef_parser.h"
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_stream_resource_handler.h"
 //#include "cefclient/binding_test.h"
@@ -29,7 +29,6 @@
 //#include "cefclient/resource_util.h"
 #include "string_util.h"
 //#include "cefclient/window_test.h"
-#include "BridageRender.h"
 #include "IPC.h"
 #include "WebViewFactory.h"
 #include "ResponseUI.h"
@@ -163,46 +162,6 @@ bool ClientHandler::OnProcessMessageReceived(
 
 //下面三个函数集中处里从渲染线程发送的消息
 ///
-bool ClientHandler::OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process,
-	CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack){
-	CEF_REQUIRE_UI_THREAD();
-	if (message_router_->OnProcessMessageReceived2(browser, source_process,
-		message, response, response_ack)) {
-		return true;
-	}
-
-	//test code
-	/*std::string message_name = message->GetName();
-	CefString s = message->GetArgumentList()->GetString(0);
-	response->SetString(0, CefString(L"收到"));
-	response_ack = true;*/
-	CefRefPtr<ClientApp> app;
-	return BridageRender::getInst().ProcRequest(app, browser, message, response, response_ack);
-}
-
-bool ClientHandler::OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process, int request_id,
-	bool succ,
-	CefRefPtr<CefListValue> response){
-	CEF_REQUIRE_UI_THREAD();
-	if (message_router_->OnProcessResponseReceived(browser, source_process,
-		request_id, succ, response)) {
-		return true;
-	}
-	return BridageRender::getInst().ProcResponse(browser, request_id, succ, response);
-}
-
-bool ClientHandler::OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process, int request_id){
-	CEF_REQUIRE_UI_THREAD();
-	if (message_router_->OnProcessResponseAckReceived(browser, source_process,
-		request_id)) {
-		return true;
-	}
-	return false;
-}
-
 std::string UnicodeToUTF8(const std::wstring& str)
 {
 	char*   pElementText;
@@ -353,6 +312,7 @@ bool ClientHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
                                  const CefString& title,
                                  const CefString& default_file_name,
                                  const std::vector<CefString>& accept_types,
+								 int selected_accept_filter,
                                  CefRefPtr<CefFileDialogCallback> callback) {
   CEF_REQUIRE_UI_THREAD();
 
@@ -571,14 +531,16 @@ void helpNewTab(const int id, std::shared_ptr<std::wstring> url, std::shared_ptr
 }
 
 bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
-                                  CefRefPtr<CefFrame> frame,
-                                  const CefString& target_url,
-                                  const CefString& target_frame_name,
-                                  const CefPopupFeatures& popupFeatures,
-                                  CefWindowInfo& windowInfo,
-                                  CefRefPtr<CefClient>& client,
-                                  CefBrowserSettings& settings,
-                                  bool* no_javascript_access) {
+	CefRefPtr<CefFrame> frame,
+	const CefString& target_url,
+	const CefString& target_frame_name,
+	CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+	bool user_gesture,
+	const CefPopupFeatures& popupFeatures,
+	CefWindowInfo& windowInfo,
+	CefRefPtr<CefClient>& client,
+	CefBrowserSettings& settings,
+	bool* no_javascript_access) {
   CEF_REQUIRE_IO_THREAD();
 
   std::shared_ptr<std::wstring> frameName(new std::wstring(frame->GetName().ToWString()));
@@ -1288,12 +1250,12 @@ void ClientHandler::EndTracing() {
 
       // Results in a call to OnFileDialogDismissed.
       handler_->GetBrowser()->GetHost()->RunFileDialog(
-          FILE_DIALOG_SAVE, CefString(), path, std::vector<CefString>(),
+          FILE_DIALOG_SAVE, CefString(), path, std::vector<CefString>(),0,
           this);
     }
 
     virtual void OnFileDialogDismissed(
-        CefRefPtr<CefBrowserHost> browser_host,
+		int selected_accept_filter,
         const std::vector<CefString>& file_paths) OVERRIDE {
       CEF_REQUIRE_UI_THREAD();
       if (!file_paths.empty()) {

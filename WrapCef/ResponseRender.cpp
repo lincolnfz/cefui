@@ -244,9 +244,10 @@ bool ResponseRender::rsp_queryElementAttrib(const CefRefPtr<CefBrowser> browser,
 	double dt = req_parm->getList().GetDoubleVal(4);
 	CefString val(L"");
 	std::wstring attrib;
+	CefString node_attrib(L"data-nc");
 	if ( DocComplate::getInst().hitBrowser(browser->GetIdentifier()) )
 	{
-		browser->Query_xy_Element(x, y, g_x, g_y, dt, CefString(L"data-nc"), val);
+		browser->Query_xy_Element(x, y, g_x, g_y, dt, node_attrib, val);
 		attrib = val.ToWString();
 	}
 	outVal->getList().AppendVal(attrib);

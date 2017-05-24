@@ -233,7 +233,7 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
 	browser_settings.webgl = STATE_DISABLED;
 	browser_settings.plugins = STATE_DISABLED;
-	browser_settings.java = STATE_DISABLED;
+	//browser_settings.java = STATE_DISABLED;
 	// Creat the new child browser window
 	CefBrowserHost::CreateBrowser(info, provider_1.GetClientHandler().get(),
 		provider_1.GetClientHandler()->GetStartupURL(), browser_settings, NULL);
@@ -412,6 +412,7 @@ namespace wrapQweb{
 
 	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender, WCHAR* szLocal, bool bShareNPPlugin)
 	{
+		CefEnableHighDPISupport();
 		g_hInstance = hInstance;
 #if defined(CEF_USE_SANDBOX)
 		g_sandbox_info = scoped_sandbox.sandbox_info();

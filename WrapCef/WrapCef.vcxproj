@@ -36,11 +36,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="cef_debug.props" />
     <Import Project="dx.props" />
+    <Import Project="boost.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="cef_release.props" />
     <Import Project="dx.props" />
+    <Import Project="boost.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -95,9 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BlockThread.h" />
-    <ClInclude Include="Bridage.h" />
-    <ClInclude Include="BridageHost.h" />
-    <ClInclude Include="BridageRender.h" />
     <ClInclude Include="BrowserIdentifier.h" />
     <ClInclude Include="bytes_write_handler.h" />
     <ClInclude Include="cefclient.h" />
@@ -131,9 +130,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BlockThread.cpp" />
-    <ClCompile Include="Bridage.cpp" />
-    <ClCompile Include="BridageHost.cpp" />
-    <ClCompile Include="BridageRender.cpp" />
     <ClCompile Include="BrowserIdentifier.cpp" />
     <ClCompile Include="bytes_write_handler.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

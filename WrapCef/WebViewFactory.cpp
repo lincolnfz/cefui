@@ -11,6 +11,28 @@
 #include "cefclient.h"
 #include "NormalWebFactory.h"
 
+class ClientRequestContextHandler : public CefRequestContextHandler {
+public:
+	ClientRequestContextHandler() {}
+
+	bool OnBeforePluginLoad(const CefString& mime_type,
+		const CefString& plugin_url,
+		const CefString& top_origin_url,
+		CefRefPtr<CefWebPluginInfo> plugin_info,
+		PluginPolicy* plugin_policy) OVERRIDE{
+		// Always allow the PDF plugin to load.
+		if (*plugin_policy != PLUGIN_POLICY_ALLOW &&
+		mime_type == "application/pdf") {
+			*plugin_policy = PLUGIN_POLICY_ALLOW;
+			return true;
+		}
+
+		return false;
+	}
+
+private:
+	IMPLEMENT_REFCOUNTING(ClientRequestContextHandler);
+};
 
 WebViewFactory WebViewFactory::s_inst;
 
@@ -103,15 +125,21 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 	//browser_settings.application_cache = STATE_DISABLED; //²»ÓÃ»º´æ
 	// Creat the new child browser window
 
+	if (!shared_request_context_.get()) {
+		shared_request_context_ =
+			CefRequestContext::CreateContext(CefRequestContext::GetGlobalContext(),
+			new ClientRequestContextHandler);
+	}
+
 	m_viewList.push_back(item);
 	if ( browser.get() )
 	{
 		CefBrowserHost::CreateInheritBrowser(browser, info, item->m_handle,
-			url, browser_settings, NULL);
+			url, browser_settings, shared_request_context_);
 	}
 	else{
 		CefBrowserHost::CreateBrowser(info, item->m_handle,
-			url, browser_settings, NULL);
+			url, browser_settings, shared_request_context_);
 	}
 	//WCHAR szBuf[] = { L"D:\\work\\WebUIDemo\\bin\\Release\\uiframe\\PepperFlash1\\pepflashplayer.dll;application/x-shockwave-flash" };
 	//item->m_provider->GetBrowser()->RegPlugin(szBuf, true);

@@ -8,7 +8,6 @@
 #include "client_renderer.h"
 //#include "performance_test.h"
 #include "scheme_test.h"
-#include "BridageHost.h"
 
 #include <regex>
 #include <boost/functional/hash.hpp>
@@ -1562,42 +1561,6 @@ public:
 		}
 	}
 
-		//下面三个函数集中处里从主线程发送的消息
-		///
-
-	virtual bool OnProcessMessageReceived2(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack)  OVERRIDE
-	{
-		//test code
-		//CefString name = message->GetName();
-		//CefString pp = message->GetArgumentList()->GetString(0);
-		//CefRefPtr<CefFrame> frame = browser->GetMainFrame();
-		//frame->ExecuteJavaScript( CefString(L"pprr('454xx')"), CefString(L""), 0);
-		//test code end
-		return BridageHost::getInst().ProcRequest(app, browser, message, response, response_ack);		
-	}
-
-		virtual bool OnProcessResponseReceived(
-		CefRefPtr<ClientApp> app,
-		CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		int request_id,
-		bool succ,
-		CefRefPtr<CefListValue> response)OVERRIDE{
-
-		return BridageHost::getInst().ProcResponse(browser, request_id, succ, response);
-	}
-
-	virtual bool OnProcessResponseAckReceived(
-		CefRefPtr<ClientApp> app,
-		CefRefPtr<CefBrowser> browser,
-		CefProcessId source_process,
-		int request_id)OVERRIDE{
-
-		int i = 0;
-		return false;
-	}
 
 private:
 	IMPLEMENT_REFCOUNTING(MyRenderDelegate);

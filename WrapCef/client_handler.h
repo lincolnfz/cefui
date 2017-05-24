@@ -96,18 +96,6 @@ class ClientHandler : public CefClient,
                                         CefRefPtr<CefProcessMessage> message)
                                         OVERRIDE;
 
-  virtual bool OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process,
-	  CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) OVERRIDE;
-
-  virtual bool OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id,
-	  bool succ,
-	  CefRefPtr<CefListValue> response) OVERRIDE;
-
-  virtual bool OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id) OVERRIDE;
-
   // CefContextMenuHandler methods
   virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefFrame> frame,
@@ -125,6 +113,7 @@ class ClientHandler : public CefClient,
                             const CefString& title,
                             const CefString& default_file_name,
                             const std::vector<CefString>& accept_types,
+							int selected_accept_filter,
                             CefRefPtr<CefFileDialogCallback> callback) OVERRIDE;
 
   // CefDisplayHandler methods
@@ -187,14 +176,16 @@ class ClientHandler : public CefClient,
 
   // CefLifeSpanHandler methods
   virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
-                             CefRefPtr<CefFrame> frame,
-                             const CefString& target_url,
-                             const CefString& target_frame_name,
-                             const CefPopupFeatures& popupFeatures,
-                             CefWindowInfo& windowInfo,
-                             CefRefPtr<CefClient>& client,
-                             CefBrowserSettings& settings,
-                             bool* no_javascript_access) OVERRIDE;
+	  CefRefPtr<CefFrame> frame,
+	  const CefString& target_url,
+	  const CefString& target_frame_name,
+	  CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+	  bool user_gesture,
+	  const CefPopupFeatures& popupFeatures,
+	  CefWindowInfo& windowInfo,
+	  CefRefPtr<CefClient>& client,
+	  CefBrowserSettings& settings,
+	  bool* no_javascript_access) OVERRIDE;
   virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
   virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;

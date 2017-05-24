@@ -69,25 +69,6 @@ class ClientRenderDelegate : public ClientApp::RenderDelegate {
         browser, source_process, message);
   }
 
-	  virtual bool OnProcessMessageReceived2(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process,
-	  CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack) OVERRIDE {
-	  return message_router_->OnProcessMessageReceived2(
-		browser, source_process, message, response, response_ack);
-  }
-
-	  virtual bool OnProcessResponseReceived(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id,
-	  bool succ,
-	  CefRefPtr<CefListValue> response) OVERRIDE {
-	  return message_router_->OnProcessResponseReceived(
-			browser, source_process, request_id, succ, response);
-  }
-
-	  virtual bool OnProcessResponseAckReceived(CefRefPtr<ClientApp> app, CefRefPtr<CefBrowser> browser,
-	  CefProcessId source_process, int request_id) OVERRIDE{
-	  return message_router_->OnProcessResponseAckReceived( browser, source_process, request_id);
-  }
 
  private:
   bool last_node_is_editable_;

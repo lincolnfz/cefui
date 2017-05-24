@@ -47,9 +47,9 @@ void ClientApp::OnContextInitialized() {
   CreateBrowserDelegates(browser_delegates_);
 
   // Register cookieable schemes with the global cookie manager.
-  CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager();
+  CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager(NULL);
   DCHECK(manager.get());
-  manager->SetSupportedSchemes(cookieable_schemes_);
+  manager->SetSupportedSchemes(cookieable_schemes_, NULL);
 
   print_handler_ = CreatePrintHandler();
 
@@ -72,11 +72,12 @@ void ClientApp::OnBeforeCommandLineProcessing(
 	if (process_type.empty())
 	{
 	//if(CefCurrentlyOn(TID_UI)){
-		WCHAR szParm[512] = {0};
-		swprintf_s(szParm, L"%s\\PepperFlash\\pepflashplayer.dll;application/x-shockwave-flash", g_szLocalPath);
-		command_line->AppendSwitch("ppapi-out-of-process");
+		//WCHAR szParm[512] = {0};
+		//swprintf_s(szParm, L"%s\\PepperFlash\\pepflashplayer.dll;application/x-shockwave-flash", g_szLocalPath);
+		//command_line->AppendSwitch("ppapi-out-of-process");
 		//OutputDebugStringW(szParm);
 		//command_line->AppendSwitchWithValue(CefString("register-pepper-plugins"), CefString(szParm));
+		command_line->AppendSwitch("enable-npapi");
 	}
 }
 
@@ -270,46 +271,6 @@ bool ClientApp::OnProcessMessageReceived(
   }
 
   return handled;
-}
-
-bool ClientApp::OnProcessMessageReceived2(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process,
-	CefRefPtr<CefProcessMessage> message, CefRefPtr<CefListValue> response, bool& response_ack){
-	DCHECK_EQ(source_process, PID_BROWSER);
-	bool handled = false;
-
-	RenderDelegateSet::iterator it = render_delegates_.begin();
-	for (; it != render_delegates_.end() && !handled; ++it) {
-		handled = (*it)->OnProcessMessageReceived2(this, browser, source_process,
-			message, response, response_ack);
-	}
-
-	return handled;
-}
-
-bool ClientApp::OnProcessResponseReceived(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process, int request_id,
-	bool succ,
-	CefRefPtr<CefListValue> response){
-
-	bool handled = false;
-	RenderDelegateSet::iterator it = render_delegates_.begin();
-	for (; it != render_delegates_.end() && !handled; ++it) {
-		handled = (*it)->OnProcessResponseReceived(this, browser, source_process, request_id, succ, response);
-	}
-	return handled;
-}
-
-bool ClientApp::OnProcessResponseAckReceived(CefRefPtr<CefBrowser> browser,
-	CefProcessId source_process, int request_id){
-
-	bool handled = false;
-	RenderDelegateSet::iterator it = render_delegates_.begin();
-	for (; it != render_delegates_.end() && !handled; ++it) {
-		handled = (*it)->OnProcessResponseAckReceived(this, browser, source_process,
-			request_id);
-	}
-	return handled;
 }
 
 /*

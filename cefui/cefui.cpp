@@ -92,7 +92,7 @@ long __stdcall callback(_EXCEPTION_POINTERS* pExInfo)
 	_tsplitpath_s(exeFullPath, lpszDrive, lpszPath, lpszName, lpszTemp);
 
 	TCHAR dumpPath[MAX_PATH];
-	_stprintf(dumpPath, _T("%s%s%s"), lpszDrive, lpszPath, _T("render_cash.dmp"));
+	_stprintf_s(dumpPath, _T("%s%s%s"), lpszDrive, lpszPath, _T("render_cash.dmp"));
 
 	HANDLE hFile = ::CreateFile(dumpPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile != INVALID_HANDLE_VALUE)
@@ -106,7 +106,7 @@ long __stdcall callback(_EXCEPTION_POINTERS* pExInfo)
 		::CloseHandle(hFile);
 	}
 	TCHAR msg[1024];
-	_stprintf(msg, _T("carsh, %s"), dumpPath);
+	_stprintf_s(msg, _T("carsh, %s"), dumpPath);
 	//MessageBox(0, msg, _T("crash"), MB_OK | MB_ICONERROR);
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -197,7 +197,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
 	if (wrapQweb::InitLibrary(hInstance, L"render.exe") < 0){
-		wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true, WIDGET_NORMAL_SIZE);
+		//wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true, WIDGET_NORMAL_SIZE);
+		//wrapQweb::CreateWebView(0, 0, 1024, 768, L"https://zs.sguo.com/sys/OpenServerList.aspx", 255, true, true, WIDGET_NORMAL_SIZE);
+		//wrapQweb::CreateWebView(0, 0, 1024, 768, L"xpack:///d:/ui.pack/index.html", 255, true, true, WIDGET_NORMAL_SIZE);
 		wrapQweb::RunLoop();
 		wrapQweb::FreeLibrary();
 	}
