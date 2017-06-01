@@ -25,6 +25,10 @@ namespace cyjh{
 	void UIThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
 	{
 		CEF_REQUIRE_UI_THREAD();
+		if (!browser.get())
+		{
+			return;
+		}
 		int id = browser->GetIdentifier();
 		if (disableBrowserSet_.find(id) != disableBrowserSet_.end()){
 			return;
@@ -281,6 +285,10 @@ namespace cyjh{
 	void RenderThreadCombin::AsyncRequest(CefRefPtr<CefBrowser> browser, Instruct& parm)
 	{
 		CEF_REQUIRE_RENDERER_THREAD();
+		if ( !browser.get() )
+		{
+			return;
+		}
 		if (disableBrowserSet_.find(browser->GetIdentifier()) != disableBrowserSet_.end())
 		{
 			return;
