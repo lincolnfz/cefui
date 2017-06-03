@@ -19,6 +19,7 @@
 
 ClientApp* ClientApp::s_app = NULL;
 extern WCHAR g_szLocalPath[MAX_PATH];
+extern bool g_enable_npapi;
 
 void js_collectAllGarbage(){
 	cb_collectAllGarbage fun = (cb_collectAllGarbage)GetProcAddress(GetModuleHandle(L"libwbx.dll"), "collectAllGarbage");
@@ -77,7 +78,11 @@ void ClientApp::OnBeforeCommandLineProcessing(
 		//command_line->AppendSwitch("ppapi-out-of-process");
 		//OutputDebugStringW(szParm);
 		//command_line->AppendSwitchWithValue(CefString("register-pepper-plugins"), CefString(szParm));
-		command_line->AppendSwitch("enable-npapi");
+		//command_line->AppendSwitch("enable-npapi");
+		if (g_enable_npapi)
+		{
+			command_line->AppendSwitch("enable-npapi");
+		}
 	}
 }
 

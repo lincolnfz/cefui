@@ -383,6 +383,7 @@ namespace cefControl{
 
 WCHAR g_szLocalPath[MAX_PATH];
 std::wstring g_strAppDataPath;
+bool g_enable_npapi = false;
 
 namespace wrapQweb{
 
@@ -805,6 +806,11 @@ namespace wrapQweb{
 			ret = NormalWebFactory::getInstance().SetViewZoomLevel(hwnd, level);
 		}
 		return ret;
+	}
+
+	void SetEnableNpapi(const bool& bEnable)
+	{
+		g_enable_npapi = bEnable;
 	}
 
 	////
