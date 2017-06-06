@@ -168,7 +168,9 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API bool SetViewZoomLevel(const HWND&, const double& level);
 
-	SHARED_EXPORT_API void SetEnableNpapi(const bool& bEnable);
+	SHARED_EXPORT_API void PrepareSetEnableNpapi(const bool& bEnable);
+
+	SHARED_EXPORT_API void PrepareSetCachePath(const std::wstring& path);
 
 //---------------------------------------------------------------------------------------------------------------------
 //¿‡∑÷∏Óœﬂ

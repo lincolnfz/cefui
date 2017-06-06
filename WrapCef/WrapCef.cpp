@@ -28,6 +28,7 @@
 #include "ResponseUI.h"
 #include "NormalWebFactory.h"
 #include "WebkitEcho.h"
+#include "globalTools.h"
 
 #pragma comment(lib , "Shlwapi.lib")
 
@@ -384,26 +385,10 @@ namespace cefControl{
 WCHAR g_szLocalPath[MAX_PATH];
 std::wstring g_strAppDataPath;
 std::wstring g_strGlobalCachePath;
+std::wstring g_strReadCachePath;
 bool g_enable_npapi = false;
 
 namespace wrapQweb{
-
-	static bool getAppDataFolder(std::wstring& directory)
-	{
-		wchar_t appDataDirectory[MAX_PATH];
-		if (FAILED(SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
-			return false;
-
-		wchar_t executablePath[MAX_PATH];
-		if (!::GetModuleFileNameW(0, executablePath, MAX_PATH))
-			return false;
-
-		::PathRemoveExtensionW(executablePath);
-
-		directory = std::wstring(appDataDirectory) + L"\\" + ::PathFindFileNameW(executablePath);
-		directory.append(L"\\");
-		return true;
-	}
 
 	static bool g_init = false;
 	static bool g_multi_thread = false;
@@ -811,9 +796,14 @@ namespace wrapQweb{
 		return ret;
 	}
 
-	void SetEnableNpapi(const bool& bEnable)
+	void PrepareSetEnableNpapi(const bool& bEnable)
 	{
 		g_enable_npapi = bEnable;
+	}
+
+	void PrepareSetCachePath(const std::wstring& path)
+	{
+		g_strReadCachePath = path;
 	}
 
 	////

@@ -36,6 +36,7 @@
 #include "ShareHelper.h"
 #include "WebkitEcho.h"
 #include "NormalWebFactory.h"
+#include "globalTools.h"
 
 namespace {
 
@@ -320,23 +321,6 @@ bool ClientHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
 }
 
 #endif  // !defined(OS_LINUX)
-
-static bool getAppDataFolder(std::string& directory)
-{
-	char appDataDirectory[MAX_PATH];
-	if (FAILED(SHGetFolderPathA(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
-		return false;
-
-	char executablePath[MAX_PATH];
-	if (!::GetModuleFileNameA(0, executablePath, MAX_PATH))
-		return false;
-
-	::PathRemoveExtensionA(executablePath);
-
-	directory = std::string(appDataDirectory) + "\\" + ::PathFindFileNameA(executablePath);
-	directory.append("\\");
-	return true;
-}
 
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& message,

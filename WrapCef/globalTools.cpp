@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "globalTools.h"
 #include <Windows.h>
+#include <Shlobj.h>
+#include <Shlwapi.h>
 #include "json/json.h"
+
+extern std::wstring g_strReadCachePath;
 
 std::wstring Utf82Unicode(const std::string& str)
 {
@@ -118,4 +122,37 @@ bool TransValue2Wstr(CefRefPtr<CefV8Value> val, std::wstring& trans)
 	}
 
 	return ret;
+}
+
+bool getAppDataFolder(std::wstring& directory)
+{
+	if ( !g_strReadCachePath.empty() )
+	{
+		directory = g_strReadCachePath;
+		return true;
+	}
+
+	wchar_t appDataDirectory[MAX_PATH];
+	if (FAILED(SHGetFolderPathW(0, CSIDL_LOCAL_APPDATA | CSIDL_FLAG_CREATE, 0, 0, appDataDirectory)))
+		return false;
+
+	wchar_t executablePath[MAX_PATH];
+	if (!::GetModuleFileNameW(0, executablePath, MAX_PATH))
+		return false;
+
+	::PathRemoveExtensionW(executablePath);
+
+	directory = std::wstring(appDataDirectory) + L"\\" + ::PathFindFileNameW(executablePath);
+	directory.append(L"\\");
+	return true;
+}
+
+bool getAppDataFolder(std::string& directory)
+{
+	std::wstring path;
+	if (getAppDataFolder(path)){
+		directory = Unicode2Utf8(path);
+		return true;
+	}
+	return false;
 }

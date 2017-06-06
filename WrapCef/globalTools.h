@@ -11,4 +11,8 @@ bool TransValueType(CefRefPtr<CefV8Value> val, std::string& trans);
 
 bool TransValue2Wstr(CefRefPtr<CefV8Value> val, std::wstring& trans);
 
+bool getAppDataFolder(std::wstring& directory);
+
+bool getAppDataFolder(std::string& directory);
+
 #endif //_globalTools_h
