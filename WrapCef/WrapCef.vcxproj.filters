@@ -112,6 +112,9 @@
     <ClInclude Include="bytes_write_handler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cookie_impl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -226,6 +229,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="bytes_write_handler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cookie_impl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

@@ -383,6 +383,7 @@ namespace cefControl{
 
 WCHAR g_szLocalPath[MAX_PATH];
 std::wstring g_strAppDataPath;
+std::wstring g_strGlobalCachePath;
 bool g_enable_npapi = false;
 
 namespace wrapQweb{
@@ -437,7 +438,9 @@ namespace wrapQweb{
 		if (getAppDataFolder(cachePath)){
 			g_strAppDataPath = cachePath;
 			cachePath.append(L"cache");
-			cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
+			g_strGlobalCachePath = cachePath;
+			//cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
+			CefString(&settings.cache_path) = CefString(g_strGlobalCachePath.c_str());
 		}
 		//WCHAR szLocal[] = L"zh-CN";
 		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);

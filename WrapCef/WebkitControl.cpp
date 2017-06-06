@@ -22,57 +22,6 @@ static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
 	browser->GetHost()->SetFocus(true);
 }
 
-typedef std::map<size_t, CefRefPtr<CefCookieManager>> COOKIES_MAN_MAP;
-
-class CookiesManage
-{
-public:
-	static CookiesManage& getInst(){
-		return s_inst;
-	}
-	virtual ~CookiesManage(){}
-	CefRefPtr<CefCookieManager> GetCookieManager(const WCHAR* cookie_ctx){
-		std::wstring path(cookie_ctx);
-		boost::hash<std::wstring> string_hash;
-		size_t hash = string_hash(path);
-		COOKIES_MAN_MAP::iterator it = map_.find(hash);
-		CefRefPtr<CefCookieManager> item;
-		if ( it != map_.end() )
-		{
-			item = it->second;
-		}
-		else{
-			item = CefCookieManager::CreateManager(CefString(path), false, NULL);
-			map_.insert(std::make_pair(hash, item));
-		}
-
-		COOKIES_MAN_MAP::iterator it2 = map_.find(hash);
-		CefRefPtr<CefCookieManager> val;
-		if (it2 != map_.end())
-		{
-			val = it2->second;
-		}
-		return val;
-	}
-protected:
-	CookiesManage(){}
-private:
-	static CookiesManage s_inst;
-	COOKIES_MAN_MAP map_;
-};
-CookiesManage CookiesManage::s_inst;
-
-
-CefRefPtr<CefCookieManager> RequestContextHandler::GetCookieManager()
-{
-	CefRefPtr<CefCookieManager> manager = CookiesManage::getInst().GetCookieManager(cookie_ctx_.c_str());
-	if ( manager.get() )
-	{
-		return manager;
-	}
-	return NULL;
-}
-
 ////
 
 bool ChromeiumBrowserControl::setBrowser(CefRefPtr<CefBrowser> browser)
@@ -119,13 +68,20 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 
 	CefRefPtr<CefRequestContext> request_context;
 	if (cookie_context && wcslen(cookie_context) > 0){
-		m_requestContextHandler = new RequestContextHandler(cookie_context);
+		m_requestContextHandler = new RequestContextHandlerPath(cookie_context);
 		CefRequestContextSettings settings;
 		CefString(&settings.cache_path) = CefString(cookie_context);
 		request_context = CefRequestContext::CreateContext(settings, m_requestContextHandler);
+	}else{
+		//CefRequestContextSettings settings;
+		//CefString(&settings.cache_path) = CefString(g_strGlobalCachePath.c_str());
+		//request_context = CefRequestContext::CreateContext(settings, new ClientRequestContextHandler);
+		//m_requestContextHandler = new RequestContextHandlerPath(g_strGlobalCachePath.c_str());
+		//request_context = CefRequestContext::CreateContext(settings, m_requestContextHandler);
+		request_context = CookiesManage::getInst().getShareRequest();
 	}
 	CefBrowserHost::CreateBrowser(info, m_handler.get(),
-		skipcache ? L"about:blank" : url, browser_settings, request_context.get() ? request_context : NULL);
+		skipcache ? L"about:blank" : url, browser_settings, request_context);
 
 	HWND hWnd = NULL;
 	if (m_browser.get() && m_browser->GetHost()){

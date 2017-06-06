@@ -3,6 +3,7 @@
 #pragma once
 
 #include "cefclient_osr_widget_win.h"
+#include "cookie_impl.h"
 //#include <mutex>
 
 class BrowserProvider;
@@ -219,6 +220,8 @@ protected:
 	//std::mutex factoryMutex_;
 
 	CefRefPtr<CefRequestContext> shared_request_context_;
+
+	CefRefPtr<RequestContextHandlerPath> m_requestContextHandler;
 
 	IMPLEMENT_REFCOUNTING(WebViewFactory);
 };

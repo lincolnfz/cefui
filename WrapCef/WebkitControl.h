@@ -2,20 +2,7 @@
 #define _webkitcontrol_h
 #pragma once
 #include "cefclient.h"
-
-class RequestContextHandler : public CefRequestContextHandler {
-public:
-	explicit RequestContextHandler(const WCHAR* cookie_path)
-	{
-		cookie_ctx_ = cookie_path;
-	}
-
-	virtual CefRefPtr<CefCookieManager> GetCookieManager() OVERRIDE;
-
-	IMPLEMENT_REFCOUNTING(RequestContextHandler);
-private:
-	std::wstring cookie_ctx_;
-};
+#include "cookie_impl.h"
 
 class ChromeiumBrowserControl : public CefBase
 {
@@ -58,7 +45,7 @@ private:
 	CefRefPtr<ClientHandler> m_handler;
 	CefRefPtr<CefBrowser> m_browser;
 	bool m_bClose;
-	CefRefPtr<RequestContextHandler> m_requestContextHandler;
+	CefRefPtr<RequestContextHandlerPath> m_requestContextHandler;
 	std::wstring m_strInitUrl;
 
 };
