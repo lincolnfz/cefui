@@ -1108,8 +1108,9 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
     break;
 
   case WM_SIZE:
-	  if (browserhost.get())
+	  if (browserhost.get()){
 		  browserhost->WasResized();
+	  }
     break;
 
   case WM_SETFOCUS:
