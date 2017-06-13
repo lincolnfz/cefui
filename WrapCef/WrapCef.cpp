@@ -386,7 +386,7 @@ WCHAR g_szLocalPath[MAX_PATH];
 std::wstring g_strAppDataPath;
 std::wstring g_strGlobalCachePath;
 std::wstring g_strReadCachePath;
-bool g_enable_npapi = true;
+bool g_enable_npapi = false;
 
 namespace wrapQweb{
 
