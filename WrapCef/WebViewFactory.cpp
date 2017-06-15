@@ -58,9 +58,9 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 	item->m_handle = new ClientHandler();
 	item->m_handle->SetMainWindowHandle(NULL);
 	CefRefPtr<BrowserProvider> provider = new BrowserProvider(item->m_handle);
-	CefWindowInfo info;
+	
 	CefBrowserSettings browser_settings;
-	const bool transparent = false;
+	const bool transparent = trans;
 	//cmd_line->HasSwitch(cefclient::kTransparentPaintingEnabled);
 	const bool show_update_rect = false;
 	RECT rect;
@@ -78,6 +78,7 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 	bool bTest = item->m_window_map.insert(std::make_pair(window->hwnd(), window)).second;
 	assert(bTest == true);
 
+	CefWindowInfo info;
 	info.SetAsWindowless(window->hwnd(), transparent);
 	info.transparent_painting_enabled = trans; //ÊÇ·ñĞèÒª?
 	info.windowless_rendering_enabled = true;

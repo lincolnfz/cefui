@@ -81,7 +81,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   //DWORD dwExStyle = WS_EX_LTRREADING|WS_EX_LEFT|WS_EX_RIGHTSCROLLBAR;
   DWORD dwExStyle = WS_EX_APPWINDOW;
   //DWORD dwExStyle = 0;
-  DWORD dwStyle = WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+  DWORD dwStyle = WS_POPUP | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;// | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
   if ( bTrans_ )
   {
 	  dwExStyle |= (WS_EX_LAYERED);
@@ -89,7 +89,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   }
   else{
 	  //dwExStyle = WS_EX_APPWINDOW;
-	 // dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+	  dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
   }
   if ( sizetype == WIDGET_MIN_SIZE )
   {
@@ -371,7 +371,7 @@ bool SaveBitmapToFile(HBITMAP hBitmap)
 	Gdiplus::Bitmap bmp(hBitmap, (HPALETTE)hPal);
 	static unsigned int idx = 0;
 	WCHAR path[256];
-	wsprintf(path, L"f:\\tt\\disp_%d.png", ++idx);
+	wsprintf(path, L"d:\\tt\\disp_%d.png", ++idx);
 	SaveToOtherFormat(&bmp, path);
 
 
@@ -492,8 +492,26 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 						destPt.y = 0;
 						destSize.cx = view_width_;
 						destSize.cy = view_height_;
-						if (bTrans_)
-							UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+						if (bTrans_){
+							BOOL ret = UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, RGB(0, 0, 0), &pb, ULW_ALPHA);
+							if (!ret)
+							{
+								if (GetLastError() == ERROR_INVALID_PARAMETER)
+								{
+									long val = GetWindowLong(hWnd_, GWL_EXSTYLE);
+									val &= ~WS_EX_LAYERED;
+									SetWindowLong(hWnd_, GWL_EXSTYLE, val);
+									::SetWindowPos(hWnd_, 0, 0, 0, 0, 0,
+										SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+									val = GetWindowLong(hWnd_, GWL_EXSTYLE);
+									val |= WS_EX_LAYERED;
+									SetWindowLong(hWnd_, GWL_EXSTYLE, val);
+									::SetWindowPos(hWnd_, 0, 0, 0, 0, 0,
+										SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+									::UpdateLayeredWindow(hWnd_, hdc, 0, &destSize, hSrcDC, &srcPt, 0, &pb, ULW_ALPHA);
+								}
+							}
+						}
 						else
 							BitBlt(hdc, 0, 0, destSize.cx, destSize.cy, hSrcDC, 0, 0, SRCCOPY);
 					}
@@ -503,6 +521,7 @@ void OSRWindow::OnPaint(CefRefPtr<CefBrowser> browser,
 				}
 				SelectObject(hSrcDC, hOldBmp);
 			}
+			//SaveBitmapToFile(hBitmap);
 			DeleteObject(hBitmap);
 		}
 
