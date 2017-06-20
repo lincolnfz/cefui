@@ -387,6 +387,7 @@ std::wstring g_strAppDataPath;
 std::wstring g_strGlobalCachePath;
 std::wstring g_strReadCachePath;
 bool g_enable_npapi = false;
+bool g_all_close = false;
 
 namespace wrapQweb{
 
@@ -611,7 +612,7 @@ namespace wrapQweb{
 		CefRefPtr<CefBrowser> browser = WebViewFactory::getInstance().GetBrowserByHwnd(hWnd);
 		if (browser.get())
 		{
-			browser->GetHost()->CloseBrowser(true);
+			browser->GetHost()->CloseBrowser(false);
 		}
 	}
 
@@ -650,6 +651,14 @@ namespace wrapQweb{
 	void QuitLoop()
 	{
 		CefQuitMessageLoop();
+	}
+
+	void TryQuitLoop()
+	{
+		if ( g_all_close )
+		{			
+			CefQuitMessageLoop();
+		}
 	}
 
 	void SetFouceWebView(const HWND& hWnd, const bool& fouce)

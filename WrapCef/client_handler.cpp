@@ -38,6 +38,8 @@
 #include "NormalWebFactory.h"
 #include "globalTools.h"
 
+extern bool g_all_close;
+
 namespace {
 
 // Custom menu command Ids.
@@ -681,8 +683,14 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
     message_handler_set_.clear();
     message_router_ = NULL;
 
+	CefRefPtr<CefCookieManager> manage = CookiesManage::getInst().getShareRequest()->GetDefaultCookieManager(nullptr);
+	if (manage.get())
+	{
+		manage->FlushStore(NULL);
+	}
     // Quit the application message loop.
-    AppQuitMessageLoop();
+    //AppQuitMessageLoop();
+	g_all_close = true;
   }
   else{
 	  if (WebkitEcho::getFunMap())

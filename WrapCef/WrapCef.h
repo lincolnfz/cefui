@@ -120,6 +120,8 @@ namespace wrapQweb {
 
 	SHARED_EXPORT_API void QuitLoop();
 
+	SHARED_EXPORT_API void TryQuitLoop();
+
 	SHARED_EXPORT_API void CloseWebview(const HWND&);
 
 	SHARED_EXPORT_API void CloseAllWebView();

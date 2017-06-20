@@ -167,7 +167,7 @@ bool ChromeiumBrowserControl::close()
 	}
 	if (!m_handler->IsClosing() && m_browser.get() && m_browser->GetHost().get())
 	{
-		m_browser->GetHost()->CloseBrowser(true);
+		m_browser->GetHost()->CloseBrowser(false);
 		m_bClose = true;
 	}
 	return m_bClose;
