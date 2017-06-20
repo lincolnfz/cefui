@@ -40,6 +40,7 @@ void ClientApp::OnRegisterCustomSchemes(
   // Default schemes that support cookies.
   cookieable_schemes_.push_back("http");
   cookieable_schemes_.push_back("https");
+  cookieable_schemes_.push_back("xpack");
 
   RegisterCustomSchemes(registrar, cookieable_schemes_);
 }

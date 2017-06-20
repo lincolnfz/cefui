@@ -10,7 +10,7 @@ class ClientRequestContextHandler : public CefRequestContextHandler {
 public:
 	ClientRequestContextHandler() {}
 
-	/*bool OnBeforePluginLoad(const CefString& mime_type,
+	bool OnBeforePluginLoad(const CefString& mime_type,
 		const CefString& plugin_url,
 		const CefString& top_origin_url,
 		CefRefPtr<CefWebPluginInfo> plugin_info,
@@ -23,7 +23,7 @@ public:
 		}
 
 		return false;
-	}*/
+	}
 
 private:
 	IMPLEMENT_REFCOUNTING(ClientRequestContextHandler);

@@ -425,7 +425,8 @@ namespace wrapQweb{
 			cachePath.append(L"cache");
 			g_strGlobalCachePath = cachePath;
 			//cef_string_set(cachePath.c_str(), wcslen(cachePath.c_str()), &settings.cache_path, true);
-			CefString(&settings.cache_path) = CefString(g_strGlobalCachePath.c_str());
+			std::string cach_path = Unicode2Utf8(g_strGlobalCachePath);
+			CefString(&settings.cache_path) = CefString(cach_path.c_str());
 		}
 		//WCHAR szLocal[] = L"zh-CN";
 		cef_string_set(szLocal, wcslen(szLocal), &settings.locale, true);
