@@ -209,6 +209,8 @@ namespace wrapQweb {
 
 	typedef bool(__stdcall *call_WebkitNewTab)(const int& id, const WCHAR* main_url, HWND* parent);
 
+	typedef void(__stdcall *call_WebkitLoadError)(const int& id, const int& errcode, const bool& isMain, const WCHAR* frameName, const WCHAR* url);
+
 	typedef struct _EchoMap{
 		call_WebkitAfterCreate webkitAfterCreate;
 		call_WebkitOpenNewUrl webkitOpenNewUrl;
@@ -226,6 +228,7 @@ namespace wrapQweb {
 		call_WebkitDocLoaded webkitDocLoaded;
 		call_WebkitSiteIcon webkitSiteIcon;
 		call_WebkitNewTab webkitNewTab;
+		call_WebkitLoadError webkitLoadError;
 	}EchoMap;
 
 	//初始化浏览器控件响应函数

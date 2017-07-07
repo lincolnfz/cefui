@@ -728,6 +728,12 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
 	  return;
   }
 
+  if (WebkitEcho::getFunMap())
+  {
+	  WebkitEcho::getFunMap()->webkitLoadError(browser->GetIdentifier(), errorCode, frame->IsMain(),
+		  frame->GetName().ToWString().c_str(), failedUrl.ToWString().c_str());
+  }
+
   // Don't display an error for downloaded files.
   if (errorCode == ERR_ABORTED)
     return;
