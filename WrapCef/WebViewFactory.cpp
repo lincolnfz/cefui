@@ -92,7 +92,7 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 		SetWindowPos(window->hwnd(), NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 	window->SetAlpha(alpha);
-	//ShowWindow(item->m_window->hwnd(), SW_SHOW);
+	//ShowWindow(window->hwnd(), SW_SHOW);
 
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件

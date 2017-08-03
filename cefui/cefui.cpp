@@ -198,7 +198,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	//PathCombine(szRenderPath, exeFullPath, L"renderx.exe");
 	if (wrapQweb::InitLibrary(hInstance, L"render.exe") < 0){
 		//wrapQweb::CreateWebView(0, 0, 10, 10, L"about:blank", 0, true, true, WIDGET_NORMAL_SIZE);
-		//wrapQweb::CreateWebView(0, 0, 1024, 768, L"https://zs.sguo.com/sys/OpenServerList.aspx", 255, true, true, WIDGET_NORMAL_SIZE);
+		//wrapQweb::CreateWebView(0, 0, 1024, 768, L"http://www.baidu.com", 255, true, true, WIDGET_NORMAL_SIZE);
 		//wrapQweb::CreateWebView(0, 0, 1024, 768, L"xpack:///d:/ui.pack/index.html", 255, true, true, WIDGET_NORMAL_SIZE);
 		wrapQweb::RunLoop();
 		wrapQweb::FreeLibrary();
