@@ -7,6 +7,10 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <Shlwapi.h>
+#include "include/base/cef_bind.h"
+#include "include/wrapper/cef_closure_task.h"
+#include "client_app.h"
+#include "WebViewFactory.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wldap32.lib")
@@ -34,8 +38,8 @@ CURL * curl_easy_handler(const std::string & sUrl,
 	std::string & sRsp,
 	const unsigned int& uiTimeout,
 	const bool& post,
-	const std::string & cookie,
-	const std::string & header)
+	const std::string & header,
+	struct curl_slist ** chunk)
 {
 
 	CURL * curl = curl_easy_init();
@@ -70,14 +74,17 @@ CURL * curl_easy_handler(const std::string & sUrl,
 	{
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, sData.c_str());
 	}
-	if ( !cookie.empty() )
-	{
-		curl_easy_setopt(curl, CURLOPT_COOKIE, cookie.c_str());
-	}
 
 	if ( !header.empty() )
-	{		
-		//curl_easy_setopt(curl, CURLOPT_HEADERDATA, );
+	{
+		//curl_easy_setopt(curl, CURLOPT_HEADER, 1);
+		/* Remove a header curl would otherwise add by itself */
+		//chunk = curl_slist_append(chunk, "Accept:");
+		//*chunk = curl_slist_append(*chunk, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
+		//*chunk = curl_slist_append(*chunk, "Accept-Encoding:gzip, deflate");
+		*chunk = curl_slist_append(*chunk, header.c_str());
+		/* set our custom set of headers */
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *chunk);		
 	}
 
 	return curl;
@@ -192,6 +199,15 @@ CURLcode curl_multi_done(CURL* curl_e)
 	return code;
 }
 
+unsigned int hashID( const int& pageid, const char* id )
+{
+	char szHash[256];
+	sprintf_s(szHash, "%s-%d", id, pageid);
+	boost::hash<std::string> string_hash;
+	std::string hash(szHash);
+	return string_hash(hash);
+}
+
 typedef boost::function<void(const int&, const std::string&, const int&)> RepCB;
 
 HttpTrans HttpTrans::s_inst;
@@ -202,12 +218,12 @@ struct SendParm
 	std::string  sProxy;
 	std::string  sData;
 	std::string  spRsp;
-	std::string  cookie;
 	std::string  header;
 	unsigned int uiTimeout;
 	bool post;
 	RepCB rcb;
-	int id;
+	unsigned int id;
+	struct curl_slist *chunk;
 };
 
 unsigned int __stdcall sendDataThread(LPVOID parm)
@@ -215,8 +231,12 @@ unsigned int __stdcall sendDataThread(LPVOID parm)
 	SendParm* send = (SendParm*)parm;
 	CURL * curl_e = curl_easy_handler(send->sUrl, send->sProxy, send->sData,
 			send->spRsp, send->uiTimeout,
-			send->post, send->cookie, send->header);
+			send->post, send->header, &send->chunk);
 	CURLcode code = curl_multi_done(curl_e);
+	if ( send->chunk )
+	{
+		curl_slist_free_all(send->chunk);
+	}
 	send->rcb(code, send->spRsp, send->id);
 	delete send;
 	return 0;
@@ -233,34 +253,84 @@ HttpTrans::~HttpTrans()
 	curl_global_cleanup();
 }
 
-void HttpTrans::sendData(const int& id, const char* url, const char* proxy, const char* data,
-	const bool& post, const char* cookie, const char* header, const unsigned int timeout)
+bool HttpTrans::sendData(const int& pageid, const char* id, const char* url, const char* proxy, const char* data,
+	const bool& post, const char* header, const unsigned int timeout)
 {
+	//std::unique_lock<std::mutex> lock(lock_);
 	SendParm* parm = new SendParm;
-	parm->id = id;
+	parm->id = hashID(pageid, id);
 	parm->sUrl = url;
 	parm->sProxy = proxy ? proxy : "";
 	parm->sData = data ? data : "";
 	parm->post = post;
-	parm->cookie = cookie ? cookie : "";
 	parm->header = header ? header : "";
 	parm->uiTimeout = timeout;
+	parm->chunk = nullptr;
 	parm->rcb = boost::bind(&HttpTrans::recvData, this, _1, _2, _3);
-	HANDLE ht = (HANDLE)_beginthreadex(nullptr, 0, sendDataThread, parm, 0, 0);
-	CloseHandle(ht);
+
+	std::shared_ptr<send_context_> sp(new send_context_);
+	sp->pageid_ = pageid;
+	sp->req_id_ = id;
+	std::pair<std::map<unsigned int, std::shared_ptr<send_context_>>::iterator, bool> ret;
+	ret = TransMap_.insert(std::make_pair(parm->id, sp));
+	if ( ret.second )
+	{
+		HANDLE ht = (HANDLE)_beginthreadex(nullptr, 0, sendDataThread, parm, 0, 0);
+		CloseHandle(ht);
+	}
+	else{
+		delete parm;
+	}
+	return ret.second;
+}
+
+void HttpTrans::abort(const int& pageid, const char* id)
+{
+	unsigned int hash = hashID(pageid, id);
+	std::map<unsigned int, std::shared_ptr<send_context_>>::iterator it = TransMap_.find(hash);
+	if (it != TransMap_.end())
+	{
+		TransMap_.erase(it);
+	}
+}
+
+void ackData(std::shared_ptr<resp_context_> parm)
+{
+	std::map<unsigned int, std::shared_ptr<send_context_>>::iterator it = HttpTrans::getInstance().TransMap_.find(parm->id_);
+	if (it != HttpTrans::getInstance().TransMap_.end())
+	{
+		//send
+		CefRefPtr<CefBrowser>browser = WebViewFactory::getInstance().GetBrowser(it->second->pageid_);
+		if ( browser.get() )
+		{
+			cyjh::Instruct inst;
+			inst.setName("ackData");
+			inst.getList().AppendVal(it->second->req_id_);
+			inst.getList().AppendVal(parm->errcode_);
+			inst.getList().AppendVal(parm->head_);
+			inst.getList().AppendVal(parm->body_);
+			CefRefPtr<cyjh::UIThreadCombin> ipc = ClientApp::getGlobalApp()->getUIThreadCombin();
+			ipc->AsyncRequest(browser, inst);
+		}
+		HttpTrans::getInstance().TransMap_.erase(it);
+	}
 }
 
 void HttpTrans::recvData(const int& code, const std::string& rsp, const int& id)
 {
+	//std::unique_lock<std::mutex> lock(lock_);
+	std::shared_ptr<resp_context_> parm(new resp_context_);
+	parm->id_ = id;
+	parm->errcode_ = code;
 	int pos = rsp.find("\r\n\r\n");
-	std::string head, body;
 	if ( pos > 0 )
 	{
-		head = rsp.substr(0, pos);
+		parm->head_ = rsp.substr(0, pos);
 		int size = rsp.size() - pos - 4;
 		if ( size > 0 )
 		{
-			body = rsp.substr(pos + 4, size);
+			parm->body_ = rsp.substr(pos + 4, size);
 		}
 	}
+	CefPostTask(TID_UI, base::Bind(&ackData, parm));
 }
