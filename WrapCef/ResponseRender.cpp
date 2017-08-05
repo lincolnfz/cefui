@@ -63,6 +63,7 @@ ResponseRender::ResponseRender()
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_asyncInvokedJSMethod);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_AdjustRenderSpeed);
 	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_initiativeInjectJS);
+	REGISTER_RESPONSE_FUNCTION(ResponseRender, rsp_ackSendData);
 }
 
 
@@ -416,5 +417,20 @@ bool ResponseRender::rsp_initiativeInjectJS(const CefRefPtr<CefBrowser> browser,
 		}
 	}
 
+	return ret;
+}
+
+bool ResponseRender::rsp_ackSendData(const CefRefPtr<CefBrowser> browser,
+	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
+{
+	bool ret = true;
+	CefRefPtr<CefFrame> frame;
+	frame = browser->GetMainFrame();
+	if (frame.get()){
+		std::string req_id = std::move(req_parm->getList().GetStrVal(0));
+		int errcode = req_parm->getList().GetIntVal(1);
+		std::string head = std::move(req_parm->getList().GetStrVal(2));
+		std::string body = std::move(req_parm->getList().GetStrVal(3));
+	}
 	return ret;
 }
