@@ -304,7 +304,7 @@ void ackData(std::shared_ptr<resp_context_> parm)
 		if ( browser.get() )
 		{
 			cyjh::Instruct inst;
-			inst.setName("ackData");
+			inst.setName("ackSendData");
 			inst.getList().AppendVal(it->second->req_id_);
 			inst.getList().AppendVal(parm->errcode_);
 			inst.getList().AppendVal(parm->head_);
