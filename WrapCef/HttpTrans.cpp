@@ -70,11 +70,11 @@ CURL * curl_easy_handler(const std::string & sUrl,
 	if ( post )
 	{
 		curl_easy_setopt(curl, CURLOPT_POST, 1);
-	}
-	if ( !sData.empty() )
-	{
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, sData.c_str());
-	}
+		if (!sData.empty())
+		{
+			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, sData.c_str());
+		}
+	}	
 
 	if ( !header.empty() )
 	{
