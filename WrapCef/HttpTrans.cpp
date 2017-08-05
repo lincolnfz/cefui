@@ -11,6 +11,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "client_app.h"
 #include "WebViewFactory.h"
+#include "json/json.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wldap32.lib")
@@ -82,9 +83,22 @@ CURL * curl_easy_handler(const std::string & sUrl,
 		//chunk = curl_slist_append(chunk, "Accept:");
 		//*chunk = curl_slist_append(*chunk, "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36");
 		//*chunk = curl_slist_append(*chunk, "Accept-Encoding:gzip, deflate");
-		*chunk = curl_slist_append(*chunk, header.c_str());
+		//*chunk = curl_slist_append(*chunk, header.c_str());
 		/* set our custom set of headers */
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *chunk);		
+		Json::Value root;
+		Json::Reader read;
+		if (read.parse(header.c_str(), root) && root.isArray()){
+			int len = root.size();
+			for (int i = 0; i < len; ++i)
+			{
+				std::string val = root[i].asString();
+				*chunk = curl_slist_append(*chunk, val.c_str());
+			}
+		}
+		if (*chunk)
+		{
+			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *chunk);
+		}
 	}
 
 	return curl;
@@ -322,6 +336,8 @@ void HttpTrans::recvData(const int& code, const std::string& rsp, const int& id)
 	std::shared_ptr<resp_context_> parm(new resp_context_);
 	parm->id_ = id;
 	parm->errcode_ = code;
+	parm->head_ = " ";
+	parm->body_ = " ";
 	int pos = rsp.find("\r\n\r\n");
 	if ( pos > 0 )
 	{

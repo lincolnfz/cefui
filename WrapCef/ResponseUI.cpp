@@ -874,8 +874,14 @@ bool ResponseUI::rsp_launchServerData(const CefRefPtr<CefBrowser> browser, const
 	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
 	if (IsWindow(hWnd))
 	{
-		//req_parm->
-		ret = true;
+		std::string id = req_parm->getList().GetStrVal(0);
+		std::string url = req_parm->getList().GetStrVal(1);
+		std::string method = req_parm->getList().GetStrVal(2);
+		std::string head = req_parm->getList().GetStrVal(3);
+		std::string data = req_parm->getList().GetStrVal(4);
+		bool bPost = _stricmp(method.c_str(), "post") == 0;
+		ret = HttpTrans::getInstance().sendData(browser->GetIdentifier(), id.c_str(),
+			url.c_str(), "", data.c_str(), bPost, head.c_str());
 	}
 	return ret;
 }

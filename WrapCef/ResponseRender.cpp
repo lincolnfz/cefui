@@ -6,6 +6,7 @@
 #include <sstream>
 #include "speedbox.h"
 //#include "client_app.h"
+#include "json/json.h"
 
 
 DocComplate DocComplate::s_inst;
@@ -423,7 +424,7 @@ bool ResponseRender::rsp_initiativeInjectJS(const CefRefPtr<CefBrowser> browser,
 bool ResponseRender::rsp_ackSendData(const CefRefPtr<CefBrowser> browser,
 	const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal)
 {
-	bool ret = true;
+	bool ret = false;
 	CefRefPtr<CefFrame> frame;
 	frame = browser->GetMainFrame();
 	if (frame.get()){
@@ -431,6 +432,16 @@ bool ResponseRender::rsp_ackSendData(const CefRefPtr<CefBrowser> browser,
 		int errcode = req_parm->getList().GetIntVal(1);
 		std::string head = std::move(req_parm->getList().GetStrVal(2));
 		std::string body = std::move(req_parm->getList().GetStrVal(3));
+		Json::Value root;
+		root["status"] = errcode;
+		root["header"] = head;
+		Json::FastWriter writer;
+		std::string json = writer.write(root);
+
+		CefRefPtr<CefV8Context> v8 = frame->GetV8Context();
+		CefRefPtr<CefV8Value> retVal;
+		CefRefPtr<CefV8Exception> excp;
+		ret = v8->CallInvokeMethod(CefString("vcDataCallback"), CefString(req_id), CefString(json), CefString(body.c_str()), false, retVal, excp);
 	}
 	return ret;
 }
