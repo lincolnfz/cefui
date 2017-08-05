@@ -810,6 +810,34 @@ public:
 	void collectAllGarbage(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
 		js_collectAllGarbage();
 	}
+
+	void launchServerData(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		std::string id = std::move(list[0]->GetStringValue().ToString());
+		std::string url = std::move(list[1]->GetStringValue().ToString());
+		std::string method = std::move(list[2]->GetStringValue().ToString());
+		std::string head = std::move(list[3]->GetStringValue().ToString());
+		std::string data = std::move(list[4]->GetStringValue().ToString());
+		parm.getList().AppendVal(id);
+		parm.getList().AppendVal(url);
+		parm.getList().AppendVal(method);
+		parm.getList().AppendVal(head);
+		parm.getList().AppendVal(data);
+
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(this->browser_, parm);
+	}
+
+	void abortServerData(const CefV8ValueList& list, CefRefPtr<CefV8Value>& val){
+		cyjh::Instruct parm;
+		parm.setName(cyjh::PICK_MEMBER_FUN_NAME(__FUNCTION__));
+		std::string id = list[0]->GetStringValue().ToString();
+		parm.getList().AppendVal(id);
+		CefRefPtr<cyjh::RenderThreadCombin> ipc = ClientApp::getGlobalApp()->getRenderThreadCombin();
+		ipc->AsyncRequest(this->browser_, parm);
+	}
+
 protected:
 	bool callfn(const unsigned long& id, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval){
 		bool ret = false;
@@ -1507,6 +1535,8 @@ public:
 		REG_JS_FUN(removeFrameStateChanged, 1);
 		REG_JS_FUN(queryProduct, 2);
 		REG_JS_FUN(collectAllGarbage, 1);
+		REG_JS_FUN(launchServerData, 1);
+		REG_JS_FUN(abortServerData, 1);
 
 #undef REG_JS_FUN
 		/*const char proty[][16] = { "appname", "appDir", "appDataPath", "screen_w", "screen_h", "desktop_w", "desktop_h",

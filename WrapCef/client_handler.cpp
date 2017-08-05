@@ -100,6 +100,8 @@ bool ParseTestUrl(const std::string& url,
 
 int ClientHandler::browser_count_ = 0;
 
+bool bDebug_Dev = false;
+
 ClientHandler::ClientHandler(const WCHAR* cookie_ctx/* = NULL*/)
   : browser_id_(0),
     is_closing_(false),
@@ -231,28 +233,30 @@ std::string UnicodeToUTF8(const std::wstring& str)
 }
 
 void ClientHandler::OnBeforeContextMenu(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    CefRefPtr<CefContextMenuParams> params,
-    CefRefPtr<CefMenuModel> model) {
-  CEF_REQUIRE_UI_THREAD();
+	CefRefPtr<CefBrowser> browser,
+	CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefContextMenuParams> params,
+	CefRefPtr<CefMenuModel> model) {
+	CEF_REQUIRE_UI_THREAD();
 
-#ifdef _WITH_DEV_CONTROL_
-  if ((params->GetTypeFlags() & (CM_TYPEFLAG_PAGE | CM_TYPEFLAG_FRAME)) != 0) {
-    // Add a separator if the menu already has items.
-    if (model->GetCount() > 0)
-      model->AddSeparator();
+//#ifdef _WITH_DEV_CONTROL_
+	if (bDebug_Dev){
+		if ((params->GetTypeFlags() & (CM_TYPEFLAG_PAGE | CM_TYPEFLAG_FRAME)) != 0) {
+			// Add a separator if the menu already has items.
+			if (model->GetCount() > 0)
+				model->AddSeparator();
 
-    // Add DevTools items to all context menus.
-    model->AddItem(CLIENT_ID_SHOW_DEVTOOLS, "&Show DevTools");
-    model->AddItem(CLIENT_ID_CLOSE_DEVTOOLS, "Close DevTools");
-    model->AddSeparator();
-    model->AddItem(CLIENT_ID_INSPECT_ELEMENT, "Inspect Element");
+			// Add DevTools items to all context menus.
+			model->AddItem(CLIENT_ID_SHOW_DEVTOOLS, "&Show DevTools");
+			model->AddItem(CLIENT_ID_CLOSE_DEVTOOLS, "Close DevTools");
+			model->AddSeparator();
+			model->AddItem(CLIENT_ID_INSPECT_ELEMENT, "Inspect Element");
 
-    // Test context menu features.
-    BuildTestMenu(model);
-  }
-#endif
+			// Test context menu features.
+			BuildTestMenu(model);
+		}
+	}
+//#endif
 
   if (params->IsEditable()){
 	  int x = params->GetXCoord();

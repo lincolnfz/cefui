@@ -66,6 +66,9 @@ public:
 
 	bool rsp_initiativeInjectJS(const CefRefPtr<CefBrowser> browser,
 		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
+
+	bool rsp_ackSendData(const CefRefPtr<CefBrowser> browser,
+		const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct> outVal);
 };
 
 #endif

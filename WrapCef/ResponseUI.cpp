@@ -7,6 +7,7 @@
 #include "json/json.h"
 #include "NormalWebFactory.h"
 #include "WebkitEcho.h"
+#include "HttpTrans.h"
 
 /*enum UI_CONTROL_MSG
 {
@@ -74,6 +75,8 @@ ResponseUI::ResponseUI()
 	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_onDocLoaded);
 	//REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_closeBrowser);
 	//REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_siteicon);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_launchServerData);
+	REGISTER_RESPONSE_FUNCTION(ResponseUI, rsp_abortServerData);
 }
 
 
@@ -860,6 +863,37 @@ bool ResponseUI::rsp_siteicon(const CefRefPtr<CefBrowser> browser, const std::sh
 			std::wstring url = req_parm->getList().GetWStrVal(1);
 			WebkitEcho::getFunMap()->webkitSiteIcon(browser->GetIdentifier(), url.c_str(), icon_url.c_str());
 		}
+		ret = true;
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_launchServerData(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (IsWindow(hWnd))
+	{
+		std::string id = req_parm->getList().GetStrVal(0);
+		std::string url = req_parm->getList().GetStrVal(1);
+		std::string method = req_parm->getList().GetStrVal(2);
+		std::string head = req_parm->getList().GetStrVal(3);
+		std::string data = req_parm->getList().GetStrVal(4);
+		bool bPost = _stricmp(method.c_str(), "post") == 0;
+		ret = HttpTrans::getInstance().sendData(browser->GetIdentifier(), id.c_str(),
+			url.c_str(), "", data.c_str(), bPost, head.c_str());
+	}
+	return ret;
+}
+
+bool ResponseUI::rsp_abortServerData(const CefRefPtr<CefBrowser> browser, const std::shared_ptr<cyjh::Instruct> req_parm, std::shared_ptr<cyjh::Instruct>)
+{
+	bool ret = false;
+	HWND hWnd = WebViewFactory::getInstance().GetBrowserHwndByID(browser->GetIdentifier());
+	if (IsWindow(hWnd))
+	{
+		std::string id = req_parm->getList().GetStrVal(0);
+		HttpTrans::getInstance().abort(browser->GetIdentifier(), id.c_str());
 		ret = true;
 	}
 	return ret;
