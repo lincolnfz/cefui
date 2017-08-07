@@ -12,6 +12,7 @@
 #include "client_app.h"
 #include "WebViewFactory.h"
 #include "json/json.h"
+#include "ShareHelper.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wldap32.lib")
@@ -22,11 +23,31 @@
 #pragma comment(lib, "libcurl.lib")
 #endif
 
+typedef boost::function<void(const int&, FILE*, const int&)> RepCB;
+struct SendParm
+{
+	std::string  sUrl;
+	std::string  sProxy;
+	std::string  sData;
+	//std::string  spRsp;
+	std::string  header;
+	unsigned int uiTimeout;
+	bool post;
+	RepCB rcb;
+	unsigned int id;
+	struct curl_slist *chunk;
+	FILE* fp;
+};
+
 size_t curl_writer(void *buffer, size_t size, size_t count, void * stream)
 {
-	std::string * pStream = static_cast<std::string *>(stream);
-	(*pStream).append((char *)buffer, size * count);
-
+	//std::string * pStream = static_cast<std::string *>(stream);
+	//(*pStream).append((char *)buffer, size * count);
+	FILE* fp = static_cast<FILE*>(stream);
+	if ( fp )
+	{
+		fwrite(buffer, size, count, fp);
+	}
 	return size * count;
 };
 
@@ -36,7 +57,7 @@ size_t curl_writer(void *buffer, size_t size, size_t count, void * stream)
 CURL * curl_easy_handler(const std::string & sUrl,
 	const std::string & sProxy,
 	const std::string & sData,
-	std::string & sRsp,
+	FILE* fp,
 	const unsigned int& uiTimeout,
 	const bool& post,
 	const std::string & header,
@@ -57,11 +78,13 @@ CURL * curl_easy_handler(const std::string & sUrl,
 		curl_easy_setopt(curl, CURLOPT_PROXY, sProxy.c_str());
 	}
 
-	// write function //  
+	// write function //
+	fseek(fp, 0, SEEK_SET);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_writer);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &sRsp);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(curl, CURLOPT_HEADER, 1);
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
 	if (!StrCmpNIA(sUrl.c_str(), "https", 5))
 	{
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -218,6 +241,21 @@ CURLcode curl_multi_done(CURL* curl_e)
 	return code;
 }
 
+int easy_curl_done(CURL* curl_e)
+{
+	int iRetcode = -1;
+	CURLcode code = curl_easy_perform(curl_e);
+	if ( code == CURLE_OK )
+	{
+		curl_easy_getinfo(curl_e, CURLINFO_HTTP_CODE, &iRetcode);
+	}
+	else{
+		iRetcode = code;
+	}
+	curl_easy_cleanup(curl_e);
+	return iRetcode;
+}
+
 unsigned int hashID( const int& pageid, const char* id )
 {
 	char szHash[256];
@@ -227,36 +265,35 @@ unsigned int hashID( const int& pageid, const char* id )
 	return string_hash(hash);
 }
 
-typedef boost::function<void(const int&, const std::string&, const int&)> RepCB;
-
 HttpTrans HttpTrans::s_inst;
-
-struct SendParm
-{
-	std::string  sUrl;
-	std::string  sProxy;
-	std::string  sData;
-	std::string  spRsp;
-	std::string  header;
-	unsigned int uiTimeout;
-	bool post;
-	RepCB rcb;
-	unsigned int id;
-	struct curl_slist *chunk;
-};
 
 unsigned int __stdcall sendDataThread(LPVOID parm)
 {
 	SendParm* send = (SendParm*)parm;
-	CURL * curl_e = curl_easy_handler(send->sUrl, send->sProxy, send->sData,
-			send->spRsp, send->uiTimeout,
-			send->post, send->header, &send->chunk);
-	CURLcode code = curl_multi_done(curl_e);
-	if ( send->chunk )
+	WCHAR szTempDirectory[MAX_PATH], szTempName[MAX_PATH], szTempPath[512];
+	GetTempPathW(MAX_PATH, szTempDirectory);
+	GetTempFileName(szTempDirectory, TEXT("rsp_"), 0, szTempPath);
+	//swprintf_s(szTempPath, L"%%s\\%s.tmp", szTempDirectory, szTempName);
+	int code = -1;
+	send->fp = nullptr;
+	int errCode = _wfopen_s(&send->fp, szTempPath, L"wb+");
+	if ( send->fp != nullptr )
 	{
-		curl_slist_free_all(send->chunk);
+		CURL * curl_e = curl_easy_handler(send->sUrl, send->sProxy, send->sData,
+			send->fp, send->uiTimeout,
+			send->post, send->header, &send->chunk);
+		code = easy_curl_done(curl_e);
+		if (send->chunk)
+		{
+			curl_slist_free_all(send->chunk);
+		}
+	}	
+	send->rcb(code, send->fp, send->id);
+	if ( send->fp )
+	{
+		fclose(send->fp);
+		DeleteFileW(szTempPath);
 	}
-	send->rcb(code, send->spRsp, send->id);
 	delete send;
 	return 0;
 }
@@ -335,23 +372,41 @@ void ackData(std::shared_ptr<resp_context_> parm)
 	}
 }
 
-void HttpTrans::recvData(const int& code, const std::string& rsp, const int& id)
+void HttpTrans::recvData(const int& code, FILE* fp, const int& id)
 {
 	//std::unique_lock<std::mutex> lock(lock_);
+	std::wstring rsp;
+	if ( fp )
+	{
+		fseek(fp, 0L, SEEK_END);
+		long length = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+		if ( length > 0 )
+		{
+			char* szBuf = new char[length+1];
+			memset(szBuf, 0, length + 1);
+			if (fread_s(szBuf, length + 1, 1, length, fp) > 0){
+				rsp = cyjh::UTF8ToUnicode(szBuf);
+				delete[]szBuf;
+			}
+		}
+	}
 	std::shared_ptr<resp_context_> parm(new resp_context_);
 	parm->id_ = id;
 	parm->errcode_ = code;
 	parm->head_ = " ";
 	parm->body_ = " ";
-	int pos = rsp.find("\r\n\r\n");
+	int pos = rsp.find(L"\r\n\r\n");
 	if ( pos > 0 )
 	{
-		parm->head_ = rsp.substr(0, pos);
+		std::wstring whead = rsp.substr(0, pos);
 		int size = rsp.size() - pos - 4;
 		if ( size > 0 )
 		{
-			parm->body_ = rsp.substr(pos + 4, size);
+			std::wstring wbody = rsp.substr(pos + 4, size);
+			parm->body_ = cyjh::UnicodeToUTF8(wbody);
 		}
+		parm->head_ = cyjh::UnicodeToUTF8(whead);
 	}
 	CefPostTask(TID_UI, base::Bind(&ackData, parm));
 }
