@@ -36,7 +36,7 @@ protected:
 	HttpTrans();
 	static HttpTrans s_inst;
 
-	void recvData(const int&, FILE*, const int&);
+	void recvData(const int&, FILE*, const int&, const int& reDirectCount);
 
 	
 

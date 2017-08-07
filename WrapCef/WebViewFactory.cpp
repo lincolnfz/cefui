@@ -96,7 +96,7 @@ HWND WebViewFactory::GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hI
 
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
-	//browser_settings.web_security = STATE_DISABLED; //网页安全
+	browser_settings.web_security = STATE_DISABLED; //网页安全
 	//browser_settings.webgl = STATE_DISABLED;
 	//browser_settings.plugins = STATE_DISABLED;
 	//browser_settings.java = STATE_DISABLED;

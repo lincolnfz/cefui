@@ -23,7 +23,7 @@
 #pragma comment(lib, "libcurl.lib")
 #endif
 
-typedef boost::function<void(const int&, FILE*, const int&)> RepCB;
+typedef boost::function<void(const int&, FILE*, const int&, const int&)> RepCB;
 struct SendParm
 {
 	std::string  sUrl;
@@ -241,13 +241,15 @@ CURLcode curl_multi_done(CURL* curl_e)
 	return code;
 }
 
-int easy_curl_done(CURL* curl_e)
+int easy_curl_done(CURL* curl_e, int& reDirectCount)
 {
 	int iRetcode = -1;
+	reDirectCount = 0;
 	CURLcode code = curl_easy_perform(curl_e);
 	if ( code == CURLE_OK )
 	{
 		curl_easy_getinfo(curl_e, CURLINFO_HTTP_CODE, &iRetcode);
+		curl_easy_getinfo(curl_e, CURLINFO_REDIRECT_COUNT, &reDirectCount);
 	}
 	else{
 		iRetcode = code;
@@ -277,18 +279,19 @@ unsigned int __stdcall sendDataThread(LPVOID parm)
 	int code = -1;
 	send->fp = nullptr;
 	int errCode = _wfopen_s(&send->fp, szTempPath, L"wb+");
+	int reDirectCount = 0;
 	if ( send->fp != nullptr )
 	{
 		CURL * curl_e = curl_easy_handler(send->sUrl, send->sProxy, send->sData,
 			send->fp, send->uiTimeout,
 			send->post, send->header, &send->chunk);
-		code = easy_curl_done(curl_e);
+		code = easy_curl_done(curl_e, reDirectCount);
 		if (send->chunk)
 		{
 			curl_slist_free_all(send->chunk);
 		}
 	}	
-	send->rcb(code, send->fp, send->id);
+	send->rcb(code, send->fp, send->id, reDirectCount);
 	if ( send->fp )
 	{
 		fclose(send->fp);
@@ -322,7 +325,7 @@ bool HttpTrans::sendData(const int& pageid, const char* id, const char* url, con
 	parm->header = header ? header : "";
 	parm->uiTimeout = timeout;
 	parm->chunk = nullptr;
-	parm->rcb = boost::bind(&HttpTrans::recvData, this, _1, _2, _3);
+	parm->rcb = boost::bind(&HttpTrans::recvData, this, _1, _2, _3, _4);
 
 	std::shared_ptr<send_context_> sp(new send_context_);
 	sp->pageid_ = pageid;
@@ -372,7 +375,7 @@ void ackData(std::shared_ptr<resp_context_> parm)
 	}
 }
 
-void HttpTrans::recvData(const int& code, FILE* fp, const int& id)
+void HttpTrans::recvData(const int& code, FILE* fp, const int& id, const int& reDirectCount)
 {
 	//std::unique_lock<std::mutex> lock(lock_);
 	std::wstring rsp;
@@ -396,7 +399,20 @@ void HttpTrans::recvData(const int& code, FILE* fp, const int& id)
 	parm->errcode_ = code;
 	parm->head_ = " ";
 	parm->body_ = " ";
-	int pos = rsp.find(L"\r\n\r\n");
+
+	int i = 0;
+	int pos = 0;
+	while (i < reDirectCount)
+	{
+		pos = rsp.find(L"\r\n\r\n");
+		if ( pos > 0 )
+		{
+			rsp.erase(0, pos + 4);
+		}
+		++i;
+	}
+
+	pos = rsp.find(L"\r\n\r\n");
 	if ( pos > 0 )
 	{
 		std::wstring whead = rsp.substr(0, pos);
