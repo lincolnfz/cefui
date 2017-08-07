@@ -95,12 +95,17 @@ CURL * curl_easy_handler(const std::string & sUrl,
 				*chunk = curl_slist_append(*chunk, val.c_str());
 			}
 		}
-		if (*chunk)
-		{
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *chunk);
-		}
 	}
-
+	if (post)
+	{
+		char szbuf[256];
+		sprintf_s(szbuf, "Content-length: %d", sData.size());
+		*chunk = curl_slist_append(*chunk, szbuf);
+	}
+	if (*chunk)
+	{
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, *chunk);
+	}
 	return curl;
 }
 
