@@ -118,4 +118,71 @@ namespace cyjh{
 		}
 	}
 
+	std::string UnicodeToUTF8(const std::wstring& str)
+	{
+		char*   pElementText;
+		int iTextLen;
+		iTextLen = WideCharToMultiByte(CP_UTF8,
+			0,
+			str.c_str(),
+			-1,
+			NULL,
+			0,
+			NULL,
+			NULL);
+		pElementText = new char[iTextLen + 1];
+		memset((void*)pElementText, 0, sizeof(char) * (iTextLen + 1));
+		::WideCharToMultiByte(CP_UTF8,
+			0,
+			str.c_str(),
+			-1,
+			pElementText,
+			iTextLen,
+			NULL,
+			NULL);
+		std::string strText(pElementText);
+		delete[] pElementText;
+		return strText;
+	}
+
+	std::wstring UTF8ToUnicode(const std::string& str)
+	{
+		WCHAR*   pElementText;
+		int iTextLen;
+		iTextLen = MultiByteToWideChar(CP_UTF8,
+			0,
+			str.c_str(),
+			-1,
+			NULL,
+			0);
+		pElementText = new WCHAR[iTextLen + 1];
+		memset((void*)pElementText, 0, sizeof(WCHAR) * (iTextLen + 1));
+		::MultiByteToWideChar(CP_UTF8,
+			0,
+			str.c_str(),
+			-1,
+			pElementText,
+			iTextLen
+			);
+		std::wstring strText(pElementText);
+		delete[] pElementText;
+		return strText;
+	}
+
+	std::wstring UTF8ToUnicode(const char* str)
+	{
+		if ( !str )
+		{
+			return std::wstring(L"");
+		}
+		return UTF8ToUnicode(std::string(str));
+	}
+
+	std::string UrlEncode(const std::wstring& str)
+	{
+		std::string utf8 = UnicodeToUTF8(str);
+
+		return utf8;
+	}
+
 }

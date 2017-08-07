@@ -167,32 +167,6 @@ bool ClientHandler::OnProcessMessageReceived(
 
 //下面三个函数集中处里从渲染线程发送的消息
 ///
-std::string UnicodeToUTF8(const std::wstring& str)
-{
-	char*   pElementText;
-	int iTextLen;
-	iTextLen = WideCharToMultiByte(CP_UTF8,
-		0,
-		str.c_str(),
-		-1,
-		NULL,
-		0,
-		NULL,
-		NULL);
-	pElementText = new char[iTextLen + 1];
-	memset((void*)pElementText, 0, sizeof(char) * (iTextLen + 1));
-	::WideCharToMultiByte(CP_UTF8,
-		0,
-		str.c_str(),
-		-1,
-		pElementText,
-		iTextLen,
-		NULL,
-		NULL);
-	std::string strText(pElementText);
-	delete[] pElementText;
-	return strText;
-}
 
 void ClientHandler::OnBeforeContextMenu(
 	CefRefPtr<CefBrowser> browser,
@@ -257,7 +231,7 @@ void ClientHandler::OnBeforeContextMenu(
 			  {
 				  if ( menus[i].command > 0 )
 				  {
-					  std::string utf8 = UnicodeToUTF8(std::wstring(menus[i].szTxt));
+					  std::string utf8 = cyjh::UnicodeToUTF8(std::wstring(menus[i].szTxt));
 					  if ( menus[i].top )
 					  {
 						  model->InsertItemAt(0, menus[i].command, utf8.c_str());
