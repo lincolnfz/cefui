@@ -195,11 +195,11 @@ std::string UnicodeToUTF8(const std::wstring& str)
 }
 
 void ClientHandler::OnBeforeContextMenu(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    CefRefPtr<CefContextMenuParams> params,
-    CefRefPtr<CefMenuModel> model) {
-  CEF_REQUIRE_UI_THREAD();
+	CefRefPtr<CefBrowser> browser,
+	CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefContextMenuParams> params,
+	CefRefPtr<CefMenuModel> model) {
+	CEF_REQUIRE_UI_THREAD();
 
 //#ifdef _WITH_DEV_CONTROL_
   if (bDebug_Dev)
