@@ -4,7 +4,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <IncludePath>.\3rd-lib\curl-7.54.1\include;$(IncludePath)</IncludePath>
-    <LibraryPath>.\3rd-lib\zlib-1.2.11;.\3rd-lib\openssl-1.0.2l\lib;.\3rd-lib\curl-7.54.1\lib\release;.\3rd-lib\curl-7.54.1\lib\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>.\3rd-lib\zlib-1.2.8;.\3rd-lib\openssl-1.0.2l\lib;.\3rd-lib\curl-7.54.1\lib\release;.\3rd-lib\curl-7.54.1\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
