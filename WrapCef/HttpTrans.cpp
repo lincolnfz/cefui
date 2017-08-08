@@ -85,6 +85,7 @@ CURL * curl_easy_handler(const std::string & sUrl,
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
 	curl_easy_setopt(curl, CURLOPT_HEADER, 1);
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 	if (!StrCmpNIA(sUrl.c_str(), "https", 5))
 	{
 		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
