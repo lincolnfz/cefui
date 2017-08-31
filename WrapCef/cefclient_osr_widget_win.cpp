@@ -889,6 +889,8 @@ void OSRWindow::ApplyPopupOffset(int& x, int& y) const {
   }
 }
 
+extern bool g_all_close;
+
 // Plugin window procedure.
 // static
 LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
@@ -1299,6 +1301,12 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 	 // }
   }
   break;
+
+  case WM_NCDESTROY:{
+	  if (g_all_close)
+		  CefQuitMessageLoop();
+  }
+	break;
 
   }
 

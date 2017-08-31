@@ -137,7 +137,7 @@ CURL * curl_easy_handler(const std::string & sUrl,
 * 使用select函数监听multi curl文件描述符的状态
 * 监听成功返回0，监听失败返回-1
 */
-int curl_multi_select(CURLM * curl_m)
+int curl_multi_select(CURLM * curl_m, int* running_handles)
 {
 	int ret = 0;
 
@@ -156,6 +156,31 @@ int curl_multi_select(CURLM * curl_m)
 	timeout_tv.tv_sec = 1;
 	timeout_tv.tv_usec = 0;
 
+	while (1)
+	{
+		CURLMcode rmcode = curl_multi_fdset(curl_m, &fd_read, &fd_write, &fd_except, &max_fd);
+		if (rmcode != CURLM_OK)
+		{
+			return -1;
+			break;
+		}
+
+		/**
+		* When max_fd returns with -1,
+		* you need to wait a while and then proceed and call curl_multi_perform anyway.
+		* How long to wait? I would suggest 100 milliseconds at least,
+		* but you may want to test it out in your own particular conditions to find a suitable value.
+		*/
+		if (max_fd < 0)
+		{
+			Sleep(200);
+			while (CURLM_CALL_MULTI_PERFORM == curl_multi_perform(curl_m, running_handles));
+		}
+		else{
+			break;
+		}
+	}
+
 	// 获取multi curl需要监听的文件描述符集合 fd_set //  
 	curl_multi_fdset(curl_m, &fd_read, &fd_write, &fd_except, &max_fd);
 
@@ -165,10 +190,10 @@ int curl_multi_select(CURLM * curl_m)
 	* How long to wait? I would suggest 100 milliseconds at least,
 	* but you may want to test it out in your own particular conditions to find a suitable value.
 	*/
-	if (-1 == max_fd)
-	{
-		return -1;
-	}
+	//if (-1 == max_fd)
+	//{
+	//	return -1;
+	//}
 
 	/**
 	* 执行监听，当文件描述符状态发生改变的时候返回
@@ -194,8 +219,9 @@ int curl_multi_select(CURLM * curl_m)
 	return ret;
 }
 
-CURLcode curl_multi_done(CURL* curl_e)
+int curl_multi_done(CURL* curl_e, int& reDirectCount)
 {
+	int iRetcode = -1;
 	CURLM * curl_m = curl_multi_init();
 	curl_multi_add_handle(curl_m, curl_e);
 
@@ -212,7 +238,7 @@ CURLcode curl_multi_done(CURL* curl_e)
 	*/
 	while (running_handles)
 	{
-		if (-1 == curl_multi_select(curl_m))
+		if (-1 == curl_multi_select(curl_m, &running_handles))
 		{
 			break;
 		}
@@ -231,6 +257,11 @@ CURLcode curl_multi_done(CURL* curl_e)
 		if ( CURLMSG_DONE == msg->msg )
 		{
 			code = msg->data.result;
+			if ( code == CURLE_OK )
+			{
+				curl_easy_getinfo(curl_e, CURLINFO_HTTP_CODE, &iRetcode);
+				curl_easy_getinfo(curl_e, CURLINFO_REDIRECT_COUNT, &reDirectCount);
+			}
 		}
 	}
 	curl_multi_remove_handle(curl_m, curl_e);
@@ -239,7 +270,63 @@ CURLcode curl_multi_done(CURL* curl_e)
 
 	curl_multi_cleanup(curl_m);
 
-	return code;
+	return iRetcode;
+}
+
+#define MAX_WAIT_MSECS 30*1000
+
+int curl_multi_done_2(CURL* curl_e, int& reDirectCount)
+{
+	int iRetcode = -1;
+	CURLM * curl_m = curl_multi_init();
+	curl_multi_add_handle(curl_m, curl_e);
+
+	/*
+	* 调用curl_multi_perform函数执行curl请求
+	* url_multi_perform返回CURLM_CALL_MULTI_PERFORM时，表示需要继续调用该函数直到返回值不是CURLM_CALL_MULTI_PERFORM为止
+	* running_handles变量返回正在处理的easy curl数量，running_handles为0表示当前没有正在执行的curl请求
+	*/
+	int running_handles;
+	//while (CURLM_CALL_MULTI_PERFORM == curl_multi_perform(curl_m, &running_handles));
+	curl_multi_perform(curl_m, &running_handles);
+
+	do
+	{
+		int numfds = 0;
+		int res = curl_multi_wait(curl_m, NULL, 0, MAX_WAIT_MSECS, &numfds);
+		if (res != CURLM_OK) {
+			break;
+		}
+		if (!numfds) {
+			break;
+		}
+		//while (CURLM_CALL_MULTI_PERFORM == curl_multi_perform(curl_m, &running_handles));
+		curl_multi_perform(curl_m, &running_handles);
+	} while (running_handles);
+
+	// 输出执行结果 //  
+	int         msgs_left;
+	CURLMsg *   msg;
+	CURLcode code = CURL_LAST;
+	while ((msg = curl_multi_info_read(curl_m, &msgs_left)))
+	{
+		if (CURLMSG_DONE == msg->msg)
+		{
+			code = msg->data.result;
+			if (code == CURLE_OK)
+			{
+				curl_easy_getinfo(curl_e, CURLINFO_HTTP_CODE, &iRetcode);
+				curl_easy_getinfo(curl_e, CURLINFO_REDIRECT_COUNT, &reDirectCount);
+			}
+		}
+	}
+	curl_multi_remove_handle(curl_m, curl_e);
+
+	curl_easy_cleanup(curl_e);
+
+	curl_multi_cleanup(curl_m);
+
+	return iRetcode;
 }
 
 int easy_curl_done(CURL* curl_e, int& reDirectCount)
@@ -287,6 +374,7 @@ unsigned int __stdcall sendDataThread(LPVOID parm)
 			send->fp, send->uiTimeout,
 			send->post, send->header, &send->chunk);
 		code = easy_curl_done(curl_e, reDirectCount);
+		//code = curl_multi_done_2(curl_e, reDirectCount);
 		if (send->chunk)
 		{
 			curl_slist_free_all(send->chunk);
