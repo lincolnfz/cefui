@@ -10,6 +10,7 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "NormalWebFactory.h"
 #include <boost/functional/hash.hpp>
+#include "scheme_test.h"
 
 // Set focus to |browser| on the UI thread.
 static void SetFocusToBrowserControl(CefRefPtr<CefBrowser> browser) {
@@ -72,6 +73,7 @@ HWND ChromeiumBrowserControl::AttachHwnd(HWND hParent, const WCHAR* url, const W
 		CefRequestContextSettings settings;
 		CefString(&settings.cache_path) = CefString(cookie_context);
 		request_context = CefRequestContext::CreateContext(settings, m_requestContextHandler);
+		scheme_test::RegisterSchemes(request_context);
 	}else{
 		//CefRequestContextSettings settings;
 		//CefString(&settings.cache_path) = CefString(g_strGlobalCachePath.c_str());

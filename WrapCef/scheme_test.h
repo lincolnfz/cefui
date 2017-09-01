@@ -11,6 +11,7 @@
 
 class CefBrowser;
 class CefSchemeRegistrar;
+class CefRequestContext;
 
 namespace scheme_test {
 
@@ -20,6 +21,8 @@ void RegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar,
 
 // Create the scheme handler.
 void InitTest();
+
+void RegisterSchemes(CefRefPtr<CefRequestContext> request);
 
 }  // namespace scheme_test
 

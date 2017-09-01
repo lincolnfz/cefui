@@ -415,4 +415,8 @@ void InitTest() {
 	  new ClientSchemeHandlerFactory());
 }
 
+void RegisterSchemes(CefRefPtr<CefRequestContext> request){
+	request->RegisterSchemeHandlerFactory("xpack", "", new ClientSchemeHandlerFactory());
+}
+
 }  // namespace scheme_test
