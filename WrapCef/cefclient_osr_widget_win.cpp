@@ -1255,8 +1255,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 					  }
 				  }
 				  
-				  bPrepareClose = window->m_bPrepareClose;
-				  if ( bPrepareClose == false )
+				  //bPrepareClose = window->m_bPrepareClose;
+				  if (window->m_bPrepareClose == false)
 				  {
 					  window->m_bPrepareClose = true;
 					  int id = 0;
@@ -1278,16 +1278,16 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 					  cyjh::Instruct::SerializationInstruct(&parm, pick);
 					  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
 					  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
-					  ipcsync->Request(browser, parm, spOut);
-
-					  //ipcsync->AsyncRequest(browser, parm);
+					  //ipcsync->Request(browser, parm, spOut);
+					  ipcsync->AsyncRequest(browser, parm);
 					  ipcsync->DisableSendBrowser(id);
+					  //return 0;
 				  }
 			  }
 		  }
 		  //if ( bPrepareClose )
 		  {
-			  browserhost->CloseBrowser(true); //关闭单独
+			  browserhost->CloseBrowser(false); //关闭单独
 		  }
 		  
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);

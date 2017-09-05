@@ -368,7 +368,8 @@ namespace cyjh{
 		{
 			//closeBrowser指令不要进栈			
 			int browserID = spReq->getList().GetIntVal(0);
-			CloseBrowserHelp(spReq, browserID);
+			//CloseBrowserHelp(spReq, browserID);
+			//CefPostTask(TID_RENDERER, base::Bind(&RenderThreadCombin::CloseBrowserHelp, this, spReq, browserID));
 			disableBrowserSet_.insert(browserID);
 			return;
 		}
