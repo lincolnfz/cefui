@@ -232,8 +232,8 @@ int InitCef(HINSTANCE hInstance, HACCEL hAccelTable){
 	//browser_settings.web_security = STATE_DISABLED;
 	//browser_settings.file_access_from_file_urls = STATE_ENABLED;
 	browser_settings.universal_access_from_file_urls = STATE_ENABLED; //让xpack访问本地文件
-	browser_settings.webgl = STATE_DISABLED;
-	browser_settings.plugins = STATE_DISABLED;
+	browser_settings.webgl = STATE_ENABLED;
+	browser_settings.plugins = STATE_ENABLED;
 	//browser_settings.java = STATE_DISABLED;
 	// Creat the new child browser window
 	CefBrowserHost::CreateBrowser(info, provider_1.GetClientHandler().get(),
