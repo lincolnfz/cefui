@@ -401,7 +401,7 @@ class ClientSchemeHandlerFactory : public CefSchemeHandlerFactory {
 
 void RegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar,
                            std::vector<CefString>& cookiable_schemes) {
-  registrar->AddCustomScheme("xpack", true, true, true);
+  registrar->AddCustomScheme("xpack", false, true, true);
   registrar->AddCustomScheme("file", false, true, true);
   registrar->AddCustomScheme("resui", false, true, true);
 }
