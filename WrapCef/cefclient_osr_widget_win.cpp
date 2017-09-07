@@ -1278,8 +1278,8 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 					  cyjh::Instruct::SerializationInstruct(&parm, pick);
 					  CefRefPtr<cyjh::UIThreadCombin> ipcsync = ClientApp::getGlobalApp()->getUIThreadCombin();
 					  std::shared_ptr<cyjh::Instruct> spOut(new cyjh::Instruct);
-					  //ipcsync->Request(browser, parm, spOut);
-					  ipcsync->AsyncRequest(browser, parm);
+					  ipcsync->Request(browser, parm, spOut);
+					  //ipcsync->AsyncRequest(browser, parm);
 					  ipcsync->DisableSendBrowser(id);
 					  //return 0;
 				  }
@@ -1287,7 +1287,7 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 		  }
 		  //if ( bPrepareClose )
 		  {
-			  browserhost->CloseBrowser(false); //关闭单独
+			  browserhost->CloseBrowser(true); //关闭单独
 		  }
 		  
 		  //window->browser_provider_->GetClientHandler()->CloseAllBrowsers(true);
