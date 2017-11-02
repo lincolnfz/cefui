@@ -8,6 +8,7 @@
 #include "cefclient_osr_widget_win.h"
 
 #include <windowsx.h>
+#include <Shellapi.h>
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -110,6 +111,7 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
   if (!hWnd_)
     return false;
 
+  //::DragAcceptFiles(hWnd_, TRUE);
   if (!bTrans_)
   {
 	  bRenderDX_ = dx_Init(hWnd_, rect.right - rect.left, rect.bottom - rect.top);
@@ -1279,6 +1281,20 @@ LRESULT CALLBACK OSRWindow::WndProc(HWND hWnd, UINT message,
 	 // }
   }
   break;
+
+  /*case WM_DROPFILES:
+  {
+	  HDROP hDrop = (HDROP)wParam;
+	  UINT nFileNum = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
+	  WCHAR strFileName[MAX_PATH];
+	  for (int i = 0; i < nFileNum; i++){
+		  DragQueryFile(hDrop, i, strFileName, MAX_PATH);
+	  }
+	  int xx = 0;
+	  DragFinish(hDrop);
+	  return 0;
+  }
+	  break;*/
 
   }
 
