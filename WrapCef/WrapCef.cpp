@@ -388,6 +388,7 @@ std::wstring g_strGlobalCachePath;
 std::wstring g_strReadCachePath;
 bool g_enable_npapi = false;
 bool g_all_close = false;
+WCHAR g_szUA[1024] = { 0 };
 
 namespace wrapQweb{
 
@@ -397,6 +398,14 @@ namespace wrapQweb{
 	HINSTANCE g_hInstance = 0;
 
 	typedef void(*cb_SetSharePluginModule)(bool);
+
+	void SetUserAgent(WCHAR* ua)
+	{
+		if (ua && wcslen(ua) > 0)
+		{
+			wcscpy_s(g_szUA, ua);
+		}
+	}
 
 	int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender, WCHAR* szLocal, bool bShareNPPlugin)
 	{
@@ -453,6 +462,11 @@ namespace wrapQweb{
 		//PathRemoveFileSpec(szFile);
 		//PathCombine(szCache, szFile, L"cache");
 		//cef_string_set(szCache, wcslen(szCache), &settings.cache_path, true);
+
+		if (wcslen(g_szUA) > 0)
+		{
+			cef_string_set(g_szUA, wcslen(g_szUA), &settings.user_agent, true);
+		}
 
 		// Initialize CEF.
 		CefInitialize(main_args, settings, g_app.get(), g_sandbox_info);

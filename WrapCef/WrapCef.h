@@ -110,6 +110,8 @@ namespace wrapQweb {
 		call_LoadError loadError;
 	}FunMap;
 
+	SHARED_EXPORT_API void SetUserAgent(WCHAR* ua);
+
 	SHARED_EXPORT_API int InitLibrary(HINSTANCE hInstance, WCHAR* lpRender = NULL, WCHAR* szLocal = L"zh-CN", bool bShareNPPlugin = true);
 
 	SHARED_EXPORT_API void FreeLibrary();
