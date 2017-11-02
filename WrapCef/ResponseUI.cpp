@@ -7,7 +7,7 @@
 #include "json/json.h"
 #include "NormalWebFactory.h"
 #include "WebkitEcho.h"
-#include "HttpTrans.h"
+//#include "HttpTrans.h"
 
 /*enum UI_CONTROL_MSG
 {
@@ -880,8 +880,8 @@ bool ResponseUI::rsp_launchServerData(const CefRefPtr<CefBrowser> browser, const
 		std::string head = req_parm->getList().GetStrVal(3);
 		std::string data = req_parm->getList().GetStrVal(4);
 		bool bPost = _stricmp(method.c_str(), "post") == 0;
-		ret = HttpTrans::getInstance().sendData(browser->GetIdentifier(), id.c_str(),
-			url.c_str(), "", data.c_str(), bPost, head.c_str());
+		//ret = HttpTrans::getInstance().sendData(browser->GetIdentifier(), id.c_str(),
+		//	url.c_str(), "", data.c_str(), bPost, head.c_str());
 	}
 	return ret;
 }
@@ -893,8 +893,8 @@ bool ResponseUI::rsp_abortServerData(const CefRefPtr<CefBrowser> browser, const 
 	if (IsWindow(hWnd))
 	{
 		std::string id = req_parm->getList().GetStrVal(0);
-		HttpTrans::getInstance().abort(browser->GetIdentifier(), id.c_str());
-		ret = true;
+		//HttpTrans::getInstance().abort(browser->GetIdentifier(), id.c_str());
+		//ret = true;
 	}
 	return ret;
 }
