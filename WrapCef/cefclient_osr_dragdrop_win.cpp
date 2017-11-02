@@ -292,8 +292,8 @@ CefRefPtr<CefDragData> DataObjectToDragData(IDataObject* data_object) {
       if (!(format == CF_UNICODETEXT ||
           format == CF_TEXT ||
           format == moz_url_format ||
-          format == html_format ||
-          format == CF_HDROP)
+          format == html_format /*||
+          format == CF_HDROP*/)  //这里让shell32 拖进来的文件失效掉
           || rgelt[i].tymed != TYMED_HGLOBAL)
         continue;
       STGMEDIUM medium;
