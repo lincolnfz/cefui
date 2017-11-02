@@ -288,6 +288,7 @@ CefRefPtr<CefDragData> DataObjectToDragData(IDataObject* data_object) {
     FORMATETC rgelt[kCelt];
     res = enumFormats->Next(kCelt, rgelt, &celtFetched);
     for (unsigned i = 0; i < celtFetched; i++) {
+		continue; //所有格式都不允许拖入
       CLIPFORMAT format = rgelt[i].cfFormat;
       if (!(format == CF_UNICODETEXT ||
           format == CF_TEXT ||
