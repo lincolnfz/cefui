@@ -484,15 +484,15 @@ namespace wrapQweb{
 	}
 
 	HWND CreateWebView(const int& x, const int& y, const int& width, const int& height,
-		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype)
+		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& winCombination)
 	{
-		return WebViewFactory::getInstance().GetWebView(NULL, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, sizetype);
+		return WebViewFactory::getInstance().GetWebView(NULL, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, winCombination);
 	}
 
 	HWND CreateInheritWebView(const HWND& hSameProcessWnd, const int& x, const int& y, const int& width, const int& height,
-		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype)
+		const WCHAR* lpResource, const int& alpha, const bool& taskbar, const bool& trans, const int& winCombination)
 	{
-		return WebViewFactory::getInstance().GetWebView(hSameProcessWnd, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, sizetype);
+		return WebViewFactory::getInstance().GetWebView(hSameProcessWnd, g_hInstance, x, y, width, height, CefString(lpResource), alpha, taskbar, trans, winCombination);
 	}
 
 	void InitQWeb(FunMap* map){

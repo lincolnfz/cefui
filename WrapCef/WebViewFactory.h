@@ -181,7 +181,7 @@ public:
 	}
 
 	HWND GetWebView(const HWND& hSameProcessWnd, const HINSTANCE& hInstance, const int& x, const int& y, const int& width,
-		const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans, const int& sizetype);
+		const int& height, const CefString& url, const int& alpha, const bool& taskbar, const bool& trans, const int& winCombination);
 
 	CefRefPtr<WebItem> FindItem(const HWND& hWnd);
 

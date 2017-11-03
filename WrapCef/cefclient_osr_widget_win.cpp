@@ -69,7 +69,7 @@ CefRefPtr<OSRWindow> OSRWindow::From(
 }
 
 bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
-		HINSTANCE hInst, LPCTSTR className, const bool& trans, const int& sizetype) {
+	HINSTANCE hInst, LPCTSTR className, const bool& trans, const int& winCombination) {
   DCHECK(hWnd_ == NULL && hDC_ == NULL && hRC_ == NULL);
 
   WNDCLASSEXW wndClass;
@@ -91,10 +91,11 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 	  //dwExStyle = WS_EX_APPWINDOW;
 	  dwStyle |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
   }
-  if ( sizetype == WIDGET_MIN_SIZE )
+  if (winCombination & 0x000f == WIDGET_MIN_SIZE)
   {
 	  dwStyle |= WS_MINIMIZE;
-  }else if ( sizetype == WIDGET_MAX_SIZE )
+  }
+  else if (winCombination & 0x000f == WIDGET_MAX_SIZE)
   {
 	  dwStyle |= WS_MAXIMIZE;
   }
@@ -127,8 +128,11 @@ bool OSRWindow::CreateWidget(HWND hWndParent, const RECT& rect,
 
 #if defined(CEF_USE_ATL)
   drop_target_ = DropTargetWin::Create(this, hWnd_);
-  HRESULT register_res = RegisterDragDrop(hWnd_, drop_target_);
-  DCHECK_EQ(register_res, S_OK);
+  if (winCombination & 0x00f0 == ENABLE_DRAG_DROP)
+  {
+	  HRESULT register_res = RegisterDragDrop(hWnd_, drop_target_);
+	  DCHECK_EQ(register_res, S_OK);
+  }
 #endif
   tipinfo_.SetParentHwnd(hWnd_);
   return true;
